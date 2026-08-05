@@ -17,6 +17,7 @@ function NavBar() {
   const pathname = usePathname();
 
   const notLoggedInLinks = [
+    { title: "Browse", href: "/search" },
     { title: "Features", href: "/#features" },
     { title: "Demo", href: "/#demo" },
     { title: "Pricing", href: "/#pricing" },

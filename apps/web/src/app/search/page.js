@@ -7,7 +7,7 @@ import { Button, Dropdown, InputField, Toast } from '@/components/Elements';
 import ProductCard from '@/components/Product/Card';
 import { Chip } from '@/components/Elements';
 import { searchComponents } from '@/lib/api';
-import { withAuth } from '@/auth/UseUser';
+
 import { useInView } from 'react-intersection-observer';
 import { searchUiLibraries, uiLibraries } from '@/components/Editor/Templates/common';
 import { createPortal } from 'react-dom';
@@ -1030,4 +1030,4 @@ const SearchPage = () => {
     );
 };
 
-export default withAuth(SearchPage);
+export default SearchPage;

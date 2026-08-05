@@ -621,11 +621,15 @@ const Sections = ({ featureColors = [
                         {/* CTA Button */}
                         {/* <GradientSpot color="#8E2DE2" size={250} position={{ x: '50%', y: '50%' }} /> */}
                         <div className="relative z-20 text-center flex flex-col items-center justify-center mt-[-220px]">
-                            <h2 className="text-3xl font-bold mb-6">Ready to Transform Your Development?</h2>
+                            <h2 className="text-3xl font-bold mb-6">Start your own library</h2>
                             <p className="text-xl mb-8 max-w-2xl mx-auto text-gray-400">
-                                Instantly find, customize, and integrate the perfect components for your next big idea, powered by AI.
+                                Browse the catalog, publish your first component, and install it
+                                anywhere — free.
                             </p>
-                            <Button text="Start free" variant="full" onClick={() => router.push('/register')} />
+                            <div className="flex items-center gap-4">
+                                <Button text="Start free" variant="full" onClick={() => router.push('/register')} />
+                                <Button text="Browse all components" variant="outline" onClick={() => router.push('/search')} />
+                            </div>
                         </div>
                     </div>
                 </div>

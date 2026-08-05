@@ -158,14 +158,20 @@ export async function getViewComponent(componentId) {
 }
 export async function searchComponents(pageNum = 0, query, selectedOption, selectedTags) {
     const token = localStorage.getItem('token');
-    const options = {
-        method: 'POST',
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
-        url: `${baseUrl}/component/search`,
-        data: { query, page: pageNum, selectedOption, selectedTags },
-    };
+    // Signed-in users get their upvote state; anonymous visitors browse via
+    // the public endpoint.
+    const options = token
+        ? {
+              method: 'POST',
+              headers: { Authorization: `Bearer ${token}` },
+              url: `${baseUrl}/component/search`,
+              data: { query, page: pageNum, selectedOption, selectedTags },
+          }
+        : {
+              method: 'POST',
+              url: `${baseUrl}/c/search`,
+              data: { query, page: pageNum, selectedOption, selectedTags },
+          };
     return axios(options)
         .then((response) => handleSuccess(response))
         .catch((error) => handelError(error));

@@ -186,7 +186,8 @@ export class ComponentService {
     const baseQuery = this.componentRepository
       .createQueryBuilder('component')
       .leftJoin('component.upvotes', 'upvotes', 'upvotes.userId = :userId', {
-        userId: user.id,
+        // Anonymous browsing: a nil uuid matches no upvote rows.
+        userId: user?.id || '00000000-0000-0000-0000-000000000000',
       });
 
     // Use trigram similarity for better text search
