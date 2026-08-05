@@ -11,8 +11,9 @@ export const login = new Command()
     try {
       const authManager = AuthManager.getInstance();
 
-      // If already authenticated, ask if want to login again
-      if (await authManager.isAuthenticated()) {
+      // With an explicit token, always (re)login without prompting —
+      // keeps `compify login -t` usable in scripts and agents.
+      if (!opts.token && await authManager.isAuthenticated()) {
         const { confirm } = await prompts({
           type: "confirm",
           name: "confirm",

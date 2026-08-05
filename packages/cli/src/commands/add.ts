@@ -32,6 +32,9 @@ interface ComponentSetup {
   overwrite: boolean;
 }
 
+const componentFolderName = (name: string) =>
+  name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")
+
 async function promptForComponentSetup(
   cwd: string, 
   defaultPath: string, 
@@ -150,7 +153,7 @@ export const add = new Command()
           // Check if any files already exist
           const hasExistingFiles = Object.keys(component.files).some(filename => 
             fs.existsSync(path.join(componentDir, filename)) ||
-            fs.existsSync(path.join(componentDir, component.name, filename))
+            fs.existsSync(path.join(componentDir, componentFolderName(component.name), filename))
           )
 
           // If not using flags, ask for setup
@@ -162,11 +165,11 @@ export const add = new Command()
 
             // Add component name to path if user chose folder structure
             if (setup.createFolder) {
-              componentDir = path.join(componentDir, component.name)
+              componentDir = path.join(componentDir, componentFolderName(component.name))
             }
           } else if (!opts.flat) {
             // In non-interactive mode, create folder by default unless --flat is specified
-            componentDir = path.join(componentDir, component.name)
+            componentDir = path.join(componentDir, componentFolderName(component.name))
           }
 
           // Ensure component directory exists

@@ -2,8 +2,8 @@ import fetch from 'node-fetch';
 import { AuthManager } from './auth-manager';
 import { logger } from './logger';
 
-// const BASE_URL = 'https://api.compify.app/cli';
-const BASE_URL = 'http://localhost:3009/cli';
+// Override with COMPIFY_API_URL for local development (e.g. http://localhost:3091).
+const BASE_URL = `${process.env.COMPIFY_API_URL || 'https://api.compify.app'}/cli`;
 export interface ComponentResponse {
   id: string;
   name: string;
