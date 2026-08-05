@@ -18,7 +18,7 @@ export const modelKeywordMap: Record<string, ModelConfig> = {
     defaultParams: {
       maxTokens: 8192,
       temperature: 0.5,
-      model: 'qwen/qwen3.7-flash',
+      model: 'z-ai/glm-4.6v',
     },
     keywords: ['fix', 'debug', 'quick', 'fast', 'quick fix', 'minor change', 'small', 'simple', 'basic','instant'],
   },
@@ -29,7 +29,7 @@ export const modelKeywordMap: Record<string, ModelConfig> = {
     defaultParams: {
       maxTokens: 8192,
       temperature: 0.7,
-      model: 'qwen/qwen3.7-plus',
+      model: 'z-ai/glm-4.6v',
     },
     keywords: [
       'improve',

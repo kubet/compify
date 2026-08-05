@@ -53,7 +53,7 @@ export class AiService {
             'Content-Type': 'application/json',
           },
           body: {
-            model: 'qwen/qwen3.7-flash',
+            model: 'z-ai/glm-4.6v',
             messages: [
               { role: 'system', content: prompt.system ?? prompt.context ?? '' },
               { role: 'user', content: prompt.user ?? prompt.instruction ?? '' },
@@ -203,7 +203,7 @@ export class AiService {
 
       const streamGenerator = await this.providerService.createOpenRouterStream({
         messages,
-        model: 'qwen/qwen3.7-flash',
+        model: 'z-ai/glm-4.6v',
         maxTokens: 8192,
         temperature: 0.3
       });
@@ -309,7 +309,7 @@ export class AiService {
 
     return await this.providerService.generateOpenRouterText({
       messages,
-      model: 'qwen/qwen3.7-flash',
+      model: 'z-ai/glm-4.6v',
       maxTokens: 100,
       temperature: 0.2,
     });
@@ -354,7 +354,7 @@ export class AiService {
 
     const response = await this.providerService.generateOpenRouterText({
       messages,
-      model: 'qwen/qwen3.7-flash',
+      model: 'z-ai/glm-4.6v',
       maxTokens: 2048,
       temperature: 0.2,
       responseFormat: { type: 'json_object' },
@@ -377,7 +377,7 @@ export class AiService {
           content: JSON.stringify(b.files),
         },
       ],
-      model: 'qwen/qwen3.7-flash',
+      model: 'z-ai/glm-4.6v',
       maxTokens: 8192,
       temperature: 0.4,
     });
@@ -410,7 +410,7 @@ export class AiService {
           content: JSON.stringify(b.files),
         },
       ],
-      model: 'qwen/qwen3.7-flash',
+      model: 'z-ai/glm-4.6v',
       maxTokens: 8192,
       temperature: 0.4,
     });
@@ -471,8 +471,9 @@ export class AiService {
     try {
       const response = await this.providerService.generateOpenRouterText({
         messages,
-        model: 'qwen/qwen3.7-flash',
+        model: 'z-ai/glm-4.6v',
         temperature: 0,
+        maxTokens: 4096,
         systemPrompt: generateTokensPrompt(b?.ui),
         responseFormat: { type: 'json_object' },
       });
@@ -551,7 +552,7 @@ export class AiService {
   async generateOpenRouter(
     b: any,
     res: Response,
-    model: string = 'qwen/qwen3.7-flash',
+    model: string = 'z-ai/glm-4.6v',
     maxTokens: number = 4096,
     temperature: number = 0.5,
   ) {
