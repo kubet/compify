@@ -75,6 +75,24 @@ export class AiService {
     };
   }
 
+  // Qwen (and other cheap models) wrap JSON in <think> blocks or markdown
+  // fences; pull out the first balanced JSON object.
+  private extractJson(raw: string): any {
+    let text = (raw || '').replace(/<think>[\s\S]*?<\/think>/g, '');
+    text = text.replace(/```(?:json)?/gi, '');
+    const start = text.indexOf('{');
+    if (start === -1) throw new Error('No valid JSON object found in response');
+    let depth = 0;
+    for (let i = start; i < text.length; i++) {
+      if (text[i] === '{') depth++;
+      else if (text[i] === '}') {
+        depth--;
+        if (depth === 0) return JSON.parse(text.slice(start, i + 1));
+      }
+    }
+    throw new Error('No valid JSON object found in response');
+  }
+
   private findKeywords(prompt: string): string[] {
     const promptLower = prompt.toLowerCase();
     return Object.values(modelKeywordMap)
@@ -456,18 +474,9 @@ export class AiService {
         model: 'qwen/qwen3.7-flash',
         temperature: 0,
         systemPrompt: generateTokensPrompt(b?.ui),
+        responseFormat: { type: 'json_object' },
       });
-
-      // Find the first { and last } to extract JSON
-      const jsonStart = response.indexOf('{');
-      const jsonEnd = response.lastIndexOf('}') + 1;
-
-      if (jsonStart === -1 || jsonEnd === -1) {
-        throw new Error('No valid JSON object found in response');
-      }
-
-      const jsonString = response.slice(jsonStart, jsonEnd);
-      return JSON.parse(jsonString);
+      return this.extractJson(response);
     } catch (error) {
       console.error('GenerateTokens error:', error);
       throw error;
