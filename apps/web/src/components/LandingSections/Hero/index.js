@@ -126,28 +126,37 @@ function Hero() {
                         className="bg-gradient-to-r from-gray-900 to-black text-sm inline-block px-4 py-2 rounded-full mb-6 shadow-lg border border-gray-700 backdrop-filter backdrop-blur-sm"
                         variants={fadeIn}
                     >
-                        <p className="font-semibold text-white tracking-wide">
-                            <span className="mr-2">✨</span>
-                            Now in public beta
-                            <span className="ml-2">✨</span>
+                        <p className="font-medium text-gray-200 tracking-wide">
+                            <span className="mr-2 inline-block h-2 w-2 rounded-full bg-emerald-400 align-middle" />
+                            shadcn-compatible registry
                         </p>
                     </motion.div>
                     <motion.h1
-                        className="text-4xl md:text-[3.5rem] leading-[1.2] font-bold mb-10 text-white"
+                        className="text-4xl md:text-[3.5rem] leading-[1.15] font-bold mb-8 text-white"
                         variants={fadeIn}
                     >
-                        Find the Perfect Components for Your Next Big Idea
-
+                        Build components once.
+                        <br />
+                        Install them anywhere.
                     </motion.h1>
                     <motion.p
-                        className="text-lg md:text-xl text-gray-300 mb-8 max-w-2xl "
+                        className="text-lg md:text-xl text-gray-300 mb-8 max-w-2xl"
                         variants={fadeIn}
                     >
-                        We simplify the search for high-quality app components, so you can focus on what matters most—bringing your vision to life.
+                        A live editor for React components, with your own registry behind
+                        it. Publish as <span className="text-purple-300">@you/component</span> and
+                        it installs into any project — via the shadcn CLI, the compify
+                        CLI, or your coding agent.
                     </motion.p>
                     <motion.div className="space-x-4 flex items-center justify-start" variants={fadeIn}>
-                        <Button text="Get Started Free" textSm='Get Started' variant="full" onClick={() => router.push('/register')} />
-                        <Button text="See How It Works" textSm='Demo' variant="outline" onClick={() => router.push('/#demo')} />
+                        <Button text="Start building" textSm='Start' variant="full" onClick={() => router.push('/register')} />
+                        <Button text="Watch the demo" textSm='Demo' variant="outline" onClick={() => router.push('/#demo')} />
+                    </motion.div>
+                    <motion.div variants={fadeIn}>
+                        <code className="mt-8 inline-block rounded-lg border border-white/10 bg-white/[0.03] px-4 py-2.5 font-mono text-sm text-gray-400">
+                            <span className="select-none text-gray-600">$ </span>
+                            npx shadcn@latest add @compify/vukasinkubet/glass-3d-text
+                        </code>
                     </motion.div>
                 </div>
 
