@@ -42,7 +42,6 @@ export class SubscriptionThrottlerGuard implements CanActivate {
     if (!user) {
       throw new ThrottlerException();
     }
-    console.log(decodedToken?.plan);
     const limit = userPlanMap?.[decodedToken?.plan] || 50;
     const now = Date.now();
     const key = `${user.id}:completion`;
