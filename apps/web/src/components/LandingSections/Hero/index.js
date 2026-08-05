@@ -109,7 +109,7 @@ function Hero() {
     }]
 
     return (
-        <div className="w-full h-full sm:my-60 my-20 flex items-center justify-between">
+        <div className="w-full min-h-[calc(100svh-4rem)] py-12 sm:py-16 flex items-center justify-between">
             <AnimatedBackground />
 
             <motion.div
