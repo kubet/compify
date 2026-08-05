@@ -7,6 +7,8 @@ import { login } from "@/src/commands/login"
 import { logout } from "@/src/commands/logout"
 import { remove } from "@/src/commands/remove"
 import { list } from "@/src/commands/list"
+import { init } from "@/src/commands/init"
+import { mcp } from "@/src/commands/mcp"
 import { Command } from "commander"
 
 import packageJson from "../package.json"
@@ -33,6 +35,8 @@ async function main() {
     .addCommand(logout)
     .addCommand(remove)
     .addCommand(list)
+    .addCommand(init)
+    .addCommand(mcp)
   program.parse()
 }
 

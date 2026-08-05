@@ -28,6 +28,16 @@ stored in your OS keychain-backed config, never in the project.
 
 ## Commands
 
+### `compify init`
+
+Create `compify.json` in the current project (`-y` for defaults,
+`-p <path>` to set where component files go).
+
+### `compify mcp`
+
+Run a Model Context Protocol server over stdio for coding agents —
+see [mcp.md](./mcp.md).
+
 ### `compify add [components...]`
 
 Add one or more components to the current project.

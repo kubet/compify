@@ -1,6 +1,6 @@
 {
   "name": "@compify/cli",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "CLI tool for installing Compify.app components",
   "publishConfig": {
     "access": "public"
@@ -41,7 +41,9 @@
     "keytar": "^7.9.0",
     "kleur": "^4.1.5",
     "node-fetch": "^3.3.0",
-    "prompts": "^2.4.2"
+    "prompts": "^2.4.2",
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@types/diff": "^5.0.3",

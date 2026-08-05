@@ -18,6 +18,7 @@ Build, preview and share UI components. Live at [compify.app](https://compify.ap
 - [CLI reference](docs/cli.md)
 - [shadcn registry interop](docs/registry.md) — `npx shadcn add @compify/<user>/<name>`
 - [Publishing guide](docs/publishing.md)
+- [MCP server for agents](docs/mcp.md) — `compify mcp`
 
 ## Development
 
