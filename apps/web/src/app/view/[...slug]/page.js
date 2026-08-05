@@ -6,20 +6,13 @@ import { Button } from '@/components/Elements';
 import { Share2, TriangleAlert } from 'lucide-react';
 import { withAuth } from '@/auth/UseUser';
 import Toast from '@/components/Elements/Toast';
-import { notFound, useParams } from 'next/navigation';
-import ShareCreateModal from './modals/ShareCreateModal';
-import PublishCreateModal from './modals/PublishCreateModal';
-import { checkIfCanCreate, createComponent, forkComponent, generateTokens, getComponent, getTheme, insertTheme, shareComponent, uploadComponentGif, uploadComponentImage } from '@/lib/api';
-import LimitModal from '@/components/Common/LimitModal';
+import { useParams } from 'next/navigation';
+import { checkIfCanCreate, createComponent, forkComponent, generateTokens, getComponent, getTheme, getViewComponent, insertTheme, shareComponent, uploadComponentGif, uploadComponentImage } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 import { fetchDaisyUIFiles, fetchShadcnFiles, getUIConfigFiles } from '@/components/Editor/Templates/common';
 import { doubleHash, generateHashForAllFiles } from '@/components/Project/utils/double-hash';
-import ReportModal from './modals/ReportModal';
-import SetupModal from '@/components/Editor/Elements/SetupModal';
 import UpvoteButtons from '@/components/Product/UpvoteButtons';
 import shadcnuiDeps from '@/components/Editor/Templates/Deps/shadcnui-deps';
-import ComponentLimit from './modals/ComponentLimit';
-import { NotFoundContent } from '@/app/not-found';
 
 const initSettings = {
     backgroundColor: '#0a0a0a',
@@ -34,7 +27,7 @@ const initSettings = {
     zoomLevel: '1',
 }
 
-function EditComponent() {
+function ViewPage() {
     const router = useRouter();
     const [code, setCode] = useState('');
     const [files, setFiles] = useState({});
@@ -108,7 +101,7 @@ function EditComponent() {
 
 
     const loadComponent = async (id) => {
-        const response = await getComponent(id);
+        const response = await getViewComponent(id);
         if (response.status === 200) {
             await setCompFilesByFramework(response.data.usedUiFrameworks, response.data.files);
             setTemplate(response.data.language);
@@ -124,7 +117,6 @@ function EditComponent() {
             isSetupServer.current = response.data.isSetup || false;
             setUpvoteStatus(response.data.status || null);
             setUpvoteCount(response.data.upvotesCount || 0);
-            setPublishingDomain(response.data.publishingName || '');
             setUsedDeps(response.data.usedDeps || { global: {}, files: {} });
             setActiveFile(response.data.activeFile || null);
             setPreviewFile(response.data.previewFile || null);
@@ -139,7 +131,7 @@ function EditComponent() {
     }
 
     useEffect(() => {
-        const id = params.id;
+        const id = params.slug;
         if (id) {
             loadComponent(id);
         }
@@ -172,10 +164,10 @@ function EditComponent() {
     }
 
     const handleShare = async () => {
-        const url = `${window.location.origin}/c/${params.id}`;
+        const url = `${window.location.origin}/c/${params.slug}`;
         setShareUrl(url);
         if (!isShared) {
-            await shareComponent(params.id);
+            await shareComponent(params.slug);
             setIsShared(true);
         }
         setShareModalOpen(true);
@@ -196,7 +188,7 @@ function EditComponent() {
             setCanCreate(false);
             return;
         }
-        const response = await forkComponent(params.id);
+        const response = await forkComponent(params.slug);
         if (response.status === 201) {
             setToastMessage('Component forked successfully');
             setToastType('success');
@@ -221,7 +213,7 @@ function EditComponent() {
 
         const response = await uploadComponentImage({
             file: imageRef.current,
-            id: params.id
+            id: params.slug
         });
         if (response.status !== 201) {
             setToastMessage('Failed to upload image');
@@ -232,7 +224,7 @@ function EditComponent() {
     const handleSaveGif = async () => {
         if (!activeFile.includes('.preview')) return;
         if (gifCaptures.current.length > 0) {
-            const response = await uploadComponentGif(gifCaptures.current, params.id);
+            const response = await uploadComponentGif(gifCaptures.current, params.slug);
             if (response.status !== 201) {
                 setToastMessage('Failed to upload gif');
                 setToastType('error');
@@ -241,61 +233,10 @@ function EditComponent() {
         }
     }
     const handleSaveComponent = async (propSetup = null) => {
-        const filteredFiles = Object.fromEntries(
-            Object.entries(files).filter(([_, fileData]) => fileData.hidden !== true)
-        );
-        const component = {
-            name,
-            description,
-            code: JSON.stringify(filteredFiles),
-            language: template,
-            visibility: privacy,
-            isShared: isShared,
-            pageSettings: previewSettings,
-            usedUiFrameworks: usedUiFrameworks,
-            usedDeps: usedDeps,
-            activeFile: activeFile,
-            previewFile: previewFile,
-            publishingName: publishingDomain
-        };
-        if (typeof propSetup === 'boolean') {
-            component.isSetup = propSetup;
-        }
-        if (params.id) {
-            component.id = params.id;
-        }
-        const response = await createComponent(component);
-        if (response.status === 201) {
-            setToastMessage('Component saved successfully');
-            setToastType('success');
-            const hash = generateHashForAllFiles(files);
-            setTextHash(hash);
-        } else {
-            setToastMessage(response.data.message || 'Failed to save component');
-            setToastType('error');
-        }
-        await handleThemeSave();
-        handleUploadImage();
-        handleSaveGif();
-        setShowToast(true);
-        setPublishModalOpen(false);
+
     };
     const handleSave = async () => {
-        setImageRequested(true);
-        const imagePromise = new Promise((resolve, reject) => {
-            setImageReceivePromise({ resolve, reject });
-            setTimeout(() => {
-                reject('Image capture timeout');
-            }, 1500);
-        });
 
-        try {
-            await imagePromise;
-        } catch (error) {
-            console.warn('Image capture timed out, proceeding with save');
-        }
-
-        await handleSaveComponent();
     }
     const getFrameworkDeps = (framework) => {
         switch (framework) {
@@ -330,25 +271,10 @@ function EditComponent() {
     }
 
     const handleUpdateSetup = async () => {
-        setPrivacy('draft');
-        let updatedFiles = { ...files };
 
-        for (const framework of usedUiFrameworks) {
-            const configFiles = await initFrameworkConfigFiles(framework);
-            updatedFiles = { ...updatedFiles, ...configFiles };
-        }
-
-        setFiles(updatedFiles);
-        setPendingSave(true);
     }
     const handleThemeSave = async () => {
-        if (!initialTheme?.id) return;
-        const response = await insertTheme({ id: initialTheme.id, factors: initialTheme.factors, groups: initialTheme.groups, values: initialTheme.values });
-        if (response.status !== 201) {
-            setToastMessage('Failed to save theme');
-            setToastType('error');
-            setShowToast(true);
-        }
+
     }
     const handleLoadTheme = async () => {
         const response = await getTheme(initialTheme.id);
@@ -387,7 +313,7 @@ function EditComponent() {
         if (isOwner) return 'Component editor';
         return <div className="flex items-center gap-3">
             <span className="text-sm font-semibold text-gray-400">{upvoteCount >= 0 ? `+${upvoteCount}` : upvoteCount}</span>
-            <UpvoteButtons id={params.id} status={upvoteStatus} changeStatus={handleUpvoteStatus} />
+            <UpvoteButtons id={params.slug} status={upvoteStatus} changeStatus={handleUpvoteStatus} />
         </div>
     }
 
@@ -425,40 +351,12 @@ function EditComponent() {
                     initial={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
                 >
-                    {renderTitle()}
+                    Preview
                 </motion.h4>
-                <p className='text-sm text-yellow-500 w-[160px]'>{renderSaveStatus()}</p>
-                {template && <div className="flex flex-row items-center gap-2">
-                    {!isOwner && <Button
-                        variant="outline"
-                        className="w-full"
-                        onClick={() => setReportModalOpen(true)}
-                        size="small"
-                        text=""
-                        Icon={TriangleAlert}
-                    />}
-                    <Button
-                        variant="outline"
-                        className="w-full"
-                        onClick={handlePublish}
-                        size="small"
-                        text={isOwner ? 'Publish' : 'Fork'}
-                        showIcon={false}
-                    />
-                    <Button
-                        variant="outline"
-                        className="w-full"
-                        onClick={handleShare}
-                        size="small"
-                        text=""
-                        Icon={Share2}
-                    />
-                </div>
-                }
+
 
             </div>
             {template && <Editor
-                key={isSetup ? 'setup' : 'editor'}
                 initialFiles={files}
                 template={template}
                 name={name}
@@ -474,7 +372,7 @@ function EditComponent() {
                 textHash={textHash}
                 initialTheme={initialTheme}
                 setTheme={setInitialTheme}
-                id={params.id}
+                id={params.slug}
                 handleLoadTheme={handleLoadTheme}
                 usedDeps={usedDeps}
                 setUsedDeps={setUsedDeps}
@@ -493,56 +391,9 @@ function EditComponent() {
                     onClose={() => setShowToast(false)}
                 />
             )}
-            <ShareCreateModal
-                shareModalOpen={shareModalOpen}
-                setShareModalOpen={setShareModalOpen}
-                shareUrl={shareUrl}
-                setShareUrl={setShareUrl}
-                setToastMessage={setToastMessage}
-                setToastType={setToastType}
-                setShowToast={setShowToast}
-                id={params.id}
-                image={imageRef.current}
-                privacy={privacy}
-            />
-
-            <PublishCreateModal
-                publishModalOpen={publishModalOpen}
-                setPublishModalOpen={setPublishModalOpen}
-                name={name}
-                setName={setName}
-                description={description}
-                setDescription={setDescription}
-                privacy={privacy}
-                setPrivacy={setPrivacy}
-                handleSaveComponent={handleSaveComponent}
-                image={imageRef.current}
-                publishingDomain={publishingDomain}
-                setPublishingDomain={setPublishingDomain}
-                componentId={params.id}
-                fileTextContent={getFiles()}
-            />
-            <ReportModal
-                reportModalOpen={reportModalOpen}
-                setReportModalOpen={setReportModalOpen}
-                id={params.id}
-                setToastMessage={setToastMessage}
-                setToastType={setToastType}
-                setShowToast={setShowToast}
-            />
-            <LimitModal isOpen={limitModalOpen} onClose={() => setLimitModalOpen(false)} message={limitModalMessage} />
-            <SetupModal
-                isOpen={!isSetup}
-                onClose={() => setIsSetup(true)}
-                template={template}
-                setSelectedUIFramework={setUsedUiFrameworks}
-                setPageView={(view) => setPreviewSettings({ ...previewSettings, ...view })}
-                onContinue={() => handleUpdateSetup()}
-            />
-            <ComponentLimit isOpen={!canCreate} onClose={() => setCanCreate(true)} />
 
         </div>
     )
 }
 
-export default withAuth(EditComponent)
+export default ViewPage

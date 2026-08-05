@@ -30,6 +30,7 @@ export enum ComponentVisibility {
   PRIVATE = 'private',
   PUBLIC = 'public',
   EXTERNAL = 'external',
+  FREE = 'free',
 }
 
 @Entity()
@@ -71,6 +72,9 @@ export class Component {
 
   @Column({ default: false, nullable: true })
   imageUploaded: boolean;
+
+  @Column({ nullable: true, unique: true })
+  publishingDomain: string;
   
   @CreateDateColumn()
   createdAt: Date;

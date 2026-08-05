@@ -369,7 +369,7 @@ const SettingsContent = () => {
     const [lastName, setLastName] = useState(user.lastName || '');
     const [showNameForm, setShowNameForm] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-
+    const [username, setUsername] = useState(user.username || '');
     useEffect(() => {
         loadCliToken();
     }, []);
@@ -623,6 +623,13 @@ const SettingsContent = () => {
                                         Icon={User}
                                     />
                                 </div>
+                                <InputField
+                                    type="text"
+                                    placeholder="Username"
+                                    value={username}
+                                    onChange={(e) => setUsername(e.target.value)}
+                                    Icon={() => <span className="text-gray-400">@</span>}
+                                />
                                 <div className="flex gap-2 w-full justify-between">
                                     <Button
                                         text="Cancel"
@@ -639,17 +646,26 @@ const SettingsContent = () => {
                                         size="small"
                                         showIcon={false}
                                         onClick={async () => {
-                                            const resp = await updateUserInfo({ firstName, lastName });
-                                            if (resp.status === 200 || resp.status === 201) {
-                                                setUser({ ...user, firstName, lastName });
-                                                setIsToastVisible(true);
-                                                setToastMessage({ type: 'success', message: 'Name updated successfully!' });
-                                                setShowNameForm(false);
-                                            } else {
+                                            try {
+                                                const resp = await updateUserInfo({ firstName, lastName, username });
+                                                if (resp.status === 200 || resp.status === 201) {
+                                                    setUser({ ...user, firstName, lastName, username });
+                                                    setIsToastVisible(true);
+                                                    setToastMessage({ type: 'success', message: 'Information updated successfully!' });
+                                                    setShowNameForm(false);
+                                                } else {
+                                                    setIsToastVisible(true);
+                                                    setToastMessage({
+                                                        type: 'error',
+                                                        message: resp.data?.message || 'Failed to update information!'
+                                                    });
+                                                }
+                                            } catch (error) {
+                                                console.error('Update error:', error);
                                                 setIsToastVisible(true);
                                                 setToastMessage({
                                                     type: 'error',
-                                                    message: resp.data.message || 'Failed to update name!'
+                                                    message: error.response?.data?.message || 'Failed to update information. Please try again.'
                                                 });
                                             }
                                         }}

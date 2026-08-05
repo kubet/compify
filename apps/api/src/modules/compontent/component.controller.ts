@@ -144,6 +144,11 @@ export class ComponentController {
     return this.componentService.upvote(body, user);
   }
 
+  @Get('check/domain')
+  checkDomain(@Query('domain') domain: string, @Query('id') id: string) {
+    return this.componentService.checkDomain(domain, id);
+  }
+
   @Delete(':id')
   remove(@Param('id') id: string, @GetUser() user: User) {
     return this.componentService.remove(id, user);

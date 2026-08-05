@@ -128,6 +128,34 @@ export async function getComponent(componentId) {
         .then((response) => handleSuccess(response))
         .catch((error) => handelError(error));
 }
+export async function checkDomain(domain, componentId) {
+    const token = localStorage.getItem('token');
+    const options = {
+        method: 'GET',
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+        url: `${baseUrl}/component/check/domain?domain=${domain}&id=${componentId}`,
+    };
+    return axios(options)
+        .then((response) => handleSuccess(response))
+        .catch((error) => handelError(error));
+}
+export async function getViewComponent(componentId) {
+    console.log('componentId', componentId);
+    const token = localStorage.getItem('token');
+    const slug = Array.isArray(componentId) ? componentId.join('/') : componentId;
+    const options = {
+        method: 'GET',
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+        url: `${baseUrl}/c/view?slug=${slug}`,
+    };
+    return axios(options)
+        .then((response) => handleSuccess(response))
+        .catch((error) => handelError(error));
+}
 export async function searchComponents(pageNum = 0, query, selectedOption, selectedTags) {
     const token = localStorage.getItem('token');
     const options = {
@@ -336,12 +364,12 @@ export async function subcribeToNewsletter(email) {
         .catch((error) => handelError(error));
 }
 
-export async function updateUserInfo({ firstName, lastName }) {
+export async function updateUserInfo({ firstName, lastName, username }) {
     const token = localStorage.getItem('token');
     const options = {
         method: 'POST',
         url: `${baseUrl}/user/change-name`,
-        data: { firstName, lastName },
+        data: { firstName, lastName, username },
         headers: {
             Authorization: `Bearer ${token}`,
         },

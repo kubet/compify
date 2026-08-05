@@ -53,6 +53,10 @@ export class CreateComponentDto {
 
   @IsOptional()
   @IsString()
+  publishingName: string;
+
+  @IsOptional()
+  @IsString()
   visibility: ComponentVisibility;
 
   @IsString()

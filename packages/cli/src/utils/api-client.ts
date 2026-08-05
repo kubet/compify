@@ -39,7 +39,7 @@ export class ApiClient {
   async getComponent(componentName: string): Promise<ComponentResponse> {
     try {
       const headers = await this.getHeaders();
-      const response = await fetch(`${BASE_URL}/get?id=${componentName}`, {
+      const response = await fetch(`${BASE_URL}/get?id=${encodeURIComponent(componentName)}`, {
         headers
       });
 

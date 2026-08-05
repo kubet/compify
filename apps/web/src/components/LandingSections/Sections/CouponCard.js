@@ -45,6 +45,8 @@ function CouponCard({ text, value, bottomText }) {
                         {/* Right section */}
                         <div className="w-2/3">
                             <div className="p-6">
+                                <span className="text-sm text-gray-400/80 mr-1">FOREVER</span>
+
                                 <div className="flex items-baseline">
                                     <span className="text-base text-gray-400/80 mr-1">$</span>
                                     <span className="text-[32px] font-black tracking-tight text-white">{value}</span>

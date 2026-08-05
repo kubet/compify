@@ -6,9 +6,10 @@ Build, preview and share UI components. Live at [compify.app](https://compify.ap
 
 | Path | What | Stack |
 | --- | --- | --- |
-| `apps/web` | compify.app frontend | Next.js 14, React 18, Tailwind |
+| `apps/web` | compify.app frontend | Next.js 16, React 19, Tailwind |
 | `apps/api` | REST API (auth, components, AI, billing) | NestJS 10, TypeORM, PostgreSQL, MinIO |
-| `packages/cli` | `compify` CLI (`compify add <id>`) | Node, tsup |
+| `packages/cli` | `compify` CLI (`compify add <id | @user/name>`) | Node, tsup |
+| `packages/compify-pack` | Vendored Sandpack fork used by the editor | React, rollup |
 | `packages/templates` | Project templates | — |
 
 ## Development

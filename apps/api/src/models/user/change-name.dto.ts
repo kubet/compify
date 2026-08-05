@@ -8,4 +8,8 @@ export class ChangeNameDto {
   @IsString()
   @IsNotEmpty()
   lastName: string;
+
+  @IsString()
+  @IsNotEmpty()
+  username: string;
 }

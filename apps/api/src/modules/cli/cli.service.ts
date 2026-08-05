@@ -45,21 +45,26 @@ export class CliService {
   }
 
   async get(id: string, cliToken: string) {
-    console.log('get', id, cliToken);
     const user = await this.getUserByCliToken(cliToken);
-    const shortId = shortIdToUuid(id);
-    const component = await this.componentRepository
+    const q = this.componentRepository
       .createQueryBuilder('component')
-      .leftJoinAndSelect('component.user', 'user')
-      .where('component.id = :id', { id: shortId })
-      .getOne();
+      .leftJoinAndSelect('component.user', 'user');
+
+    // Components are addressable by short id or by publishing domain
+    // ("@username/name" — stored without the leading "@").
+    if (id.startsWith('@')) {
+      q.where('component.publishingDomain = :publishingDomain', { publishingDomain: id.substring(1) });
+    } else {
+      q.where('component.id = :id', { id: shortIdToUuid(id) });
+    }
+    const component = await q.getOne();
 
     if (!component) {
       throw new NotFoundException(`Component with ID "${id}" not found`);
     }
 
     const isOwner = component.user.id === user.id;
-    if (!isOwner && component.visibility !== ComponentVisibility.PUBLIC) {
+    if (!isOwner && (component.visibility === ComponentVisibility.PRIVATE || component.visibility === ComponentVisibility.DRAFT)) {
       throw new ForbiddenException();
     }
 

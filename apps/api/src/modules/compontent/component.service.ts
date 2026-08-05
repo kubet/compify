@@ -85,7 +85,7 @@ export class ComponentService {
       throw new NotFoundException(`Component with ID "${id}" not found`);
     }
     component.isShared = true;
-    if (component.visibility === ComponentVisibility.PUBLIC) {
+    if (component.visibility === ComponentVisibility.PUBLIC || component.visibility === ComponentVisibility.FREE) {
       await this.constructImageService.constructOGImage(
         id,
         component.name,
@@ -139,7 +139,7 @@ export class ComponentService {
     const component = await this.componentRepository.findOne({
       where: { id: shortIdToUuid(id) },
     });
-    if (component?.visibility !== ComponentVisibility.PUBLIC || !component?.id) {
+    if (component?.visibility !== ComponentVisibility.PUBLIC && component?.visibility !== ComponentVisibility.FREE || !component?.id) {
       throw new NotFoundException(`Not found`);
     }
   }
@@ -148,7 +148,7 @@ export class ComponentService {
       where: { id: shortIdToUuid(id) },
     });
     if (
-      component?.visibility !== ComponentVisibility.PUBLIC ||
+      component?.visibility !== ComponentVisibility.PUBLIC && component?.visibility !== ComponentVisibility.FREE ||
       !component?.id
     ) {
       throw new NotFoundException(`Component with ID "${id}" not found`);
@@ -231,12 +231,13 @@ export class ComponentService {
           : 'component."upvotesCount"',
         'DESC',
       )
-      .offset(page * 12)
-      .limit(12)
-      .getRawMany();
+     
 
-    const total = result.length > 0 ? parseInt(result[0].total_count) : 0;
-    const items = result.map((component) => ({
+    const total = await result.getCount();
+    const itemResult = await result.offset(page * 12)
+    .limit(12)
+    .getRawMany();
+    const items = itemResult.map((component) => ({
       ...component,
       id: uuidToShortId(component.id),
       usedUiFrameworks: component.usedUiFrameworks || [],
@@ -249,7 +250,6 @@ export class ComponentService {
   }
 
   async checkIfCanCreate(user: User) {
-    console.log(user);
     return this.limiterService.componentUsage(user);
   }
 
@@ -270,7 +270,7 @@ export class ComponentService {
     }
 
     // Check if component can be forked (only PUBLIC components)
-    if (originalComponent.visibility !== ComponentVisibility.PUBLIC) {
+    if (originalComponent.visibility === ComponentVisibility.PRIVATE || originalComponent.visibility === ComponentVisibility.DRAFT) {
       throw new ForbiddenException('Only public components can be forked');
     }
     await this.limiterService.componentUsage(user);
@@ -341,22 +341,41 @@ export class ComponentService {
     return user?.subscriptions?.[0]?.plan?.maxComponentSize || 1.5;
   }
 
+
+  async checkIfPublishingDomainIsAvailable(publishingDomain: string, id: string) {
+    const q = await this.componentRepository.createQueryBuilder('component')
+    .where('component.publishingDomain = :domain', { domain: publishingDomain })
+    
+    if (id) {
+      q.andWhere('component.id != :id', { id: shortIdToUuid(id) });
+    }
+    const component = await q.getOne();
+    if (component) {
+      throw new BadRequestException('Publishing domain is already taken');
+    }
+  }
+
   async create(createComponentDto: CreateComponentDto, user: User) {
     const dtoSize = Buffer.from(JSON.stringify(createComponentDto)).length;
     const maxSize = (await this.getUserCreateSizeLimit(user.id)) * 1024 * 1024;
-    console.log(maxSize, dtoSize);
     if (dtoSize > maxSize) {
       throw new BadRequestException(
         `Component size exceeds the maximum allowed size`,
       );
     }
+   
     const id = createComponentDto.id;
     const component = {
       ...createComponentDto,
       user,
     };
+    if (createComponentDto?.publishingName) {
+      const publishingDomain = `${user.username}/${createComponentDto.publishingName}`;
+      await this.checkIfPublishingDomainIsAvailable(publishingDomain,createComponentDto?.id);
+      Object.assign(component, { publishingDomain });
+    }
     if (
-      createComponentDto.visibility === ComponentVisibility.PUBLIC &&
+      (createComponentDto.visibility === ComponentVisibility.PUBLIC || createComponentDto.visibility === ComponentVisibility.FREE) &&
       createComponentDto.isShared
     ) {
       this.constructImageService.constructOGImage(
@@ -413,7 +432,6 @@ export class ComponentService {
   }
 
   async findAllMy(page: number, term: string, filter: string, user: User) {
-    console.log(filter, 'filter', page, term);
 
     // Create base query
     const q = await this.componentRepository
@@ -462,6 +480,15 @@ export class ComponentService {
     };
   }
 
+  async checkDomain(domain: string, id: string) {
+    const q = this.componentRepository.createQueryBuilder('component')
+      .where('component.publishingDomain = :domain', { domain });
+    if (id) {
+      q.andWhere('component.id != :id', { id: shortIdToUuid(id) });
+    }
+    const component = await q.getOne();
+    return { available: !component };
+  }
   async upvote(body: { id: string; status: UpvoteStatus }, user: User) {
     const id = shortIdToUuid(body.id);
 
@@ -530,6 +557,89 @@ export class ComponentService {
     }
   }
 
+  async viewOne(id: string) {
+    let shortId: string;
+    
+    if (id.startsWith('@')) {
+      const component = await this.componentRepository.findOne({
+        where: { publishingDomain: id?.substring(1) },
+      });
+      if (!component) {
+        throw new NotFoundException(`Component with publishing domain "${id}" not found`);
+      }
+      shortId = component.id;
+    } else {
+      shortId = shortIdToUuid(id);
+    }
+
+    const component = await this.componentRepository
+      .createQueryBuilder('component')
+      .leftJoinAndSelect('component.user', 'user')
+      .leftJoinAndSelect('component.themes', 'themes')
+      .where('component.id = :id', { id: shortId })
+      .select([
+        'component.id as id',
+        'component.name as name',
+        'component.description as description',
+        'component.language as language',
+        'component.isShared as "isShared"',
+        'component.pageSettings as "pageSettings"',
+        'component.isSetup as "isSetup"',
+        'component.usedUiFrameworks as "usedUiFrameworks"',
+        'component.usedDeps as "usedDeps"',
+        'component.activeFile as "activeFile"',
+        'component.previewFile as "previewFile"',
+        'component.visibility as "visibility"',
+        'json_agg(themes) as "themes"',
+        'component.upvotesCount as "upvotesCount"',
+      ])
+      .groupBy('component.id')
+      .addGroupBy('themes.id')
+      .addGroupBy('user.id')
+      .getRawOne();
+
+    if (!component) {
+      throw new NotFoundException(`Component with ID "${id}" not found`);
+    }
+
+    // Only allow public and free components to be viewed without authentication
+    if (component.visibility !== ComponentVisibility.PUBLIC && component.visibility !== ComponentVisibility.FREE) {
+      throw new ForbiddenException('This component is not public');
+    }
+
+    const f = (await this.minioService.getFile('components', `${component.id}`))?.buffer.toString() || '{}';
+
+    let result = {
+      id: uuidToShortId(component?.id),
+      name: component?.name,
+      description: component?.description,
+      language: component?.language,
+      activeFile: component?.activeFile,
+      previewFile: component?.previewFile,
+      files: JSON.parse(f),
+      pageSettings: component?.pageSettings,
+      isShared: component?.isShared,
+      upvotesCount: component?.upvotesCount,
+      isSetup: component?.isSetup,
+      usedUiFrameworks: component?.usedUiFrameworks,
+      usedDeps: component?.usedDeps,
+      visibility: component?.visibility,
+      theme: null,
+      isOwner: false, // Always false for public viewing
+    };
+
+    if (component?.themes?.[0]?.id) {
+      result.theme = {
+        id: uuidToShortId(component?.themes?.[0]?.id),
+        factors: component?.themes?.[0]?.factors,
+        groups: component?.themes?.[0]?.groups,
+        values: component?.themes?.[0]?.values,
+      };
+    }
+
+    return result;
+  }
+
   async findOne(id: string, user: User) {
     const shortId = shortIdToUuid(id);
     const component = await this.componentRepository
@@ -552,6 +662,7 @@ export class ComponentService {
         'component.usedDeps as "usedDeps"',
         'component.activeFile as "activeFile"',
         'component.previewFile as "previewFile"',
+        'component.publishingDomain as "publishingName"',
         'component.visibility as "visibility"',
         'json_agg(themes) as "themes"',
         'upvotes.status as "status"',
@@ -564,7 +675,6 @@ export class ComponentService {
       .addGroupBy('user.id')
       .getRawOne();
 
-    console.log(component,user.id); 
     if (!component) {
       throw new NotFoundException(`Component with ID "${id}" not found`);
     }
@@ -588,7 +698,6 @@ export class ComponentService {
         await this.minioService.getFile('components', `${component.id}`)
       )?.buffer.toString() || '{}';
 
-    console.log(component);
     let result = {
       id: uuidToShortId(component?.id),
       name: component?.name,
@@ -604,6 +713,7 @@ export class ComponentService {
       isSetup: component?.isSetup,
       usedUiFrameworks: component?.usedUiFrameworks,
       usedDeps: component?.usedDeps,
+      publishingName: component?.publishingName?.split('/')?.[1] || null,
       visibility: component?.visibility,
       theme: null,
       isOwner,

@@ -20,11 +20,13 @@ function NavBar() {
     { title: "Features", href: "/#features" },
     { title: "Demo", href: "/#demo" },
     { title: "Pricing", href: "/#pricing" },
+    { title: "Templates", href: "/templates" },
     { title: "Components", href: "/#components" },
   ];
 
   const loggedInLinks = [
     { title: "Search", href: "/search" },
+    { title: "Templates", href: "/templates" },
     { title: "Create", href: "/create" },
     { title: "My Components", href: "/my-components" },
   ];

@@ -106,6 +106,10 @@ export class UserService {
   async changeName(b: ChangeNameDto, user: User) {
     user.firstName = b.firstName;
     user.lastName = b.lastName;
+    if (b?.username) {
+      await this.checkIfUsernameIsAvailable(b.username);
+      user.username = b.username;
+    }
     return await this.userRepo.save(user);
   }
 
@@ -153,7 +157,7 @@ export class UserService {
   async getUserSubscriptions(user: User, show: string) {
     const items = await this.subscriptionPlanRepo
       .createQueryBuilder('plan')
-      .where('plan.isFeatured = true')
+      .where('plan.isFeatured = true AND plan.isAvailable = true')
       .select([
         'plan.id as id',
         'plan.name as name',
@@ -214,9 +218,9 @@ export class UserService {
     }));
 
     const data = {
-      annually: filteredItems.filter(
-        (item) => item.billingCycle !== BillingCycle.MONTHLY,
-      ),
+      // annually: filteredItems.filter(
+      //   (item) => item.billingCycle !== BillingCycle.MONTHLY,
+      // ),
       monthly:
         activeSubscription?.billingCycle === BillingCycle.ANNUALLY
           ? []
@@ -235,7 +239,7 @@ export class UserService {
   async getAllSubscriptions() {
     const items = await this.subscriptionPlanRepo
       .createQueryBuilder('plan')
-      .where('plan.isFeatured = true')
+      .where('plan.isFeatured = true AND plan.isAvailable = true')
       .select([
         'plan.id as id',
         'plan.name as name',
@@ -251,9 +255,9 @@ export class UserService {
       .getRawMany();
 
     const data = {
-      annually: items.filter(
-        (item) => item.billingCycle !== BillingCycle.MONTHLY,
-      ),
+      // annually: items.filter(
+      //   (item) => item.billingCycle !== BillingCycle.MONTHLY,
+      // ),
       monthly: items.filter(
         (item) => item.billingCycle !== BillingCycle.ANNUALLY,
       ),
@@ -442,6 +446,14 @@ export class UserService {
     }
 
     return data;
+  }
+
+  async checkIfUsernameIsAvailable(username: string) {
+    const user = await this.userRepo.findOneBy({ username });
+    if (user) {
+      throw new BadRequestException('Username is already taken');
+    }
+    return true;
   }
 
   async signUp(signUpDto: SignUpDto, req: Request): Promise<any> {
@@ -761,6 +773,27 @@ export class UserService {
     return { valid: !foundUser?.id };
   }
 
+  /**
+   * Derive a unique username from an email's local part, appending suffixes
+   * until it no longer collides with an existing user.
+   */
+  private async generateUniqueUsername(email: string): Promise<string> {
+    let base = email?.split('@')[0].replace(/[^a-zA-Z0-9._-]/g, '');
+    if (!base || base.length < 3) {
+      base = `user${Math.floor(Math.random() * 10000)}`;
+    }
+
+    let username = base;
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const existing = await this.userRepo.findOneBy({ username });
+      if (!existing) {
+        return username;
+      }
+      username = `${base}${Math.floor(Math.random() * 10 ** (attempt + 2))}`;
+    }
+    return `user${Date.now()}${Math.floor(Math.random() * 1000)}`;
+  }
+
   async createUser(signUpDto: SignUpDto): Promise<void> {
     if (!signUpDto.email) {
       throw new BadRequestException('Email is required');
@@ -769,10 +802,11 @@ export class UserService {
     const hashedPassword = await bcrypt.hash(signUpDto.password, salt);
 
     const user = new User();
-    user.email = signUpDto?.email?.toLocaleLowerCase();
+    user.email = signUpDto?.email?.toLowerCase();
     user.firstName = signUpDto?.firstName;
     user.lastName = signUpDto?.lastName;
     user.password = hashedPassword;
+    user.username = await this.generateUniqueUsername(user.email);
 
     try {
       await this.userRepo.save(user);
@@ -858,6 +892,7 @@ export class UserService {
       email: respo?.email,
       firstName: respo?.firstName,
       lastName: respo?.lastName,
+      username: respo?.username,
       valid: respo?.valid,
       plan: respo?.subscriptions?.[0]?.plan?.name,
     };
@@ -882,14 +917,12 @@ export class UserService {
     let user = await this.userRepo.findOneBy({ email: googleUser.email });
 
     if (!user) {
-      //TODO REMOVE
-      // return '';
-      // Create new user if doesn't exist
       user = new User();
       user.email = googleUser.email.toLowerCase();
       user.firstName = googleUser.firstName;
       user.lastName = googleUser.lastName;
       user.valid = true; // Google users are pre-verified
+      user.username = await this.generateUniqueUsername(user.email);
       try {
         user = await this.userRepo.save(user);
         await this.createFreeSubscription(user);

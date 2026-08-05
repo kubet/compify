@@ -22,7 +22,7 @@ export class ThemeService {
       relations: ['component'],
     });
 
-    if(theme?.component?.visibility !== ComponentVisibility.PUBLIC) {
+    if(theme?.component?.visibility !== ComponentVisibility.PUBLIC && theme?.component?.visibility !== ComponentVisibility.FREE) {
       await this.checkIfUserCanDoAction(id, user);
     }
     return {

@@ -22,6 +22,9 @@ export class User {
   @Column({ unique: true })
   email: string;
 
+  @Column({ unique: true, nullable: true })
+  username: string;
+
   @Column({ nullable: true })
   password: string;
 
@@ -57,7 +60,6 @@ export class User {
 
   @OneToOne(() => CliToken, (cliToken) => cliToken.user)
   cliToken: CliToken;
-
 
   @Column({ default: 0, nullable: true })
   failedPayments: number;

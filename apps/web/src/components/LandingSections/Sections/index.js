@@ -516,10 +516,10 @@ const Sections = ({ featureColors = [
                             Free to create. Power to scale. Built for you.
                         </p>
                     </div>
-                    <div className="flex justify-center mb-8">
+                    {/* <div className="flex justify-center mb-8">
                         <TextSwitcher options={['monthly', 'annually']} value={period} onChange={setPeriod} />
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-12 w-full">
+                    </div> */}
+                    <div className="mx-auto flex flex-col md:flex-row justify-center mb-8 w-full max-w-[900px] gap-6">
                         <AnimatePresence>
                             {currentPlans.map((plan, index) => (
                                 <PricingCard

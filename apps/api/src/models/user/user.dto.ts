@@ -14,6 +14,9 @@ export class UserDto {
   lastName: string;
 
   @Expose()
+  username: string;
+
+  @Expose()
   valid: boolean;
 
   @Expose()

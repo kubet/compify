@@ -1,4 +1,4 @@
-import { Controller, Get, Headers, Param, Res } from '@nestjs/common';
+import { Controller, Get, Headers, Param, Query, Res } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
 import { ConstructImageService } from './construct-image.service';
@@ -68,6 +68,11 @@ export class PublicComponentController {
   @Get('top-components')
   async getTopComponents() {
     return await this.componentService.getTopComponents();
+  }
+
+  @Get('view')
+  async viewComponent(@Query('slug') id: string) {
+    return await this.componentService.viewOne(id);
   }
 
   @Get('image/:id')
