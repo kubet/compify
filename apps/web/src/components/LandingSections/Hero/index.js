@@ -144,7 +144,7 @@ function Hero() {
 
 
                 <div
-                    className="w-full lg:w-[24rem] h-full min-w-[18rem] min-h-[18rem] max-w-[24rem] max-h-[24rem] lg:max-h-none lg:h-[40rem] relative mt-8 lg:mt-0 overflow-visible"
+                    className="w-full lg:w-[24rem] h-full min-w-[18rem] min-h-[18rem] max-w-[24rem] max-h-[24rem] lg:max-h-none lg:h-[34rem] relative mt-8 lg:mt-0 overflow-visible"
                 >
                     <Image
                         src="/hero.webp"
@@ -161,7 +161,7 @@ function Hero() {
                     />
 
                     <motion.div
-                        className="lg:absolute inset-0 flex flex-col items-center justify-center gap-10 overflow-visible"
+                        className="lg:absolute inset-0 flex flex-col items-center justify-center gap-8 overflow-visible"
                         variants={fadeIn}
                         initial="hidden"
                         animate="visible">
@@ -215,7 +215,7 @@ function Hero() {
                             </div>
                         </div>
 
-                        <div className="relative w-full flex flex-col items-center justify-center h-full">
+                        <div className="relative w-full flex flex-col items-center justify-center">
                             <Slider defaultValue={value} label="Hue" onValueChange={(value) => setValue(value)} />
                         </div>
                     </motion.div>
