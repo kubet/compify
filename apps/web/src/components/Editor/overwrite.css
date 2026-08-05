@@ -1,0 +1,13 @@
+.JSXElement.JSXIdentifier {
+  color: #94e41d !important;
+}
+.diffAdded {
+  background-color: rgba(0, 255, 0, 0.2);
+}
+
+.diffRemoved {
+  background-color: rgba(255, 0, 0, 0.2);
+}
+.iPadShowKeyboard {
+  display: none;
+}

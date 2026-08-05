@@ -1,0 +1,56 @@
+{
+  "name": "@compify/cli",
+  "version": "0.1.0",
+  "description": "CLI tool for installing Compify.app components",
+  "publishConfig": {
+    "access": "public"
+  },
+  "author": {
+    "name": "compify",
+    "url": "https://compify.app"
+  },
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "components",
+    "ui",
+    "tailwind",
+    "compify",
+    "cli",
+    "design-system"
+  ],
+  "type": "module",
+  "exports": "./dist/index.js",
+  "bin": {
+    "compify": "./dist/index.js"
+  },
+  "scripts": {
+    "dev": "tsup --watch",
+    "build": "tsup",
+    "start": "node dist/index.js",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "test": "vitest run",
+    "link": "yarn link",
+    "unlink": "yarn unlink"
+  },
+  "dependencies": {
+    "commander": "^10.0.0",
+    "diff": "^5.1.0",
+    "fs-extra": "^11.1.0",
+    "keytar": "^7.9.0",
+    "kleur": "^4.1.5",
+    "node-fetch": "^3.3.0",
+    "prompts": "^2.4.2"
+  },
+  "devDependencies": {
+    "@types/diff": "^5.0.3",
+    "@types/fs-extra": "^11.0.1",
+    "@types/node": "^18.0.0",
+    "@types/prompts": "^2.4.2",
+    "prettier": "^2.8.8",
+    "tsup": "^6.6.3",
+    "typescript": "^4.9.3",
+    "vitest": "^0.34.0"
+  }
+}

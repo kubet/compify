@@ -1,0 +1,417 @@
+const uiLibMap = {
+  'tailwind': `
+<tailwind>
+- Define in tailwind.config:
+- Usage: bg-token if defined in tailwind.config
+- Apply to all properties (colors, spacing, etc.)
+- NEVER use default values like bg-red-500
+- In tailwind.config for colors primary: 'hsl(var(--color-primary))',
+</tailwind>`,
+
+  'tailwind-ts': `
+<tailwind_ts>
+- Define in tailwind.config:
+- Usage: bg-token if defined in tailwind.config
+- Apply to all properties (colors, spacing, etc.)
+- NEVER use default values like bg-red-500
+- In tailwind.config for colors primary: 'hsl(var(--color-primary))',
+</tailwind_ts>`,
+
+  'tailwind-v4': `
+<tailwind_v4>
+<CSS>
+- Define in CSS: @theme { --token-name: var(--token); } DONT HARD CODE like --color-surface: #hex MAKE SURE IN CSS TO USE TOKEN!
+@theme { --color-surface: var(--color-surface);  --color-text: var(--color-text)...}
+- Token var maped to same token var!
+- LISTEN HERE JUST DO --color-surface: var(--color-surface) FOR ALL TOKENS
+</CSS>
+<JS>
+- Usage: bg-surface
+- Apply to all properties (colors, etc.) except spacing like p-1,gap-1,margin-1 (auto reads --spacing DON'T DO p-spacing,margin-spacing,gap-spacing,etc.)
+- NEVER use default values like bg-red-500
+- IN JS DON'T USE -[VAR(--token)] IN CSS USE -token instead IMPORTANT
+</JS>
+</tailwind_v4>`,
+
+  'tailwind-ts-v4': `
+<tailwind_ts_v4>
+<CSS>
+- Define in CSS: @theme { --token-name: var(--token); } DONT HARD CODE like --color-surface: #hex MAKE SURE IN CSS TO USE TOKEN!
+@theme { --color-surface: var(--color-surface);  --color-text: var(--color-text)...}
+- Token var maped to same token var!
+- LISTEN HERE JUST DO --color-surface: var(--color-surface) FOR ALL TOKENS
+</CSS>
+<JS>
+- Usage: bg-surface
+- Apply to all properties (colors, etc.) except spacing like p-1,gap-1,margin-1 (auto reads --spacing DON'T DO p-spacing,margin-spacing,gap-spacing,etc.)
+- NEVER use default values like bg-red-500
+- IN JS DON'T USE -[VAR(--token)] IN CSS USE -token instead IMPORTANT
+</JS>
+</tailwind_ts_v4>`,
+
+  'mui': `
+<mui>
+- Import tokens from './theme.json'
+- Map via createTheme({ palette: { primary: { main: tokens.primary } }})
+- NEVER hardcode values like '#fff' - use tokens.colorName
+</mui>`,
+
+  'bootstrap': `
+<bootstrap>
+- Map in theme.css: :root { --bs-primary: hsl(var(--primary)); }
+- Use standard Bootstrap classes after mapping
+</bootstrap>`,
+
+   
+'shadcn': `
+<shadcn>
+- CONVERT ALL HSL VALUES to token references in globals.css
+- For EVERY CSS variable in :root, change:
+  FROM: --token: 123 45% 67%
+  TO:   --token: var(--token)
+- EVERY TOKEN must use var() references
+- Example: 
+  • Bad:  --background: 0 0% 100%;
+  • Good: --background: var(--background);
+- NO EXCEPTIONS - convert ALL color values
+- Keep the tailwind.config.ts mappings as: "token": "hsl(var(--token))"
+</shadcn>`,
+
+'daisyui': `
+<daisyui>
+- Don't import anything else than tokens
+- Add this theme to tailwind.config:
+import tokens from "./theme.json"
+  module.exports = {
+  ...
+  daisyui: {
+    themes: [{
+      mytheme: {
+        ...tokens
+      }
+    }]
+  }
+}
+- IMPORTANT: JUST DO ABOVE NOTHING ELSE, DON'T MAKE THEME YOURSELF THERE IS IN THEME.JSON
+- Add to component data-theme="mytheme"
+</daisyui>`,
+'daisyui-ts': `
+<daisyui_ts>
+- Don't import anything else than tokens
+- Add this theme to tailwind.config:
+import tokens from "./theme.json"
+  module.exports = {
+  ...
+  daisyui: {
+    themes: [{
+      mytheme: {
+        ...tokens
+      }
+    }]
+  }
+}
+- IMPORTANT: JUST DO ABOVE NOTHING ELSE, DON'T MAKE THEME YOURSELF THERE IS IN THEME.JSON
+- Add to component data-theme="mytheme"
+</daisyui_ts>`,
+};
+
+const generationUiLibMap = {
+  'tailwind': `
+<tailwind>
+- Use tokens like this: bg-token
+- NEVER use default values like bg-red-500 or text-gray-500
+- ALWAYS USE TOKENS even with spacing like p-token
+</tailwind>`,
+
+'tailwind-ts': `
+<tailwind_ts>
+- Use tokens like this: bg-token
+- NEVER use default values like bg-red-500 or text-gray-500
+- ALWAYS USE TOKENS even with spacing like p-token
+</tailwind_ts>`,
+
+'tailwind-v4': `
+<tailwind_v4>
+- Use tokens like this: bg-token
+- NEVER use default values like bg-red-500 or text-gray-500 or bg-[var(--token)]
+- DON'T USE -[VAR(--token)] IN CSS USE -token instead IMPORTANT
+- ALWAYS USE TOKENS even with spacing like p-token
+</tailwind_v4>`,
+
+'tailwind-ts-v4': `
+<tailwind_ts_v4>
+- Use tokens like this: bg-token
+- NEVER use default values like bg-red-500 or text-gray-500 or bg-[var(--token)]
+- DON'T USE -[VAR(--token)] IN CSS USE -token instead IMPORTANT
+- ALWAYS USE TOKENS even with spacing like p-token
+</tailwind_ts_v4>`,
+
+'mui': `
+<mui>
+- You can create theme with tokens like this: createTheme({ palette: { primary: { main: tokens.primary } }})
+- NEVER use default values like '#fff' - use tokens.colorName
+- Import tokens from theme.json
+</mui>`,
+
+'bootstrap': `
+<bootstrap>
+- Tokens are defined in theme.css and theme.json
+- Use as fit
+</bootstrap>`,
+
+'shadcn': `
+<shadcn>
+- Use tokens like this: bg-token
+- NEVER use default values like bg-red-500 or text-gray-500
+- ALWAYS USE TOKENS even with spacing like p-token
+</shadcn>`,
+
+'daisyui': `
+<daisyui>
+- Use tokens like this: bg-token
+- NEVER use default values like bg-red-500 or text-gray-500
+- ALWAYS USE TOKENS even with spacing like p-token
+- Add to component data-theme="mytheme"
+</daisyui>`,
+
+'daisyui-ts': `
+<daisyui_ts>
+- Use tokens like this: bg-token
+- NEVER use default values like bg-red-500 or text-gray-500
+- ALWAYS USE TOKENS even with spacing like p-token
+- Add to component data-theme="mytheme"
+</daisyui_ts>`,
+}
+
+
+const generateThemeSection = (themeKeys: string[], uiLibs: string[]): string => {
+  const relevantLibs = uiLibs
+    .filter(lib => uiLibMap[lib])
+    .map(lib => uiLibMap[lib])
+    .join('\n');
+  console.log(uiLibs, uiLibMap[uiLibs[0]])
+  console.log( `
+    <theme>
+    <available_tokens>${themeKeys.join(', ')}</available_tokens>
+    ${relevantLibs}
+    </theme>`);
+
+  return `
+<theme>
+<available_tokens>${themeKeys.join(', ')}</available_tokens>
+${relevantLibs}
+</theme>`;
+};
+
+const generateComponentSection = (themeKeys: string[], uiLibs: string[]): string => {
+  const relevantLibs = uiLibs
+    .filter(lib => generationUiLibMap[lib])
+    .map(lib => generationUiLibMap[lib])
+    .join('\n');
+
+  console.log( `
+    <component>
+    <available_tokens>${themeKeys.join(', ')}</available_tokens>
+    ${relevantLibs}
+    </component>`);
+
+  return `
+<component>
+<available_tokens>${themeKeys.join(', ')}</available_tokens>
+${relevantLibs}
+</component>`;
+};
+export const generationPrompt = ({
+  language,
+  themeKeys,
+  usedUiFrameworks,
+}: {
+  language: string;
+  themeKeys: string[];
+  usedUiFrameworks: string[];
+}): string => {
+  return `You are an expert UI developer,top 1% of 1% of experts in the field with an IQ of 434. 
+  Your task is to generate expert-level UI code that is both beautiful and harmonious in design and animations.
+  Follow this strictly: Respond with code only, no explanatory text,always provide default values for props.
+  Use ${language} and other things there are in init code for ex don't rewrite in another ui lib or such.
+  When generating pages make them responsive and mobile first.
+  ${usedUiFrameworks.includes('mui') ? "Make sure to import components from mui!" : ""}
+  ${usedUiFrameworks.includes('theme') ? generateComponentSection(themeKeys, usedUiFrameworks) : ''}`;
+};
+
+export const completionPrompt = ({ language, usedUiFrameworks }): string => {
+  // return `Using ${language}.You are continuation llm you return continuation of user code noting else!`;
+  return `## Task: Code Completion
+  
+    ### Language: ${language} 
+    ### Used UI Frameworks: ${usedUiFrameworks.join(', ')}
+    ### Instructions:
+    - You are a world class coding assistant.
+    - Given the current text, context, and the last character of the user input, provide a suggestion for code completion.
+    - The suggestion must be based on the current text, as well as the text before the cursor.
+    - This is not a conversation, so please do not ask questions or prompt for additional information.
+    
+    ### Notes
+    - NEVER INCLUDE ANY MARKDOWN IN THE RESPONSE - THIS MEANS CODEBLOCKS AS WELL.
+    - Never include any annotations such as "# Suggestion:" or "# Suggestions:".
+    - Newlines should be included after any of the following characters: "{", "[", "(", ")", "]", "}", and ",".
+    - Never suggest a newline after a space or newline.
+    - Ensure that newline suggestions follow the same indentation as the current line.
+    - The suggestion must start with the last character of the current user input.
+    - Only ever return the code snippet, do not return any markdown unless it is part of the code snippet.
+    - Do not return any code that is already present in the current text.
+    - Do not return anything that is not valid code.
+    - If you do not have a suggestion, return an empty string.`;
+};
+
+export const generateTokensPrompt = (ui: string): string => {
+  return `You are a expert design token generator. 
+  You will output full tokens json withtout changing structure unless user asks for it.
+  Each value field is running replacor so you could use for example --factor-name (-- prefix is important only in value field) and it will be replaced with the value.
+  Special replacor is avalible like calc , for ex hsl(--hue, --saturation%, calc(--lightness - 10%))
+  Meta token is eg value:--palette-\${--theme}-ring will depend on theme value then load value from palette.
+  When calculating with unit put after calc not inside! eg. calc(--radius * 1.5)rem
+  IMPORTANT: You must output valid JSON that strictly follows this structure, with no additional commentary:
+{
+  "factors": [
+    {
+      "key": string,
+      "value": number,
+      "max": number,
+      "min": number,
+      "type": hue | saturation | lightness | value
+    }
+  ],
+  "groups": {
+    "name": {
+      "type": palette | value,
+      "isPublic": boolean,
+      "options": [
+        {
+          "key": string,
+          "value": string
+        }
+      ]
+    },
+    ...
+  },
+  "values": [
+    {
+      "key": string,
+      "value": string
+    }
+  ]
+}
+`;
+};
+
+export const remapFilesPrompt = ({
+  uiFrameworks,
+  themeKeys,
+}: {
+  uiFrameworks: string[];
+  themeKeys: string[];
+}): string => {
+  return `
+<role>You are an expert design token remapper</role>
+
+<output_format>
+Only output JSON object {[file_name]:[file_content]}
+No explanations or extra text
+</output_format>
+
+<task>
+Remap or create files to use design tokens according to the selected UI framework
+</task>
+
+<constraints>
+- Only use available tokens: ${themeKeys.join(', ')}
+- Never use hardcoded values (colors, sizes, etc.)
+- Follow framework-specific patterns exactly
+- Only output provided files don't add any other files.
+- OUTPUT IS VALID JSON IN DOUBLE QUOTES NOT SINGLE QUOTES OR BACKTICKS.
+</constraints>
+
+${uiFrameworks.includes('theme') ? generateThemeSection(themeKeys, uiFrameworks) : ''}`;
+};
+
+export const generatePreviewPrompt = (): string => {
+  return `
+<role>You are an expert preview generator</role>
+
+<output_format>
+Only output JSON object {[file_name]:[file_content]}
+No explanations or extra text
+</output_format>
+
+<task>
+Generate a preview single preview/showcase file for all given files.
+</task>
+
+<constraints>
+- Read all given files and render their variants using props.
+- End file name should be {RELATED_FILES_NAME}.preview.{EXTENSION}
+- Use extensions from given files.
+- OUTPUT IS VALID JSON IN DOUBLE QUOTES NOT SINGLE QUOTES OR BACKTICKS.
+- Don't add background (OF ANY KIND) just render components in flex wrapper.
+</constraints>
+
+<example>
+<input>
+{"/Button.tsx": "...", "/Card.tsx": "..."}
+</input>
+<output>
+{"/ButtonCard.preview.tsx": "..."}
+</output>
+</example>
+`;
+};
+
+export const completionInputPrompt = (b: any) => {
+  const hasFa = b?.fa?.length > 0;
+  return `<output_format>
+Respond only with ONE of these json objects or nothing:
+{type:'font', options:[MAX_3_GOOGLE_FONTS]}
+${hasFa ? `{type:'factor', key:EXACT_MATCHING_FACTOR}` : ''}
+{type:'enhance', value:BETTER_PROMPT_MAX_2_SENTENCES}
+
+<context>
+This is LLM that helps with adjustments.
+</context>
+
+<rules>
+1. Font response: Return top 3 Google fonts when user mentions typography
+${
+  hasFa
+    ? `2. Factor response: 
+- ONLY return factors from available list
+- Convert common words to exact factors:
+ rounded/circular → radius
+ color/tint → hue
+ vivid/intense → saturation
+- Return nothing if no exact match possible`
+    : ''
+}
+3. Enhance response: For vague/short prompts, expand to 2 clear sentences max, don't ask user to clarify just do it.
+
+<triggers>
+Font: Exact matches for "font", "typography", "text style"
+${
+  hasFa
+    ? `Factor: Like these mappings:
+- round, rounded, circular → radius
+- color, tint, tone → hue
+- vivid, intense, saturated → saturation`
+    : ''
+}
+Enhance: When prompt is under 5 words or unclear
+
+${
+  hasFa
+    ? `<available_factors>
+${b?.fa?.join('|')}`
+    : ''
+}
+</rules>
+</output_format>`;
+};

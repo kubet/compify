@@ -1,0 +1,46 @@
+# Compify
+
+Build, preview and share UI components. Live at [compify.app](https://compify.app).
+
+## Repository layout
+
+| Path | What | Stack |
+| --- | --- | --- |
+| `apps/web` | compify.app frontend | Next.js 14, React 18, Tailwind |
+| `apps/api` | REST API (auth, components, AI, billing) | NestJS 10, TypeORM, PostgreSQL, MinIO |
+| `packages/cli` | `compify` CLI (`compify add <id>`) | Node, tsup |
+| `packages/templates` | Project templates | — |
+
+## Development
+
+Each app is self-contained for now (no workspace hoisting yet).
+
+```bash
+# frontend — http://localhost:3000
+cd apps/web && yarn && yarn dev
+
+# api — http://localhost:3091 (needs PostgreSQL + MinIO, see .env.stage.local)
+cd apps/api && yarn && yarn start:dev
+
+# cli
+cd packages/cli && yarn && yarn build
+```
+
+### API environment
+
+`apps/api` reads `.env.stage.<STAGE>` (`local` | `prod`). Required: PostgreSQL
+credentials, MinIO keys, JWT secret; optional: AI provider keys, Stripe,
+ZeptoMail, Turnstile. Env files are gitignored — never commit them.
+
+### Storage
+
+MinIO buckets: `components` (one JSON object per component id holding its
+files), `images` (`<shortId>` preview + `<shortId>-og` social image, webp),
+`public` (static assets, served via cdn.compify.app), `projects`.
+
+## Production
+
+Single host behind nginx. `compify-front` (Next, port 3000) and `compify-back`
+(Nest, port 3091) run under pm2 in cluster mode; MinIO on 9000
+(cdn.compify.app proxies the `public` bucket); PostgreSQL 15 local.
+Deploy: `/root/deploy-compify-front.sh` (pull master, build, `pm2 reload`).
