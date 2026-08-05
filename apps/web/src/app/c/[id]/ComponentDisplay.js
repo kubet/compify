@@ -2,7 +2,7 @@
 
 import Button from '@/components/Elements/Button';
 import Chip from '@/components/Elements/Chip';
-import { Code2, LogIn, Heart, Boxes, PackageOpen, Share2, ArrowUpRight, Check } from 'lucide-react';
+import { Code2, LogIn, Heart, Boxes, PackageOpen, Share2, ArrowUpRight, Check, Terminal, Copy } from 'lucide-react';
 import Link from 'next/link';
 import { baseUrl } from '@/constains';
 import { motion } from 'framer-motion';
@@ -90,6 +90,28 @@ const shareOptions = [
     }
 ];
 
+
+function InstallCommand({ label, command }) {
+    const [copied, setCopied] = useState(false);
+
+    const handleCopy = async () => {
+        await navigator.clipboard.writeText(command);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    return (
+        <button
+            onClick={handleCopy}
+            className="group flex w-full items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-left transition hover:border-purple-400/30 hover:bg-white/[0.05]"
+        >
+            <span className="shrink-0 rounded-md bg-purple-500/10 px-2 py-0.5 text-xs font-medium text-purple-300">{label}</span>
+            <code className="flex-1 overflow-x-auto whitespace-nowrap text-sm text-gray-300">{command}</code>
+            {copied ? <Check size={16} className="shrink-0 text-green-400" /> : <Copy size={16} className="shrink-0 text-gray-500 group-hover:text-gray-300" />}
+        </button>
+    );
+}
+
 export default function ComponentDisplay({ data }) {
     const { isSignedIn } = useUser();
     const [mounted, setMounted] = useState(false);
@@ -103,7 +125,7 @@ export default function ComponentDisplay({ data }) {
         return null;
     }
 
-    const { name, description, language, usedUiFrameworks, upvotesCount } = data;
+    const { name, description, language, usedUiFrameworks, upvotesCount, publishingDomain } = data;
 
     const filteredUsedUiFrameworks = usedUiFrameworks.filter(framework => framework !== 'theme');
 
@@ -354,6 +376,26 @@ export default function ComponentDisplay({ data }) {
                                     ))}
                                 </div>
                             </motion.div>
+
+                            {/* Install Section */}
+                            {publishingDomain && (
+                                <motion.div variants={fadeInUp} className="space-y-4">
+                                    <div className="flex items-center gap-2 text-sm text-gray-400">
+                                        <Terminal size={16} className="text-purple-400" />
+                                        <span>Install in your project</span>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <InstallCommand
+                                            label="shadcn"
+                                            command={`npx shadcn@latest add https://api.compify.app/r/${publishingDomain}.json`}
+                                        />
+                                        <InstallCommand
+                                            label="compify"
+                                            command={`compify add @${publishingDomain}`}
+                                        />
+                                    </div>
+                                </motion.div>
+                            )}
                         </motion.div>
                     </div>
                 </div>

@@ -159,6 +159,7 @@ export class ComponentService {
       language: component.language,
       usedUiFrameworks: component.usedUiFrameworks,
       upvotesCount: component.upvotesCount,
+      publishingDomain: component.publishingDomain || null,
     };
   }
 
