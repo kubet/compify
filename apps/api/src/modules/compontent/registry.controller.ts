@@ -50,12 +50,19 @@ export class RegistryController {
       name: 'compify',
       homepage: 'https://compify.app',
       items: components.map((component) => ({
-        name: component.publishingDomain,
+        name: component.publishingDomain.replace(/^compify\//, ''),
         type: 'registry:component',
         title: component.name,
         description: component.description || undefined,
       })),
     };
+  }
+
+  // Official components live under the "compify" handle and resolve from the
+  // short form too: /r/glass-3d-text.json === /r/compify/glass-3d-text.json.
+  @Get(':name.json')
+  async officialItem(@Param('name') name: string) {
+    return this.buildItem(`compify/${name}`);
   }
 
   @Get(':username/:name.json')

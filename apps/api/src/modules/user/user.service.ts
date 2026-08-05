@@ -448,7 +448,16 @@ export class UserService {
     return data;
   }
 
+  // Handles that would collide with official/system namespaces or routes.
+  private static readonly RESERVED_USERNAMES = [
+    'compify', 'admin', 'api', 'www', 'registry', 'docs', 'blog', 'support',
+    'help', 'team', 'official', 'system', 'root', 'cdn', 'assets', 'static',
+  ];
+
   async checkIfUsernameIsAvailable(username: string) {
+    if (UserService.RESERVED_USERNAMES.includes(username.toLowerCase())) {
+      throw new BadRequestException('Username is reserved');
+    }
     const user = await this.userRepo.findOneBy({ username });
     if (user) {
       throw new BadRequestException('Username is already taken');
@@ -785,7 +794,12 @@ export class UserService {
 
     let username = base;
     for (let attempt = 0; attempt < 5; attempt++) {
-      const existing = await this.userRepo.findOneBy({ username });
+      const reserved = UserService.RESERVED_USERNAMES.includes(
+        username.toLowerCase(),
+      );
+      const existing = reserved
+        ? true
+        : await this.userRepo.findOneBy({ username });
       if (!existing) {
         return username;
       }

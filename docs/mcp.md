@@ -39,7 +39,7 @@ claude mcp add compify -- npx -y @compify/cli mcp
 ## Typical agent flow
 
 1. "Find me a pricing card on compify" → `search_components("pricing")`
-2. `get_component("vukasinkubet/expert-pricing-card")`
+2. `get_component("expert-pricing-card")`
 3. Agent writes the file(s) into the project and adds `framer-motion`,
    `lucide-react` to package.json.
 

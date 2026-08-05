@@ -7,7 +7,7 @@ install components with the tooling you already use — no compify CLI required.
 ## One-off install
 
 ```bash
-npx shadcn@latest add https://api.compify.app/r/vukasinkubet/prism-pricing-card.json
+npx shadcn@latest add https://api.compify.app/r/glass-3d-text.json
 ```
 
 ## Configure the namespace (recommended)
@@ -22,10 +22,10 @@ Add compify to `components.json` in your project:
 }
 ```
 
-Then install any component as `@compify/<user>/<name>`:
+Then install any component as `@compify/<name>`:
 
 ```bash
-npx shadcn@latest add @compify/vukasinkubet/prism-pricing-card
+npx shadcn@latest add @compify/glass-3d-text
 ```
 
 ## Agents (shadcn MCP)

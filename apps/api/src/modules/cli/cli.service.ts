@@ -53,7 +53,9 @@ export class CliService {
     // Components are addressable by short id or by publishing domain
     // ("@username/name" — stored without the leading "@").
     if (id.startsWith('@')) {
-      q.where('component.publishingDomain = :publishingDomain', { publishingDomain: id.substring(1) });
+      const domain = id.substring(1);
+      const domains = domain.includes('/') ? [domain] : [domain, `compify/${domain}`];
+      q.where('component.publishingDomain IN (:...domains)', { domains });
     } else {
       q.where('component.id = :id', { id: shortIdToUuid(id) });
     }

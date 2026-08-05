@@ -6,10 +6,10 @@
 ## For coding agents
 
 - Install a public component into a shadcn project:
-  `npx shadcn@latest add https://api.compify.app/r/<user>/<name>.json`
+  `npx shadcn@latest add https://api.compify.app/r/<name>.json`
 - Or configure the namespace once in components.json:
   `"registries": { "@compify": "https://api.compify.app/r/{name}.json" }`
-  then: `npx shadcn@latest add @compify/<user>/<name>`
+  then: `npx shadcn@latest add @compify/<name>`
 - Public component index (shadcn registry.json format):
   https://api.compify.app/r/registry.json
 - Component metadata: GET https://api.compify.app/c/info/<id>

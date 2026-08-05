@@ -562,9 +562,16 @@ export class ComponentService {
     let shortId: string;
     
     if (id.startsWith('@')) {
-      const component = await this.componentRepository.findOne({
-        where: { publishingDomain: id?.substring(1) },
+      const domain = id.substring(1);
+      let component = await this.componentRepository.findOne({
+        where: { publishingDomain: domain },
       });
+      // Official components resolve from the short form too: @name -> compify/name.
+      if (!component && !domain.includes('/')) {
+        component = await this.componentRepository.findOne({
+          where: { publishingDomain: `compify/${domain}` },
+        });
+      }
       if (!component) {
         throw new NotFoundException(`Component with publishing domain "${id}" not found`);
       }

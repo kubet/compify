@@ -7,7 +7,11 @@ export default async function sitemap() {
             url: 'https://compify.app',
             changeFrequency: 'daily',
             priority: 1.0
-        }
+        },
+        { url: 'https://compify.app/blog', changeFrequency: 'weekly', priority: 0.6 },
+        { url: 'https://compify.app/blog/shadcn-compatible-registry', changeFrequency: 'monthly', priority: 0.5 },
+        { url: 'https://compify.app/blog/publish-and-install', changeFrequency: 'monthly', priority: 0.5 },
+        { url: 'https://compify.app/blog/agent-ready-components', changeFrequency: 'monthly', priority: 0.5 },
     ];
 
     try {
