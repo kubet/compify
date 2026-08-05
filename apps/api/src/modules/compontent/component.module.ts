@@ -7,6 +7,7 @@ import { ComponentController } from './component.controller';
 import { MinioModule } from '../minio/minio.module';
 import { ConstructImageService } from './construct-image.service';
 import { PublicComponentController } from './public-component.controller';
+import { RegistryController } from './registry.controller';
 import { LimiterService } from '../limiter/limiter.service';
 import { User } from 'src/entities/user/user.entity';
 import { Theme } from 'src/entities/project/theme.entity';
@@ -30,7 +31,7 @@ import { Subscription } from 'src/entities/subscription/subscription.entity';
     ]),
     MinioModule,
   ],
-  controllers: [ComponentController, PublicComponentController],
+  controllers: [ComponentController, PublicComponentController, RegistryController],
   providers: [ComponentService, ConstructImageService, LimiterService],
   exports: [ComponentService],
 })

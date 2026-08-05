@@ -1,5 +1,7 @@
 # Compify CLI
 
+
+> Full reference: [docs/cli.md](../../docs/cli.md) · shadcn interop: [docs/registry.md](../../docs/registry.md)
 A powerful CLI tool for managing and syncing components from your global registry.
 
 ## Features

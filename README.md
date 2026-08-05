@@ -12,6 +12,13 @@ Build, preview and share UI components. Live at [compify.app](https://compify.ap
 | `packages/compify-pack` | Vendored Sandpack fork used by the editor | React, rollup |
 | `packages/templates` | Project templates | — |
 
+## Docs
+
+- [Product direction](PRODUCT.md) — positioning, personas, roadmap
+- [CLI reference](docs/cli.md)
+- [shadcn registry interop](docs/registry.md) — `npx shadcn add @compify/<user>/<name>`
+- [Publishing guide](docs/publishing.md)
+
 ## Development
 
 Each app is self-contained for now (no workspace hoisting yet).

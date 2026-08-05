@@ -1,0 +1,23 @@
+# Compify
+
+> Build UI components in a live browser editor, publish them as @user/name,
+> and install them anywhere via the shadcn registry protocol or the compify CLI.
+
+## For coding agents
+
+- Install a public component into a shadcn project:
+  `npx shadcn@latest add https://api.compify.app/r/<user>/<name>.json`
+- Or configure the namespace once in components.json:
+  `"registries": { "@compify": "https://api.compify.app/r/{name}.json" }`
+  then: `npx shadcn@latest add @compify/<user>/<name>`
+- Public component index (shadcn registry.json format):
+  https://api.compify.app/r/registry.json
+- Component metadata: GET https://api.compify.app/c/info/<id>
+- Live preview pages (public, no auth): https://compify.app/view/@<user>/<name>
+- compify CLI: `compify add @<user>/<name>` (docs: https://github.com/kubet/compify/blob/main/docs/cli.md)
+
+## Docs
+
+- Registry interop: https://github.com/kubet/compify/blob/main/docs/registry.md
+- CLI reference: https://github.com/kubet/compify/blob/main/docs/cli.md
+- Publishing: https://github.com/kubet/compify/blob/main/docs/publishing.md
