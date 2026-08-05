@@ -11,18 +11,18 @@ export interface ModelConfig {
 }
 
 export const modelKeywordMap: Record<string, ModelConfig> = {
-  'qwen-flash': {
+  'glm-text': {
     oneCreditTokens: 8192,
     functionName: 'generateOpenRouter',
-    imageSupport: true,
+    imageSupport: false,
     defaultParams: {
       maxTokens: 8192,
       temperature: 0.5,
-      model: 'z-ai/glm-4.6v',
+      model: 'z-ai/glm-5.2',
     },
     keywords: ['fix', 'debug', 'quick', 'fast', 'quick fix', 'minor change', 'small', 'simple', 'basic','instant'],
   },
-  'qwen-plus': {
+  'glm-vision': {
     oneCreditTokens: 4096,
     functionName: 'generateOpenRouter',
     imageSupport: true,

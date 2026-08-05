@@ -53,7 +53,7 @@ export class AiService {
             'Content-Type': 'application/json',
           },
           body: {
-            model: 'z-ai/glm-4.6v',
+            model: 'z-ai/glm-5.2',
             messages: [
               { role: 'system', content: prompt.system ?? prompt.context ?? '' },
               { role: 'user', content: prompt.user ?? prompt.instruction ?? '' },
@@ -201,9 +201,10 @@ export class AiService {
         });
       }
 
+      const hasImages = b?.images && Array.isArray(b.images) && b.images.length > 0;
       const streamGenerator = await this.providerService.createOpenRouterStream({
         messages,
-        model: 'z-ai/glm-4.6v',
+        model: hasImages ? 'z-ai/glm-4.6v' : 'z-ai/glm-5.2',
         maxTokens: 8192,
         temperature: 0.3
       });
@@ -309,7 +310,7 @@ export class AiService {
 
     return await this.providerService.generateOpenRouterText({
       messages,
-      model: 'z-ai/glm-4.6v',
+      model: 'z-ai/glm-5.2',
       maxTokens: 100,
       temperature: 0.2,
     });
@@ -354,7 +355,7 @@ export class AiService {
 
     const response = await this.providerService.generateOpenRouterText({
       messages,
-      model: 'z-ai/glm-4.6v',
+      model: 'z-ai/glm-5.2',
       maxTokens: 2048,
       temperature: 0.2,
       responseFormat: { type: 'json_object' },
@@ -377,7 +378,7 @@ export class AiService {
           content: JSON.stringify(b.files),
         },
       ],
-      model: 'z-ai/glm-4.6v',
+      model: 'z-ai/glm-5.2',
       maxTokens: 8192,
       temperature: 0.4,
     });
@@ -410,7 +411,7 @@ export class AiService {
           content: JSON.stringify(b.files),
         },
       ],
-      model: 'z-ai/glm-4.6v',
+      model: 'z-ai/glm-5.2',
       maxTokens: 8192,
       temperature: 0.4,
     });
@@ -471,7 +472,7 @@ export class AiService {
     try {
       const response = await this.providerService.generateOpenRouterText({
         messages,
-        model: 'z-ai/glm-4.6v',
+        model: 'z-ai/glm-5.2',
         temperature: 0,
         maxTokens: 4096,
         systemPrompt: generateTokensPrompt(b?.ui),
@@ -552,10 +553,14 @@ export class AiService {
   async generateOpenRouter(
     b: any,
     res: Response,
-    model: string = 'z-ai/glm-4.6v',
+    model: string = 'z-ai/glm-5.2',
     maxTokens: number = 4096,
     temperature: number = 0.5,
   ) {
+    // Only the vision model can read attached images.
+    if (b?.images && Array.isArray(b.images) && b.images.length > 0) {
+      model = 'z-ai/glm-4.6v';
+    }
     try {
       const messages = [
         {
