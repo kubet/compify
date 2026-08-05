@@ -1003,6 +1003,7 @@ const SearchPage = () => {
                                             upvotes={result.upvotesCount}
                                             upvoteDefaultStatus={result.status}
                                             onCopy={() => setIsToastVisible(true)}
+                                            publicImage={true}
                                         />
                                     </motion.div>
                                 ))}
