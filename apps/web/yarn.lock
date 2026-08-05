@@ -2114,9 +2114,8 @@ commondir@^1.0.1:
   resolved "https://registry.yarnpkg.com/commondir/-/commondir-1.0.1.tgz#ddd800da0c66127393cca5950ea968a3aaf1253b"
   integrity sha512-W9pAhw0ja1Edb5GVdIF1mjZw/ASI0AlShXM83UUGe2DVr5TdAPEA1OA8m/g8zWp9x6On7gqufY+FatDbC3MDQg==
 
-"compify-pack@github:kubet/compify-pack#master":
+"compify-pack@file:../../packages/compify-pack":
   version "0.0.31"
-  resolved "git+ssh://git@github.com/kubet/compify-pack.git#fc53548f795c589b3f1ded38d3a028861d0bef9a"
   dependencies:
     "@codemirror/autocomplete" "^6.4.0"
     "@codemirror/commands" "^6.1.3"

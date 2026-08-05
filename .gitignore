@@ -7,3 +7,6 @@ node_modules/
 dist/
 .next/
 build/
+
+# compify-pack ships its built output (installed as a file: dependency)
+!packages/compify-pack/dist/
