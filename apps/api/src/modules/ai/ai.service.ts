@@ -42,10 +42,31 @@ export class AiService {
     @InjectRepository(Component)
     private componentRepository: Repository<Component>,
   ) {
-    this.copilot = new Copilot(process.env.OPENAI_API_KEY!, {
-      provider: 'openai',
-      model: 'gpt-4o-mini',
-    });
+    // Inline completions run through OpenRouter on the same cheap model as
+    // everything else (monacopilot custom-model API).
+    this.copilot = new Copilot(process.env.OPENROUTER_API_KEY!, {
+      model: {
+        config: (apiKey: string, prompt: any) => ({
+          endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: {
+            model: 'qwen/qwen3.7-flash',
+            messages: [
+              { role: 'system', content: prompt.system ?? prompt.context ?? '' },
+              { role: 'user', content: prompt.user ?? prompt.instruction ?? '' },
+            ],
+            temperature: 0.2,
+            max_tokens: 256,
+          },
+        }),
+        transformResponse: (response: any) => ({
+          text: response?.choices?.[0]?.message?.content ?? '',
+        }),
+      } as any,
+    } as any);
 
     this.functionMap = {
       generateAnthropic: this.generateAnthropic.bind(this),
@@ -164,7 +185,7 @@ export class AiService {
 
       const streamGenerator = await this.providerService.createOpenRouterStream({
         messages,
-        model: 'google/gemini-2.0-flash-001',
+        model: 'qwen/qwen3.7-flash',
         maxTokens: 8192,
         temperature: 0.3
       });
@@ -268,9 +289,9 @@ export class AiService {
       },
     ];
 
-    return await this.providerService.generateOpenAIText({
+    return await this.providerService.generateOpenRouterText({
       messages,
-      model: 'gpt-4o-mini',
+      model: 'qwen/qwen3.7-flash',
       maxTokens: 100,
       temperature: 0.2,
     });
@@ -313,9 +334,9 @@ export class AiService {
       userContent,
     ];
 
-    const response = await this.providerService.generateOpenAIText({
+    const response = await this.providerService.generateOpenRouterText({
       messages,
-      model: 'gpt-4o-mini',
+      model: 'qwen/qwen3.7-flash',
       maxTokens: 2048,
       temperature: 0.2,
       responseFormat: { type: 'json_object' },
@@ -330,7 +351,7 @@ export class AiService {
     const requiredCredits = Math.ceil(estimatedTokens / 4096);
     await this.limiterService.aiCreditUsage(user, requiredCredits);
     console.log('remapFiles', remapFilesPrompt({ uiFrameworks, themeKeys }));
-    const response = await this.providerService.generateAnthropicText({
+    const response = await this.providerService.generateOpenRouterText({
       systemPrompt: remapFilesPrompt({ uiFrameworks, themeKeys }),
       messages: [
         {
@@ -338,7 +359,7 @@ export class AiService {
           content: JSON.stringify(b.files),
         },
       ],
-      model: 'claude-3-5-haiku-latest',
+      model: 'qwen/qwen3.7-flash',
       maxTokens: 8192,
       temperature: 0.4,
     });
@@ -363,7 +384,7 @@ export class AiService {
     const estimatedTokens = Math.ceil(JSON.stringify(b.files).length * 0.4);
     const requiredCredits = Math.ceil(estimatedTokens / 4096);
     await this.limiterService.aiCreditUsage(user, requiredCredits);
-    const response = await this.providerService.generateAnthropicText({
+    const response = await this.providerService.generateOpenRouterText({
       systemPrompt: generatePreviewPrompt(),
       messages: [
         {
@@ -371,7 +392,7 @@ export class AiService {
           content: JSON.stringify(b.files),
         },
       ],
-      model: 'claude-3-5-haiku-latest',
+      model: 'qwen/qwen3.7-flash',
       maxTokens: 8192,
       temperature: 0.4,
     });
@@ -430,9 +451,9 @@ export class AiService {
     ];
 
     try {
-      const response = await this.providerService.generateAnthropicText({
+      const response = await this.providerService.generateOpenRouterText({
         messages,
-        model: 'claude-3-5-haiku-latest',
+        model: 'qwen/qwen3.7-flash',
         temperature: 0,
         systemPrompt: generateTokensPrompt(b?.ui),
       });
@@ -521,7 +542,7 @@ export class AiService {
   async generateOpenRouter(
     b: any,
     res: Response,
-    model: string = 'anthropic/claude-3.5-haiku',
+    model: string = 'qwen/qwen3.7-flash',
     maxTokens: number = 4096,
     temperature: number = 0.5,
   ) {

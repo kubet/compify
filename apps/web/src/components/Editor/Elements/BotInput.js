@@ -510,7 +510,7 @@ const BotInput = ({
                 transitionSnack({ type: 'RESET' });
                 setSnackVisible(false);
             },
-            customError: user?.plan === "FREE" ? "Free models can't handle this task." : null,
+            customError: null,
             userPlan: user?.plan,
             setSnackHeight,
             deleteFile: handleDeleteFile,
@@ -740,10 +740,7 @@ const BotInput = ({
                                                 {selectedOption.label}
                                                 <ChevronDown size={14} className={`transition-transform ${showDropdown ? 'rotate-180' : ''}`} />
                                             </button>
-                                            {user?.plan === "FREE" ? <p className="text-xs text-white/50">
-                                                <span className="hidden sm:block">*Free model. Upgrade now for superior results.</span>
-                                                <span className="block sm:hidden">*Free model. Upgrade now.</span>
-                                            </p> : <>
+                                            {false ? <p className="text-xs text-white/50" /> : <>
                                                 {/* <motion.div
                                                 className={`px-2.5 py-1 rounded-full ${deepThink ? 'bg-blue-500/30 text-blue-300' : 'bg-white/10 text-white/80'} cursor-pointer flex items-center gap-1`}
                                                 whileHover={{ padding: '4px 16px' }}

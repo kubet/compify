@@ -499,7 +499,7 @@ export class UserService {
     });
     await this.userRepo.update(
       {  id: user.id },
-      {availableFreeAiCredits: 15, availableCredits: 2, availableAiCredits: 5}
+      { availableFreeAiCredits: 100, availableCredits: 25, availableAiCredits: 50 }
     )
   }
   async sendRegisterEmail(email: string, name?: string) {

@@ -11,25 +11,25 @@ export interface ModelConfig {
 }
 
 export const modelKeywordMap: Record<string, ModelConfig> = {
-  'claude-3-5-haiku-latest': {
-    oneCreditTokens: 4096,
-    functionName: 'generateAnthropic',
+  'qwen-flash': {
+    oneCreditTokens: 8192,
+    functionName: 'generateOpenRouter',
     imageSupport: true,
     defaultParams: {
-      maxTokens: 4096,
+      maxTokens: 8192,
       temperature: 0.5,
-      model: 'claude-3-5-haiku-latest',
+      model: 'qwen/qwen3.7-flash',
     },
     keywords: ['fix', 'debug', 'quick', 'fast', 'quick fix', 'minor change', 'small', 'simple', 'basic','instant'],
   },
-  'claude-3-7-sonnet-latest': {
-    oneCreditTokens: 1200,
-    functionName: 'generateAnthropic',
+  'qwen-plus': {
+    oneCreditTokens: 4096,
+    functionName: 'generateOpenRouter',
     imageSupport: true,
     defaultParams: {
-      maxTokens: 4096,
+      maxTokens: 8192,
       temperature: 0.7,
-      model: 'claude-3-7-sonnet-latest',
+      model: 'qwen/qwen3.7-plus',
     },
     keywords: [
       'improve',

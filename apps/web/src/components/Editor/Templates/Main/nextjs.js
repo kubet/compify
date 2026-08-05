@@ -40,22 +40,41 @@ function setupLoadingBar() {
 // Track if we have any pending requests
 let pendingRequests = 0;
 
-// Update loading bar state
-function updateLoadingBar(isLoading) {
+// Update loading bar state. The bar tracks the initial load only: once it
+// completes (or the failsafe fires) it never reappears — long-lived requests
+// (fonts, HMR, streaming) previously left it stuck mid-screen forever.
+let loadingBarDone = false;
+
+function finishLoadingBar() {
+  if (loadingBarDone) return;
+  loadingBarDone = true;
   const bar = document.getElementById('progress-bar');
   if (!bar) return;
-  
+  bar.style.width = '100%';
+  setTimeout(() => {
+    bar.style.visibility = 'hidden';
+    bar.style.width = '0%';
+  }, 300);
+}
+
+function updateLoadingBar(isLoading) {
+  if (loadingBarDone) return;
+  const bar = document.getElementById('progress-bar');
+  if (!bar) return;
+
   if (isLoading) {
     bar.style.visibility = 'visible';
     bar.style.width = '70%';
   } else {
-    bar.style.width = '100%';
-    setTimeout(() => {
-      bar.style.visibility = 'hidden';
-      bar.style.width = '0%';
-    }, 300);
+    finishLoadingBar();
   }
 }
+
+// Failsafe: never leave the bar hanging.
+setTimeout(finishLoadingBar, 8000);
+window.addEventListener('load', () => {
+  setTimeout(() => { if (pendingRequests <= 0) finishLoadingBar(); }, 1500);
+});
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', setupLoadingBar);

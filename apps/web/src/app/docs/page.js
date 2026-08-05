@@ -15,6 +15,7 @@ const SECTIONS = [
     ['#registry', 'shadcn registry'],
     ['#cli', 'CLI'],
     ['#mcp', 'Agents / MCP'],
+    ['#templates', 'Templates'],
     ['#accounts', 'Accounts & limits'],
 ];
 
@@ -166,6 +167,22 @@ compify info --json        # machine-readable project state`}</Code>
                 A typical agent run: search → fetch the registry item → write the files → add the
                 dependencies. Four tool calls, no copy-paste. Agents that read the web can start
                 from <A href="https://compify.app/llms.txt">compify.app/llms.txt</A>.
+            </P>
+
+            <H2 id="templates">Templates</H2>
+            <P>
+                Templates are full starter projects (not single components) that live in the
+                monorepo under <code>packages/templates</code>. Each is a complete, buildable app
+                you clone and run:
+            </P>
+            <Code>{`git clone https://github.com/kubet/compify
+cd compify/packages/templates/dark-solar-saas
+npm install
+npm run dev`}</Code>
+            <P>
+                Browse them on the <A href="https://compify.app/templates">templates page</A>.
+                Contributions welcome — open a PR adding a folder under{' '}
+                <code>packages/templates</code>.
             </P>
 
             <H2 id="accounts">Accounts, handles & limits</H2>

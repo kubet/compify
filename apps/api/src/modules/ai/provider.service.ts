@@ -67,14 +67,18 @@ export class ProviderService {
 
   async generateOpenRouterText(params: GenerationParams): Promise<string> {
     try {
+      const messages = params.systemPrompt
+        ? [{ role: 'system', content: params.systemPrompt }, ...(params.messages as any[])]
+        : (params.messages as any[]);
       const response = (await this.openrouter.chat.completions.create({
         model: params.model,
-        messages: params.messages as any[],
+        messages,
         temperature: params.temperature ?? 0.5,
         max_tokens: params.maxTokens ?? 4096,
         top_p: 1,
         frequency_penalty: 0,
         presence_penalty: 0,
+        ...(params.responseFormat ? { response_format: params.responseFormat } : {}),
       })) as any;
 
       return (

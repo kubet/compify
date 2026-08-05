@@ -213,7 +213,7 @@ function GeneratePreview({ files, apply, close, setSnackHeight, activeFile, user
         return (
             <div className="flex items-center justify-center h-full gap-3">
                 <CircleAlert className="w-5 h-5 text-red-500" />
-                <p className="text-red-500">{userPlan === "FREE" ? "Free models can't handle this task." : "Error occurred, please try again."}</p>
+                <p className="text-red-500">{"Something went wrong — please try again."}</p>
             </div>
         )
     }

@@ -257,9 +257,11 @@ const DiffHighlightingEditor = ({ originalCode,
         wordWrapColumn: 100,
         wordWrapMinified: true,
 
-        // Line decoration settings
-        lineDecorationsWidth: 5,
-        lineNumbersMinChars: 3,
+        // Line decoration settings — tight left gutter, no glyph/fold columns
+        lineDecorationsWidth: 0,
+        lineNumbersMinChars: 2,
+        glyphMargin: false,
+        folding: false,
         renderIndentGuides: false,
 
         // Editor state

@@ -45,21 +45,38 @@ function setupLoadingBar() {
 let pendingRequests = 0;
 
 // Update loading bar state
-function updateLoadingBar(isLoading: boolean) {
+let loadingBarDone = false;
+
+function finishLoadingBar() {
+  if (loadingBarDone) return;
+  loadingBarDone = true;
   const bar = document.getElementById('progress-bar');
   if (!bar) return;
-  
+  bar.style.width = '100%';
+  setTimeout(() => {
+    bar.style.visibility = 'hidden';
+    bar.style.width = '0%';
+  }, 300);
+}
+
+function updateLoadingBar(isLoading: boolean) {
+  if (loadingBarDone) return;
+  const bar = document.getElementById('progress-bar');
+  if (!bar) return;
+
   if (isLoading) {
     bar.style.visibility = 'visible';
     bar.style.width = '70%';
   } else {
-    bar.style.width = '100%';
-    setTimeout(() => {
-      bar.style.visibility = 'hidden';
-      bar.style.width = '0%';
-    }, 300);
+    finishLoadingBar();
   }
 }
+
+// Failsafe: never leave the bar hanging on long-lived requests.
+setTimeout(finishLoadingBar, 8000);
+window.addEventListener('load', () => {
+  setTimeout(() => { if (pendingRequests <= 0) finishLoadingBar(); }, 1500);
+});
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', setupLoadingBar);

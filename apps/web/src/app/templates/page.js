@@ -89,8 +89,8 @@ function TemplatesPage() {
             "name": "Dark Solar",
             "description": "A sleek, performance-optimized NextJS template with dark mode aesthetics and clean energy vibes. Features Notion-powered blog, fluid animations, and enterprise-ready architecture.",
             "imageUrl": "https://cdn.compify.app/templates/dark-saas-demo.gif",
-            "githubUrl": "https://github.com/example/saas-starter",
-            "demoUrl": "https://example.com/demo/saas",
+            "githubUrl": "https://github.com/kubet/compify/tree/main/packages/templates/dark-solar-saas",
+            "demoUrl": "https://compify.app",
             "tags": ["NextJS 15", "TailwindCSS 4", "TypeScript", "Framer Motion", "Notion Blog API"]
         },
 
@@ -115,7 +115,7 @@ function TemplatesPage() {
                         Icon={Github}
                         variant="outline"
                         className="mt-4 md:mt-0"
-                        onClick={() => window.open('https://github.com/your-org/templates', '_blank')}
+                        onClick={() => window.open('https://github.com/kubet/compify/tree/main/packages/templates', '_blank')}
                     />
                 </div>
 
