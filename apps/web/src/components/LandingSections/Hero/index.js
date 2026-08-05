@@ -144,7 +144,7 @@ function Hero() {
 
 
                 <div
-                    className="w-full lg:w-auto h-full min-w-[18rem] min-h-[18rem] max-w-[24rem] max-h-[24rem] relative mt-8 lg:mt-0 overflow-visible"
+                    className="w-full lg:w-[24rem] h-full min-w-[18rem] min-h-[18rem] max-w-[24rem] max-h-[24rem] lg:max-h-none lg:h-[40rem] relative mt-8 lg:mt-0 overflow-visible"
                 >
                     <Image
                         src="/hero.webp"
