@@ -1,0 +1,62 @@
+@import "tailwindcss"; 
+@plugin "@tailwindcss/typography";
+
+@theme {
+  --color-background: var(--color-background);
+  --color-text: var(--color-foreground);
+  --color-primary: var(--color-primary);
+  --color-primary-hover: var(--color-primary-hover);
+  --color-primary-active: var(--color-primary-active);
+  --color-accent: var(--color-accent);
+}
+html, body {
+  background-color: var(--color-background);
+  color: var(--color-text);
+  font-family: 'Open Sans', sans-serif;
+}
+:root {
+  --color-background: hsl(0 0% 0%);
+  --color-foreground: hsl(13 90% 99%);
+  --color-primary: hsl(13 90% 52%);
+  --color-primary-hover: hsl(23 90% 52%);
+  --color-primary-active: hsl(33 90% 52%);
+  --color-accent: hsl(193 90% 52%);
+}
+
+/* Removed View Transitions - experimental with limited support */
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slide-horizontal {
+  from { transform: translateX(var(--slide-distance, 30px)); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slide-vertical {
+  from { transform: translateY(var(--slide-distance, 30px)); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out forwards;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.5s ease-out forwards;
+}
+
+.animate-slide-horizontal {
+  animation: slide-horizontal 0.5s ease-out forwards;
+}
+
+.animate-slide-vertical {
+  animation: slide-vertical 0.5s ease-out forwards;
+}
