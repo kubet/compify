@@ -12,7 +12,6 @@ SELECT 'components total', count(*) FROM component;
 SELECT 'components last 7d', count(*) FROM component WHERE "createdAt" > now() - interval '7 days';
 SELECT 'published (public+free)', count(*) FROM component WHERE visibility IN ('public','free');
 SELECT 'upvotes total', count(*) FROM upvote;
-SELECT 'upvotes last 7d', count(*) FROM upvote WHERE "createdAt" > now() - interval '7 days';
 SELECT 'cli tokens', count(*) FROM cli_token;
 SELECT 'cli tokens used last 7d', count(*) FROM cli_token WHERE "lastUsedAt" > now() - interval '7 days';
 SQL
