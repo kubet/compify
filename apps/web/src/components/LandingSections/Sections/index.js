@@ -460,24 +460,24 @@ const Sections = ({ featureColors = [
         <div className="bg-black min-h-screen text-white w-full">
             <section className="py-20 relative" id="features">
 
-                <h2 className="text-3xl font-bold text-center mb-12">Accelerate Your Development</h2>
+                <h2 className="text-3xl font-bold text-center mb-12">Build, publish, install</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-12 w-full">
                     <FeatureCard
                         icon="🚀"
-                        title="Rapid Prototyping"
-                        description="Build components in minutes that you can reuse across all your projects."
+                        title="Live editor"
+                        description="Write React with Tailwind, framer-motion or Three.js and see it render as you type."
                         colors={featureColors[0] || []}
                     />
                     <FeatureCard
                         icon="🧠"
-                        title="AI-Assisted Creation"
-                        description="Leverage intelligent suggestions and auto-completion to code faster and smarter"
+                        title="Your own registry"
+                        description="Every publish gets a permanent @you/name address you can install from any project."
                         colors={featureColors[1] || []}
                     />
                     <FeatureCard
                         icon="🧩"
-                        title="Vast Component Ecosystem"
-                        description="Access pre-built components for Next, React, Native, Tailwind, MUI and more."
+                        title="Installs everywhere"
+                        description="shadcn CLI, compify CLI, or your coding agent over MCP — same component, any workflow."
                         colors={featureColors[2] || []}
                     />
 
@@ -625,7 +625,7 @@ const Sections = ({ featureColors = [
                             <p className="text-xl mb-8 max-w-2xl mx-auto text-gray-400">
                                 Instantly find, customize, and integrate the perfect components for your next big idea, powered by AI.
                             </p>
-                            <Button text="Get Started Free Now" variant="full" onClick={() => router.push('/register')} />
+                            <Button text="Start free" variant="full" onClick={() => router.push('/register')} />
                         </div>
                     </div>
                 </div>

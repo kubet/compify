@@ -122,15 +122,6 @@ function Hero() {
                 }}
             >
                 <div className="text-left w-full max-w-[54rem]">
-                    <motion.div
-                        className="bg-gradient-to-r from-gray-900 to-black text-sm inline-block px-4 py-2 rounded-full mb-6 shadow-lg border border-gray-700 backdrop-filter backdrop-blur-sm"
-                        variants={fadeIn}
-                    >
-                        <p className="font-medium text-gray-200 tracking-wide">
-                            <span className="mr-2 inline-block h-2 w-2 rounded-full bg-emerald-400 align-middle" />
-                            shadcn-compatible registry
-                        </p>
-                    </motion.div>
                     <motion.h1
                         className="text-4xl md:text-[3.5rem] leading-[1.15] font-bold mb-8 text-white"
                         variants={fadeIn}
@@ -151,12 +142,6 @@ function Hero() {
                     <motion.div className="space-x-4 flex items-center justify-start" variants={fadeIn}>
                         <Button text="Start building" textSm='Start' variant="full" onClick={() => router.push('/register')} />
                         <Button text="Watch the demo" textSm='Demo' variant="outline" onClick={() => router.push('/#demo')} />
-                    </motion.div>
-                    <motion.div variants={fadeIn}>
-                        <code className="mt-8 inline-block rounded-lg border border-white/10 bg-white/[0.03] px-4 py-2.5 font-mono text-sm text-gray-400">
-                            <span className="select-none text-gray-600">$ </span>
-                            npx shadcn@latest add @compify/vukasinkubet/glass-3d-text
-                        </code>
                     </motion.div>
                 </div>
 
