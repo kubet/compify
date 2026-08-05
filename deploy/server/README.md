@@ -23,3 +23,23 @@ nightly, keeping 14 days. Cron entry:
 ```
 0 4 * * * bash /root/compify/deploy/server/backup.sh >> /root/backups/backup.log 2>&1
 ```
+
+### Offsite mirror
+
+When `/root/.backup-secrets` (chmod 600, not in git) defines:
+
+```
+SUPABASE_URL=https://<project-ref>.supabase.co
+SUPABASE_SERVICE_KEY=<service_role key>
+```
+
+the same run uploads both archives to the `backups` bucket in Supabase Storage
+over HTTPS and prunes remote copies past retention. Note: the host blocks all
+outbound Postgres ports (5432/6543), so SQL-level replication to external
+Postgres is impossible from this box — object storage over 443 is the offsite
+channel. The nightly REST calls also keep the free Supabase project from being
+paused for inactivity.
+
+To restore from offsite: download the dump from Supabase Storage, then
+`gunzip -c dump.sql.gz | psql compify` (and untar the MinIO archive into
+`/mnt/data`).
