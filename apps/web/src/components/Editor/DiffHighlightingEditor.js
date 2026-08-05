@@ -240,7 +240,7 @@ const DiffHighlightingEditor = ({ originalCode,
         fontLigatures: true,
         minimap: { enabled: false },
         contextmenu: false,
-        lineNumbers: false,
+        lineNumbers: 'off',
 
         // DiffEditor specific options
         renderSideBySide: false,
@@ -258,11 +258,11 @@ const DiffHighlightingEditor = ({ originalCode,
         wordWrapMinified: true,
 
         // Line decoration settings — tight left gutter, no glyph/fold columns
-        lineDecorationsWidth: 0,
-        lineNumbersMinChars: 2,
+        lineDecorationsWidth: 12,
+        lineNumbersMinChars: 0,
         glyphMargin: false,
         folding: false,
-        renderIndentGuides: false,
+        guides: { indentation: false },
 
         // Editor state
         readOnly: isGenerating || isSettling,
