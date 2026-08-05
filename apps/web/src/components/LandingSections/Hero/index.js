@@ -114,7 +114,7 @@ function Hero() {
 
             <motion.div
                 ref={ref}
-                className="w-full relative z-10 flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-16 px-4 sm:px-6 md:px-8 overflow-hidden pb-2"
+                className="w-full relative z-10 flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-16 px-4 sm:px-6 md:px-8 lg:pr-44 overflow-hidden pb-2"
                 initial="hidden"
                 animate={inView ? "visible" : "hidden"}
                 variants={{
@@ -130,15 +130,12 @@ function Hero() {
                         <br />
                         Install them anywhere.
                     </motion.h1>
-                    <motion.p
-                        className="text-lg md:text-xl text-gray-300 mb-8 max-w-2xl"
-                        variants={fadeIn}
-                    >
-                        A live editor for React components, with your own registry behind
-                        it. Publish as <span className="text-purple-300">@you/component</span> and
-                        it installs into any project — via the shadcn CLI, the compify
-                        CLI, or your coding agent.
-                    </motion.p>
+                    <motion.div variants={fadeIn} className="mb-10">
+                        <code className="inline-block max-w-full overflow-x-auto rounded-xl border border-white/10 bg-white/[0.04] px-5 py-3.5 font-mono text-sm md:text-base text-gray-300">
+                            <span className="select-none text-gray-600">$ </span>
+                            npx shadcn@latest add <span className="text-purple-300">@compify/glass-3d-text</span>
+                        </code>
+                    </motion.div>
                     <motion.div className="space-x-4 flex items-center justify-start" variants={fadeIn}>
                         <Button text="Start building" textSm='Start' variant="full" onClick={() => router.push('/register')} />
                         <Button text="Watch the demo" textSm='Demo' variant="outline" onClick={() => router.push('/#demo')} />

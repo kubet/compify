@@ -62,7 +62,7 @@ export class RegistryController {
   // short form too: /r/glass-3d-text.json === /r/compify/glass-3d-text.json.
   @Get(':name.json')
   async officialItem(@Param('name') name: string) {
-    return this.buildItem(`compify/${name}`);
+    return this.buildItem(`compify/${name}`, name);
   }
 
   @Get(':username/:name.json')
@@ -78,7 +78,7 @@ export class RegistryController {
     return this.buildItem(`${username}/${name.replace(/\.json$/, '')}`);
   }
 
-  private async buildItem(publishingDomain: string) {
+  private async buildItem(publishingDomain: string, displayName?: string) {
     const component = await this.componentRepository
       .createQueryBuilder('component')
       .leftJoinAndSelect('component.user', 'user')
@@ -101,16 +101,19 @@ export class RegistryController {
       )?.buffer?.toString() || '{}';
     const files = JSON.parse(raw);
 
+    // Dependency names only (no version pins): the editor pins versions for
+    // its own sandbox runtime, but consumer projects must resolve versions
+    // compatible with their own react.
     const deps = new Set<string>();
     const usedDeps = component.usedDeps || {};
-    for (const [depName, version] of Object.entries(usedDeps.global || {})) {
+    for (const depName of Object.keys(usedDeps.global || {})) {
       if (depName === 'tailwindcss') continue;
-      deps.add(version ? `${depName}@${version}` : depName);
+      deps.add(depName);
     }
     for (const fileDeps of Object.values(usedDeps.files || {})) {
-      for (const [depName, version] of Object.entries(fileDeps as object)) {
+      for (const depName of Object.keys(fileDeps as object)) {
         if (depName === 'tailwindcss') continue;
-        deps.add(version ? `${depName}@${version}` : depName);
+        deps.add(depName);
       }
     }
 
@@ -121,7 +124,7 @@ export class RegistryController {
 
     return {
       $schema: 'https://ui.shadcn.com/schema/registry-item.json',
-      name: publishingDomain,
+      name: displayName || publishingDomain,
       type: 'registry:component',
       title: component.name,
       description: component.description || undefined,
