@@ -136,11 +136,19 @@ export class RegistryController {
             !RegistryController.EXCLUDED_FILES.includes(path) &&
             typeof file?.code === 'string',
         )
-        .map(([path, file]: [string, any]) => ({
-          path: `registry/${itemName}${path}`,
-          type: 'registry:component',
-          content: file.code,
-        })),
+        .map(([path, file]: [string, any]) => {
+          // Generic editor filenames (App.js, Untitled1.tsx) become the
+          // component's slug so consumer projects get meaningful files.
+          const ext = path.split('.').pop();
+          const base = path.replace(/^\//, '').replace(/\.[^.]+$/, '');
+          const generic = /^(App|Untitled\d*|Test\d*)$/i.test(base);
+          const fileName = generic ? `${itemName}.${ext}` : path.replace(/^\//, '');
+          return {
+            path: `registry/${itemName}/${fileName}`,
+            type: 'registry:component',
+            content: file.code,
+          };
+        }),
       docs: `Preview and customize at https://compify.app/view/@${publishingDomain}`,
       meta: {
         source: `https://compify.app/view/@${publishingDomain}`,
