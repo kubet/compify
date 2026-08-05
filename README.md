@@ -40,7 +40,12 @@ files), `images` (`<shortId>` preview + `<shortId>-og` social image, webp),
 
 ## Production
 
-Single host behind nginx. `compify-front` (Next, port 3000) and `compify-back`
-(Nest, port 3091) run under pm2 in cluster mode; MinIO on 9000
-(cdn.compify.app proxies the `public` bucket); PostgreSQL 15 local.
-Deploy: `/root/deploy-compify-front.sh` (pull master, build, `pm2 reload`).
+Single host behind nginx. `compify-front` (Next, port 3000, `apps/web`) and
+`compify-back` (Nest, port 3091, `apps/api`) run under pm2 in cluster mode
+from the `/root/compify` monorepo checkout; MinIO on 9000 (cdn.compify.app
+proxies the `public` bucket); PostgreSQL 15 local.
+
+Deploys are automatic: pushing to `main` triggers the Deploy workflow, which
+SSHes to the host, updates the checkout, and runs the path-filtered
+`deploy/server/deploy-{web,api}.sh` (build → `pm2 reload` → health check →
+rollback on failure).

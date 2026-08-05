@@ -1,5 +1,5 @@
 {
-  "name": "compify",
+  "name": "@compify/web",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -33,5 +33,6 @@
     "postcss": "^8",
     "shiki": "^1.22.0",
     "tailwindcss": "^3.4.1"
-  }
+  },
+  "license": "MIT"
 }

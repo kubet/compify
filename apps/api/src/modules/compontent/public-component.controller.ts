@@ -1,4 +1,5 @@
 import { Controller, Get, Headers, Param, Res } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
 import { ConstructImageService } from './construct-image.service';
 import { MinioClientService } from '../minio/minio.service';
@@ -9,6 +10,7 @@ export class PublicComponentController {
   constructor(
     private readonly minioService: MinioClientService,
     private readonly componentService: ComponentService,
+    private readonly configService: ConfigService,
   ) {}
 
   @Get('/og-image/:id')
@@ -56,7 +58,8 @@ export class PublicComponentController {
   @Get('fetch/sitemap/all')
   async getAllComponentsForSitemap(@Headers() headers: Record<string, string>) {
     const apiKey = headers['x-api-key'];
-    if (apiKey !== 'jnfu4f4ppdef') {
+    const expected = this.configService.get<string>('INTERNAL_API_TOKEN');
+    if (!expected || apiKey !== expected) {
       return { message: 'Unauthorized' };
     }
     return await this.componentService.getAllComponentIdsForSitemap();

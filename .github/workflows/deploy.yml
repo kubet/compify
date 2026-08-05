@@ -1,0 +1,69 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'What to deploy'
+        type: choice
+        options: [all, web, api]
+        default: all
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      web: ${{ steps.filter.outputs.web }}
+      api: ${{ steps.filter.outputs.api }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            web:
+              - 'apps/web/**'
+              - 'deploy/server/deploy-web.sh'
+            api:
+              - 'apps/api/**'
+              - 'deploy/server/deploy-api.sh'
+
+  deploy:
+    needs: changes
+    if: needs.changes.outputs.web == 'true' || needs.changes.outputs.api == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p "${{ secrets.DEPLOY_PORT }}" "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Update checkout on server
+        run: |
+          ssh -i ~/.ssh/deploy_key -p "${{ secrets.DEPLOY_PORT }}" "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
+            "cd /root/compify && git fetch origin main && git reset --hard origin/main"
+
+      - name: Deploy api
+        if: needs.changes.outputs.api == 'true' || inputs.target == 'api' || inputs.target == 'all'
+        run: |
+          ssh -i ~/.ssh/deploy_key -p "${{ secrets.DEPLOY_PORT }}" "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
+            "export NVM_DIR=\$HOME/.nvm && . \$NVM_DIR/nvm.sh && bash /root/compify/deploy/server/deploy-api.sh"
+
+      - name: Deploy web
+        if: needs.changes.outputs.web == 'true' || inputs.target == 'web' || inputs.target == 'all'
+        run: |
+          ssh -i ~/.ssh/deploy_key -p "${{ secrets.DEPLOY_PORT }}" "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
+            "export NVM_DIR=\$HOME/.nvm && . \$NVM_DIR/nvm.sh && bash /root/compify/deploy/server/deploy-web.sh"
+
+      - name: Verify production
+        run: |
+          curl -sf -o /dev/null https://compify.app/ && echo "web OK"
+          curl -sf -o /dev/null https://api.compify.app/health && echo "api OK"
