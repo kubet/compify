@@ -29,8 +29,8 @@ export function P({ children }) {
     return <p className="mb-5 leading-relaxed">{children}</p>;
 }
 
-export function H2({ children }) {
-    return <h2 className="mb-4 mt-10 text-xl font-semibold text-white">{children}</h2>;
+export function H2({ children, id }) {
+    return <h2 id={id} className="mb-4 mt-10 scroll-mt-24 text-xl font-semibold text-white">{children}</h2>;
 }
 
 export function Code({ children }) {

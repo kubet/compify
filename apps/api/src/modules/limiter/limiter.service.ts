@@ -195,7 +195,6 @@ export class LimiterService {
     const components = await this.componentRepository.count({
       where: { user: { id: user.id } },
     });
-    console.log(components, subscription);
     if (!subscription) {
       throw new NotFoundException('Subscription not found');
     }

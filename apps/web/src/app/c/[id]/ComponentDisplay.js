@@ -106,7 +106,7 @@ function InstallCommand({ label, command }) {
             className="group flex w-full items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-left transition hover:border-purple-400/30 hover:bg-white/[0.05]"
         >
             <span className="shrink-0 rounded-md bg-purple-500/10 px-2 py-0.5 text-xs font-medium text-purple-300">{label}</span>
-            <code className="flex-1 overflow-x-auto whitespace-nowrap text-sm text-gray-300">{command}</code>
+            <code className="flex-1 overflow-x-auto whitespace-nowrap text-sm text-gray-300 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">{command}</code>
             {copied ? <Check size={16} className="shrink-0 text-green-400" /> : <Copy size={16} className="shrink-0 text-gray-500 group-hover:text-gray-300" />}
         </button>
     );
@@ -321,9 +321,19 @@ export default function ComponentDisplay({ data }) {
                                 </motion.div>
 
                                 <div className="absolute bottom-0 left-0 right-0 p-6 z-20">
-                                    <div className="text-sm text-gray-300 backdrop-blur-sm bg-black/30 px-4 py-2 rounded-xl inline-block">
-                                        {isSignedIn ? 'Click customize to use this component' : 'Interactive Preview Available After Login'}
-                                    </div>
+                                    {publishingDomain ? (
+                                        <Link
+                                            href={`/view/@${publishingDomain.replace(/^compify\//, '')}`}
+                                            onClick={(e) => e.stopPropagation()}
+                                            className="inline-block rounded-xl bg-black/30 px-4 py-2 text-sm text-purple-200 backdrop-blur-sm transition hover:text-white"
+                                        >
+                                            Try it live in the editor →
+                                        </Link>
+                                    ) : (
+                                        <div className="text-sm text-gray-300 backdrop-blur-sm bg-black/30 px-4 py-2 rounded-xl inline-block">
+                                            Live preview
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </motion.div>
@@ -387,7 +397,7 @@ export default function ComponentDisplay({ data }) {
                                     <div className="space-y-2">
                                         <InstallCommand
                                             label="shadcn"
-                                            command={`npx shadcn@latest add https://api.compify.app/r/${publishingDomain}.json`}
+                                            command={`npx shadcn@latest add https://api.compify.app/r/${publishingDomain.replace(/^compify\//, '')}.json`}
                                         />
                                         <InstallCommand
                                             label="compify"

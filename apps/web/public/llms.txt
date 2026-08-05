@@ -14,11 +14,11 @@
   https://api.compify.app/r/registry.json
 - Component metadata: GET https://api.compify.app/c/info/<id>
 - Live preview pages (public, no auth): https://compify.app/view/@<user>/<name>
-- compify CLI: `compify add @<user>/<name>` (docs: https://github.com/kubet/compify/blob/main/docs/cli.md)
-- MCP server for agents: `compify mcp` — tools: search_components, get_component, get_install_commands (docs: https://github.com/kubet/compify/blob/main/docs/mcp.md)
+- compify CLI: `compify add @<user>/<name>` (docs: https://compify.app/docs#cli)
+- MCP server for agents: `compify mcp` — tools: search_components, get_component, get_install_commands (docs: https://compify.app/docs#mcp)
 
 ## Docs
 
-- Registry interop: https://github.com/kubet/compify/blob/main/docs/registry.md
-- CLI reference: https://github.com/kubet/compify/blob/main/docs/cli.md
-- Publishing: https://github.com/kubet/compify/blob/main/docs/publishing.md
+- Registry interop: https://compify.app/docs#registry
+- CLI reference: https://compify.app/docs#cli
+- Publishing: https://compify.app/docs#publishing
