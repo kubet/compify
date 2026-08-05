@@ -38,7 +38,7 @@ function LimitModal({ isOpen, message }) {
                     </div>
 
                     <h2 className="text-3xl font-extrabold mb-4 bg-gradient-to-r from-gray-300 via-gray-500 to-gray-700 bg-clip-text text-transparent">
-                        Component Limit Reached
+                        Plan limit reached
                     </h2>
                     <p className="text-gray-400 mb-8 text-lg">
                         {message}

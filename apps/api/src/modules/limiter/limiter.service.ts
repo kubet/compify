@@ -61,7 +61,7 @@ export class LimiterService {
     }
     if (user.availableCredits <= 0) {
       throw new HttpException(
-        "You don't have enough credits!",
+        "You're out of use credits — they refill monthly, and you earn more when others use your components.",
         HttpStatus.PAYMENT_REQUIRED,
       );
     }
