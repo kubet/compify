@@ -3,7 +3,8 @@ import { baseUrl } from '@/constains';
 import { getPublicComponentInfo } from '@/lib/api';
 import ComponentDisplay from '../ComponentDisplay';
 
-export async function generateMetadata({ params }) {
+export async function generateMetadata(props) {
+    const params = await props.params;
     const resp = await getPublicComponentInfo(params.id);
 
     if (resp?.status === 404) {
@@ -110,7 +111,7 @@ export async function generateMetadata({ params }) {
     };
 }
 
-export const slugify = (text) => {
+const slugify = (text) => {
     if (!text) return '';
 
     let slug = String(text)
@@ -127,7 +128,8 @@ export const slugify = (text) => {
     return slug;
 }
 
-export default async function Page({ params }) {
+export default async function Page(props) {
+    const params = await props.params;
     const resp = await getPublicComponentInfo(params.id);
 
     // Check specifically for 404 status
@@ -154,7 +156,8 @@ export default async function Page({ params }) {
     return <ComponentDisplay data={{ ...resp?.data, id: params?.id }} />;
 }
 
-export async function generateImageMetadata({ params }) {
+export async function generateImageMetadata(props) {
+    const params = await props.params;
     const resp = await getPublicComponentInfo(params.id);
 
     // Check specifically for 404 status
