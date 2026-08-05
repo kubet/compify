@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Component } from 'src/entities/project/component.entity';
 import { ComponentService } from './component.service';
@@ -16,6 +17,7 @@ import { Upvote } from 'src/entities/project/upvote.entity';
 import { Subscription } from 'src/entities/subscription/subscription.entity';
 @Module({
   imports: [
+    ConfigModule,
     TypeOrmModule.forFeature([
       Component,
       User,
