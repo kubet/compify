@@ -4,6 +4,8 @@ import Button from '@/components/Elements/Button';
 import Chip from '@/components/Elements/Chip';
 import { Code2, LogIn, Heart, Boxes, PackageOpen, Share2, ArrowUpRight, Check, Terminal, Copy } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { baseUrl } from '@/constains';
 import { motion } from 'framer-motion';
 import { runtimeLables, uiLibsLabels } from '@/components/Editor/Templates/common';
@@ -114,6 +116,7 @@ function InstallCommand({ label, command }) {
 
 export default function ComponentDisplay({ data }) {
     const { isSignedIn } = useUser();
+    const router = useRouter();
     const [mounted, setMounted] = useState(false);
     const [showCopied, setShowCopied] = useState(false);
 
@@ -131,10 +134,10 @@ export default function ComponentDisplay({ data }) {
 
     const handleClick = () => {
         if (isSignedIn) {
-            window.location.href = `/create/${data.id}`;
+            router.push(`/create/${data.id}`);
         } else {
             localStorage.setItem('afterLoginForwardLink', window.location.pathname);
-            window.location.href = `/login`;
+            router.push(`/login`);
         }
     }
 
@@ -312,8 +315,11 @@ export default function ComponentDisplay({ data }) {
                                     transition={{ duration: 0.4 }}
                                     className="relative aspect-[4/3] w-full"
                                 >
-                                    <img
+                                    <Image
                                         src={`${baseUrl}/c/image/${data.id}`}
+                                        fill
+                                        unoptimized
+                                        sizes="(min-width: 1024px) 50vw, 100vw"
                                         alt={`Preview of ${name}`}
                                         className="w-full h-full object-contain shadow-lg transform transition-transform p-10"
                                     />

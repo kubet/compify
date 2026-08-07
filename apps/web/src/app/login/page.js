@@ -68,7 +68,7 @@ const LoginPage = () => {
   };
 
   const handleGoogleLogin = async () => {
-    window.location.href = `${baseUrl}/auth/google`;
+    window.open(`${baseUrl}/auth/google`, "_self");
   };
 
   return (

@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useMemo, useEffect } from 'react'
+import React, { useCallback, useState, useMemo, useEffect } from 'react'
 import Modal from '@/components/Elements/Modal'
 import CardWrapper from '@/components/Elements/CardWrapper'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -25,7 +25,7 @@ function PreferenceModal({ isOpen, onClose, defaultTemplates }) {
     }
 
     // Background colors - Light for JS, Dark for TS
-    const colorMap = {
+    const colorMap = useMemo(() => ({
         // React - Blue scale (TS is base, JS shifts slightly towards cyan)
         'react': '#2570EE',      // Slightly more cyan-blue for JS
         'react-ts': '#2563EB',   // Base royal blue for TS
@@ -41,10 +41,10 @@ function PreferenceModal({ isOpen, onClose, defaultTemplates }) {
         // React Native - Purple scale (TS is base, JS shifts slightly towards magenta)
         'react-native': '#7E37ED',     // Slightly more magenta-purple for JS
         'react-native-ts': '#7C3AED'   // Base purple for TS
-    }
+    }), []);
 
     // Text colors - Following same principle
-    const textColorMap = {
+    const textColorMap = useMemo(() => ({
         // React - Blues
         'react': '#95C7FF',      // Slightly more cyan tint for JS
         'react-ts': '#93C5FD',   // Base light blue for TS
@@ -60,9 +60,9 @@ function PreferenceModal({ isOpen, onClose, defaultTemplates }) {
         // React Native - Purples
         'react-native': '#C6B3FE',     // Slightly more magenta tint for JS
         'react-native-ts': '#C4B5FD'   // Base light purple for TS
-    }
+    }), []);
 
-    const getTemplateInfo = (template) => {
+    const getTemplateInfo = useCallback( (template) => {
         return {
             id: template.id,
             name: template.displayName,
@@ -71,7 +71,7 @@ function PreferenceModal({ isOpen, onClose, defaultTemplates }) {
             color: colorMap[template.id],
             iconText: <span className='font-bold' style={{ color: textColorMap[template.id] }}>{template.displayName[0]}</span>
         }
-    }
+    }, [colorMap, textColorMap])
 
     const templates = useMemo(() =>
         Object.fromEntries(
@@ -79,7 +79,7 @@ function PreferenceModal({ isOpen, onClose, defaultTemplates }) {
                 .filter(template => !template.id.startsWith('_'))
                 .map(template => [template.id, getTemplateInfo(template)])
         ),
-        []
+        [getTemplateInfo]
     )
 
     const filteredTemplates = useMemo(() =>

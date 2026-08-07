@@ -61,7 +61,8 @@ const Dropdown = ({
             }
         };
 
-        containerRef.current?.addEventListener('mousemove', handleMouseMove);
+        const container = containerRef.current;
+        container?.addEventListener('mousemove', handleMouseMove);
         document.addEventListener('mousedown', handleClickOutside);
 
         if (isDefaultOpen && inputRef.current) {
@@ -69,7 +70,7 @@ const Dropdown = ({
         }
 
         return () => {
-            containerRef.current?.removeEventListener('mousemove', handleMouseMove);
+            container?.removeEventListener('mousemove', handleMouseMove);
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, [mouseX, mouseY, isDefaultOpen]);
@@ -83,7 +84,7 @@ const Dropdown = ({
 
         setSelectedOptions(newSelected);
         setSearchTerm('');
-    }, [value, multiSelect]);
+    }, [value, multiSelect, selectedOptions]);
 
     useEffect(() => {
         if (isOpen && containerRef.current) {
@@ -112,7 +113,7 @@ const Dropdown = ({
         },
     };
 
-    const dropdownVariants = {
+    const dropdownVariants = useMemo(() => ({
         closed: {
             height: 0,
             opacity: 0,
@@ -129,14 +130,14 @@ const Dropdown = ({
                 opacity: { duration: 0.1 }
             }
         },
-    };
+    }), []);
 
-    const optionVariants = {
+    const optionVariants = useMemo(() => ({
         initial: { y: 20, opacity: 0 },
         animate: { y: 0, opacity: 1 },
         exit: { y: -20, opacity: 0 },
         hover: { scale: 1.02 },
-    };
+    }), []);
 
     const iconVariants = {
         closed: { rotate: 0 },
@@ -150,7 +151,7 @@ const Dropdown = ({
         }
     };
 
-    const handleSelect = (option) => {
+    const handleSelect = useCallback( (option) => {
         if (multiSelect) {
             const isSelected = selectedOptions.some(item => item.value === option.value);
             let newSelected;
@@ -168,7 +169,7 @@ const Dropdown = ({
             onSelect(option);
             setIsOpen(false);
         }
-    };
+    }, [multiSelect, onSelect, selectedOptions]);
 
     const handleRemoveOption = (optionToRemove, e) => {
         e.stopPropagation();
@@ -193,7 +194,7 @@ const Dropdown = ({
 
         // Only return first 4 matches
         return filtered.slice(0, MAX_VISIBLE_OPTIONS);
-    }, [options, searchTerm, isOpen]);
+    }, [searchTerm, isOpen, options, MAX_VISIBLE_OPTIONS]);
 
     const getInputHeight = () => {
         if (!multiSelect || selectedOptions.length === 0) return 'h-12';
@@ -280,7 +281,7 @@ const Dropdown = ({
                 )}
             </div>
         </motion.div>
-    ), [filteredOptions, selectedOptions, hoveredIndex, dropdownCoords, multiSelect, options.length, searchTerm]);
+    ), [dropdownVariants, dropdownCoords.width, dropdownCoords.top, dropdownCoords.left, filteredOptions, multiSelect, searchTerm, options.length, selectedOptions, optionVariants, hoveredIndex, handleSelect]);
 
     return (
         <motion.div

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Button } from "../Elements";
 import { useRouter, usePathname } from "next/navigation";
 import { useUser } from "@/auth/UseUser";
@@ -16,27 +16,27 @@ function NavBar() {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
 
-  const notLoggedInLinks = [
+  const notLoggedInLinks = useMemo(() => ([
     { title: "Browse", href: "/search" },
     { title: "Features", href: "/#features" },
     { title: "Demo", href: "/#demo" },
     { title: "Pricing", href: "/#pricing" },
     { title: "Templates", href: "/templates" },
     { title: "Components", href: "/#components" },
-  ];
+  ]), []);
 
-  const loggedInLinks = [
+  const loggedInLinks = useMemo(() => ([
     { title: "Search", href: "/search" },
     { title: "Templates", href: "/templates" },
     { title: "Create", href: "/create" },
     { title: "My Components", href: "/my-components" },
-  ];
+  ]), []);
 
   useEffect(() => {
     setNavLinks(isSignedIn ? loggedInLinks : notLoggedInLinks);
     setButtonText(isSignedIn ? "Profile" : "Login");
     setLogoHref(isSignedIn ? "/search" : "/");
-  }, [isSignedIn, isOpen]);
+  }, [isSignedIn, isOpen, loggedInLinks, notLoggedInLinks]);
 
   const toggleMenu = () => setIsOpen(!isOpen);
 

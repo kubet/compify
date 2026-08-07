@@ -2,6 +2,7 @@ import { source } from "@/lib/docs-source";
 import { DocsLayout } from "fumadocs-ui/layouts/docs";
 import { RootProvider } from "fumadocs-ui/provider/next";
 import { BookOpen, Boxes, Code2, Github, Sparkles } from "lucide-react";
+import Link from "next/link";
 import "./docs.css";
 
 export default function Layout({ children }) {
@@ -36,9 +37,9 @@ export default function Layout({ children }) {
           ]}
           sidebar={{
             banner: (
-              <a className="docs-sidebar-cta" href="/create">
+              <Link className="docs-sidebar-cta" href="/create">
                 <BookOpen size={16} /> Build your first component
-              </a>
+              </Link>
             ),
           }}
           githubUrl="https://github.com/kubet/compify"

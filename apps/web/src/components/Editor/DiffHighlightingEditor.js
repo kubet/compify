@@ -133,7 +133,7 @@ const DiffHighlightingEditor = ({
         setTimeout(() => initializeMonaco(monacoInstance), 1000);
       }
     },
-    [language]
+    []
   );
 
   const handleEditorDidMount = useCallback(
@@ -187,14 +187,7 @@ const DiffHighlightingEditor = ({
         );
       }
     },
-    [
-      handleCodeChange,
-      initializeMonaco,
-      language,
-      isCompletionActive,
-      id,
-      usedUiFrameworks,
-    ]
+    [isCompletionActive, handleCodeChange, initializeMonaco, template, language]
   );
 
   // Cleanup completion on unmount
@@ -262,7 +255,7 @@ const DiffHighlightingEditor = ({
         isGeneratingRef.current = false;
       }
     },
-    [generateCode, onCodeChange, stop]
+    [generateCode, id, onCodeChange, stop, template, usedUiFrameworks]
   );
 
   const handleCopy = () => {

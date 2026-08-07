@@ -1,11 +1,10 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useCallback, useEffect } from "react";
 import { GradientSpot } from "@/components/Common";
 import { Button } from "@/components/Elements";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 
 import React from "react";
 import { useUser } from "@/auth/UseUser";
@@ -156,18 +155,17 @@ function PaymentContent() {
 function PaymentPage() {
   const { setUser } = useUser();
 
-  const loadToken = async () => {
+  const loadToken = useCallback(async () => {
     const resp = await refreshToken();
     if (resp.status === 201) {
       const usr = await whoAmI();
       setUser(usr.data);
     }
-  };
+  }, [setUser]);
 
   useEffect(() => {
     loadToken();
-  }, []);
-
+  }, [loadToken]);
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <PaymentContent />

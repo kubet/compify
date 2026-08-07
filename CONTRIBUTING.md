@@ -18,6 +18,14 @@ Install Bun 1.3.9. Do not use npm, Yarn, or pnpm in this repository.
 - Match the existing code style of the file you are editing.
 - Follow the [Code of Conduct](CODE_OF_CONDUCT.md).
 
+## Dependency updates
+
+Use `bun add`, `bun update`, or `bun remove` from the affected package directory
+and commit both `package.json` and `bun.lock`. Package-only dependency changes
+that do not regenerate the Bun lockfile cannot be merged. GitHub Dependabot is
+therefore limited to GitHub Actions; vulnerability alerts and CI audits identify
+application dependency work that maintainers apply with Bun.
+
 ## Validation
 
 CI runs frozen Bun installs, builds, tests, dependency and secret audits,

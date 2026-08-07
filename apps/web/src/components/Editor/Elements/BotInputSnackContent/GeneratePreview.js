@@ -153,7 +153,7 @@ function GeneratePreview({ files, apply, close, setSnackHeight, activeFile, user
     // Initialize selected files once when component mounts
     useEffect(() => {
         if (activeFile) setSelectedFiles([activeFile]);
-    }, []);
+    }, [activeFile]);
 
     // Separate effect for height updates
     useEffect(() => {

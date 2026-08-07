@@ -312,7 +312,7 @@ const BotInput = ({
         setShowDropdown(prev => !prev);
     }, []);
 
-    const getFontData = async (optionFonts) => {
+    const getFontData = useCallback( async (optionFonts) => {
         try {
             const response = await fetch(`${cdnUrl}/font-list.json`)
             const fonts = await response.json()
@@ -321,7 +321,7 @@ const BotInput = ({
             console.error('Failed to load fonts:', error)
             return []
         }
-    }
+    }, [])
 
     const setType = useCallback(async () => {
         if (prompt.length > 100 ||
@@ -540,7 +540,7 @@ const BotInput = ({
                 width: rect.width + 35
             });
         }
-    }, [showDropdown]);
+    }, [defaultOpen, setDefaultOpenBotInput, showDropdown, usedUiFrameworks]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {

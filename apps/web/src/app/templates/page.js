@@ -1,6 +1,7 @@
 'use client'
 import { cdnUrl } from '@/constains';
 import React from 'react'
+import Image from 'next/image'
 import { Button } from '@/components/Elements'
 import CardWrapper from '@/components/Elements/CardWrapper'
 import { Github, ArrowUpRight } from 'lucide-react'
@@ -16,9 +17,12 @@ const TemplateCard = ({ template }) => {
         >
             <div className="flex flex-col lg:flex-row">
                 {/* Image section - left on desktop */}
-                <div className="lg:w-1/3 aspect-[16/9] lg:aspect-auto bg-black">
-                    <img
+                <div className="relative lg:w-1/3 aspect-[16/9] lg:aspect-auto bg-black">
+                    <Image
                         src={template.imageUrl}
+                        fill
+                        unoptimized
+                        sizes="(min-width: 1024px) 33vw, 100vw"
                         alt={template.name}
                         className="w-full h-full object-cover"
                         loading="lazy"

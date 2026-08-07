@@ -1,6 +1,6 @@
 'use client'
 import { resendVerificationEmail } from '@/lib/api';
-import React, { useEffect, useState, Suspense } from 'react'
+import React, { useCallback, useEffect, useState, Suspense } from 'react'
 import { motion } from 'framer-motion';
 import { GradientSpot } from '@/components/Common';
 import { Toast } from '@/components/Elements';
@@ -15,7 +15,7 @@ function VerifyEmailContent() {
     const [toastType, setToastType] = useState('success');
 
 
-    const handleResendVerificationEmail = async () => {
+    const handleResendVerificationEmail = useCallback( async () => {
         if (!email) {
             setToastMessage('Email is required');
             setToastType('error');
@@ -32,11 +32,11 @@ function VerifyEmailContent() {
             setToastType('error');
             setShowToast(true);
         }
-    };
+    }, [email]);
 
     useEffect(() => {
         handleResendVerificationEmail();
-    }, [email]);
+    }, [email, handleResendVerificationEmail]);
     return (
         <div className="flex bg-black text-white items-center justify-center mx-auto w-full max-w-7xl" style={{ height: 'calc(100vh - 72px)' }}>
             <motion.div

@@ -1,10 +1,13 @@
 "use client";
 import { useEffect } from "react";
 import axios from "axios";
+import { useRouter } from "next/navigation";
 
 axios.defaults.withCredentials = true;
 
 export default function AxiosInterceptor() {
+  const router = useRouter();
+
   useEffect(() => {
     // Remove bearer JWTs left by pre-cookie releases.
     localStorage.removeItem("token");
@@ -13,7 +16,7 @@ export default function AxiosInterceptor() {
       (error) => {
         if (error.response?.status === 401 && !error.config?.skipAuthRedirect) {
           localStorage.removeItem("user");
-          window.location.href = "/login";
+          router.push("/login");
         }
         return Promise.reject(error);
       }
@@ -22,7 +25,7 @@ export default function AxiosInterceptor() {
     return () => {
       axios.interceptors.response.eject(interceptor);
     };
-  }, []);
+  }, [router]);
 
   return null;
 }

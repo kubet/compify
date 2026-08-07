@@ -61,7 +61,7 @@ const ProductCard = ({ id, name, language, upvotes = 0, upvoteDefaultStatus, onC
                 URL.revokeObjectURL(imageUrl);
             }
         };
-    }, [id, imageUploaded, imageUrl, imageError, fallbackImage]);
+    }, [id, imageUploaded, imageUrl, imageError, fallbackImage, publicImage]);
 
     const handleImageLoad = () => {
         setImageLoaded(true);

@@ -1,5 +1,5 @@
 "use client"
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useCallback, useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Mic, Camera, Sliders, ShapesIcon, X, Check } from 'lucide-react';
 import { GradientSpot } from '@/components/Common';
@@ -827,12 +827,14 @@ const SearchPage = () => {
     // Track if this is the initial mount
     const isInitialMount = useRef(true);
 
-    const handleSearch = async (pageNum = 0, query = searchQuery) => {
-        if (isLoading && pageNum > 0) return;
+    const isLoadingRef = useRef(false);
+    const handleSearch = useCallback(async (pageNum = 0, query = '', options = [], tags = []) => {
+        if (isLoadingRef.current && pageNum > 0) return;
 
         try {
+            isLoadingRef.current = true;
             setIsLoading(true);
-            const response = await searchComponents(pageNum, query, selectedOption?.map(option => option?.value) || [], selectedTags.map(tag => tag?.includes).flat());
+            const response = await searchComponents(pageNum, query, options, tags);
             if (response.status === 201) {
                 if (pageNum === 0) {
                     setSearchResults(response.data.items);
@@ -843,14 +845,15 @@ const SearchPage = () => {
                 setHasMore(response.data.items.length === 12);
             }
         } finally {
+            isLoadingRef.current = false;
             setIsLoading(false);
         }
-    };
+    }, []);
 
     // Initial load
     useEffect(() => {
         handleSearch(0);
-    }, []);
+    }, [handleSearch]);
 
     // Search handling with debounce
     useEffect(() => {
@@ -864,18 +867,28 @@ const SearchPage = () => {
         const timer = setTimeout(() => {
             setPage(0);
             setHasMore(true);
-            handleSearch(0);
+            handleSearch(
+                0,
+                searchQuery,
+                selectedOption?.map(option => option?.value) || [],
+                selectedTags.map(tag => tag?.includes).flat(),
+            );
         }, 300);
         return () => clearTimeout(timer);
-    }, [searchQuery, selectedOption, selectedTags]);
+    }, [handleSearch, searchQuery, selectedOption, selectedTags]);
 
     useEffect(() => {
         if (inView && hasMore && !isLoading) {
             const nextPage = page + 1;
-            handleSearch(nextPage);
+            handleSearch(
+                nextPage,
+                searchQuery,
+                selectedOption?.map(option => option?.value) || [],
+                selectedTags.map(tag => tag?.includes).flat(),
+            );
             setPage(nextPage);
         }
-    }, [inView, hasMore, isLoading, page]);
+    }, [inView, hasMore, isLoading, page, handleSearch, searchQuery, selectedOption, selectedTags]);
 
     const handleTagClick = (tag) => {
         if (selectedTags.some(t => t.id === tag.id)) {

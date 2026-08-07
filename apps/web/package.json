@@ -7,7 +7,7 @@
     "scan": "next dev & bunx react-scan@latest localhost:3000",
     "build": "NODE_ENV=production next build",
     "start": "NODE_ENV=production next start",
-    "lint": "eslint . --max-warnings=65",
+    "lint": "eslint . --max-warnings=0",
     "postinstall": "bun run scripts/prepare-local-assets.ts"
   },
   "dependencies": {

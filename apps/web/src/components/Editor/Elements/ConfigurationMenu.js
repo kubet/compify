@@ -84,7 +84,7 @@ function ConfigurationMenu({ initSettings,
         }
 
         loadFonts()
-    }, [initSettings])
+    }, [initSettings, mainFontValue, selectedFonts, setMainFont])
 
     const handleFontSelect = (selectedValues) => {
         const newFonts = selectedValues.map(item => {

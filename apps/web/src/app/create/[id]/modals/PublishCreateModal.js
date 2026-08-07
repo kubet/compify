@@ -153,7 +153,7 @@ function PublishCreateModal({ publishModalOpen,
             // Clear loading state after response
             setIsCheckingDomain(false);
         }
-    }, [user.username]);
+    }, [componentId, user.username]);
 
     // Use our custom debounce hook with the stable callback
     const debouncedCheckDomain = useDebounce(checkDomainCallback, 500);

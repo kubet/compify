@@ -1,5 +1,6 @@
 'use client'
 import React, { useMemo, useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/Elements';
@@ -416,8 +417,11 @@ const FeaturedSection = React.memo(() => (
                         viewport={{ once: true }}
                         transition={{ delay: index * 0.1 }}
                     >
-                        {platform.logo ? <img
+                        {platform.logo ? <Image
                             src={platform.logo}
+                            width={platform.maxWidth || 32}
+                            height={60}
+                            unoptimized
                             alt={`${platform.name} badge`}
                             className="opacity-60 group-hover:opacity-100 transition-all duration-300"
                             style={{ maxWidth: platform.maxWidth || 32 }}

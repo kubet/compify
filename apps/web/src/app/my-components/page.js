@@ -4,7 +4,7 @@ import Select from "@/components/Elements/Select";
 import { ProjectCard } from "@/components/Projects";
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, Plus, Search } from "lucide-react";
-import { useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { deleteComponent, getMyComponents } from "@/lib/api";
 import ComponentCard from "@/components/Component/Card";
@@ -36,12 +36,14 @@ const MyComponentsPage = () => {
     // Track if this is the initial mount
     const isInitialMount = useRef(true);
 
-    const loadMyComponents = async (pageNum = 0, query = searchQuery) => {
-        if (isLoading && pageNum > 0) return;
+    const isLoadingRef = useRef(false);
+    const loadMyComponents = useCallback(async (pageNum = 0, query = '', filterValue = '') => {
+        if (isLoadingRef.current && pageNum > 0) return;
 
         try {
+            isLoadingRef.current = true;
             setIsLoading(true);
-            const resp = await getMyComponents(pageNum, query, filter.value);
+            const resp = await getMyComponents(pageNum, query, filterValue);
             if (pageNum === 0) {
                 setComponents(resp?.data?.items || []);  // Ensure we set empty array if no items
             } else {
@@ -49,14 +51,15 @@ const MyComponentsPage = () => {
             }
             setHasMore(resp?.data?.items?.length === 12);
         } finally {
+            isLoadingRef.current = false;
             setIsLoading(false);
         }
-    }
+    }, [])
 
     // Initial load
     useEffect(() => {
         loadMyComponents(0);
-    }, []);
+    }, [loadMyComponents]);
 
     // Search handling
     useEffect(() => {
@@ -68,19 +71,19 @@ const MyComponentsPage = () => {
 
         const timer = setTimeout(() => {
             setPage(0);
-            loadMyComponents(0, searchQuery);
+            loadMyComponents(0, searchQuery, filter.value);
         }, 300);
         return () => clearTimeout(timer);
-    }, [searchQuery, filter]);
+    }, [searchQuery, filter, loadMyComponents]);
 
     // Infinite scroll
     useEffect(() => {
         if (inView && hasMore && !isLoading) {
             const nextPage = page + 1;
             setPage(nextPage);
-            loadMyComponents(nextPage);
+            loadMyComponents(nextPage, searchQuery, filter.value);
         }
-    }, [inView, hasMore, isLoading]);
+    }, [inView, hasMore, isLoading, page, loadMyComponents, searchQuery, filter.value]);
 
     const handleCreateComponent = () => {
         router.push('/create');
@@ -98,7 +101,7 @@ const MyComponentsPage = () => {
         if (deleteConfirmation.componentId) {
             const resp = await deleteComponent(deleteConfirmation.componentId);
             if (resp.status === 200) {
-                loadMyComponents();
+                loadMyComponents(0, searchQuery, filter.value);
             }
         }
         setDeleteConfirmation({

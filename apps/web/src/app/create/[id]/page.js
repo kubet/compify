@@ -138,10 +138,13 @@ function EditComponent() {
         }
     }
 
+    const loadComponentRef = useRef(loadComponent);
+    loadComponentRef.current = loadComponent;
+
     useEffect(() => {
         const id = params.id;
         if (id) {
-            loadComponent(id);
+            loadComponentRef.current(id);
         }
     }, [params]);
 
@@ -399,10 +402,13 @@ function EditComponent() {
             .join('\n');
     }
 
+    const handleSaveComponentRef = useRef(handleSaveComponent);
+    handleSaveComponentRef.current = handleSaveComponent;
+
     useEffect(() => {
         if (pendingSave) {
             const saveFiles = async () => {
-                await handleSaveComponent(true);
+                await handleSaveComponentRef.current(true);
                 setIsSetup(true);
                 setPendingSave(false);
             };

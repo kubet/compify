@@ -149,45 +149,46 @@ function RemapFiles({ files, apply, close, setSnackHeight, usedUiFrameworks, the
         ));
     };
 
-    const uiFrameworkConfigurationMap = {
-        tailwind: ['tailwind.config.js', activeFile],
-        'tailwind-ts': ['tailwind.config.ts', activeFile],
-        'tailwind-ts-v4': ['globals.css', activeFile],
-        'tailwind-v4': ['globals.css', activeFile],
-        'styled-components': ['globals.css', activeFile],
-        'daisyui': ['tailwind.config.js', activeFile],
-        'daisyui-ts': ['tailwind.config.ts', activeFile],
-        mui: [activeFile],
-        shadcn: ['globals.css', 'tailwind.config.ts']
-    }
-
-    const addDefaultFileToSelectedFiles = (framework) => {
-        const frameworkFiles = uiFrameworkConfigurationMap[framework];
-        if (frameworkFiles) {
-            // First normalize all paths, then create a Set for uniqueness
-            const normalizedFiles = new Set(
-                frameworkFiles.map(configFile => normalizePath(configFile))
-            );
-
-            const existingFiles = Array.from(normalizedFiles)
-                .filter(configFile => files[configFile]);
-
-            setSelectedFiles(prev => {
-                const newFiles = [...prev];
-                existingFiles.forEach(file => {
-                    if (!prev.some(f => normalizePath(f) === file)) {
-                        newFiles.push(file);
-                    }
-                });
-                return newFiles;
-            });
-        }
-    }
-
-    // Initialize selected files once when component mounts
+    // Initialize selected files for the active frameworks.
     useEffect(() => {
+        const uiFrameworkConfigurationMap = {
+            tailwind: ['tailwind.config.js', activeFile],
+            'tailwind-ts': ['tailwind.config.ts', activeFile],
+            'tailwind-ts-v4': ['globals.css', activeFile],
+            'tailwind-v4': ['globals.css', activeFile],
+            'styled-components': ['globals.css', activeFile],
+            'daisyui': ['tailwind.config.js', activeFile],
+            'daisyui-ts': ['tailwind.config.ts', activeFile],
+            mui: [activeFile],
+            shadcn: ['globals.css', 'tailwind.config.ts']
+        }
+
+        const addDefaultFileToSelectedFiles = (framework) => {
+            const frameworkFiles = uiFrameworkConfigurationMap[framework];
+            if (frameworkFiles) {
+                // First normalize all paths, then create a Set for uniqueness
+                const normalizedFiles = new Set(
+                    frameworkFiles.map(configFile => normalizePath(configFile))
+                );
+
+                const existingFiles = Array.from(normalizedFiles)
+                    .filter(configFile => files[configFile]);
+
+                setSelectedFiles(prev => {
+                    const newFiles = [...prev];
+                    existingFiles.forEach(file => {
+                        if (!prev.some(f => normalizePath(f) === file)) {
+                            newFiles.push(file);
+                        }
+                    });
+                    return newFiles.length === prev.length ? prev : newFiles;
+                });
+            }
+        }
+
         usedUiFrameworks.forEach(framework => addDefaultFileToSelectedFiles(framework));
-    }, []);
+    }, [activeFile, files, usedUiFrameworks]);
+
 
     // Separate effect for height updates
     useEffect(() => {

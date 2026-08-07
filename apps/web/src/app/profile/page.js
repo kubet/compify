@@ -70,7 +70,7 @@ const UserProfilePage = () => {
     if (isQueryManagement) {
       setActiveTab("manage-plans");
     }
-  }, [user]);
+  }, [isQueryManagement, user]);
 
   const handleSave = () => {
     setIsEditing(false);

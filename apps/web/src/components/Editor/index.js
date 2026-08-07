@@ -204,13 +204,13 @@ const Editor = ({
     setEditorWidth(selectedScreen === "code" ? "100%" : "0%");
   };
 
-  const packagesToIgnore = [
+  const packagesToIgnore = useMemo(() => ([
     "react",
     "react-dom",
     "react-native",
     "react-native-web",
-  ];
-  const getAllUsedPackages = (code) => {
+  ]), []);
+  const getAllUsedPackages = useCallback((code) => {
     const importRegex =
       /import\s+(?:(?:\*\s+as\s+\w+|(?:{[\s\S]*?}|\w+))\s+from\s+['"](.+?)['"]|['"](.+?)['"])\s*;?/g;
     const matches = [...code.matchAll(importRegex)];
@@ -237,7 +237,7 @@ const Editor = ({
 
     const uniquePackages = [...new Set(filteredPackages)];
     return uniquePackages;
-  };
+  }, [packagesToIgnore, template]);
 
   useEffect(() => {
     const previewContainer = document.querySelector(".sp-preview-container");
@@ -292,7 +292,7 @@ const Editor = ({
     return () => {
       window.removeEventListener("message", handleMessage);
     };
-  }, [onImageReceived]);
+  }, [onGifReceived, onImageReceived]);
 
   useEffect(() => {
     if (requestImage) {
@@ -308,7 +308,7 @@ const Editor = ({
         console.error("Iframe not found when trying to request image");
       }
     }
-  }, [requestImage, setRequestImage]);
+  }, [activeFile, requestImage, setRequestImage]);
 
   const getLanguage = () => {
     //get active file extension
@@ -393,7 +393,7 @@ const Editor = ({
 
       return newDeps;
     });
-  }, []);
+  }, [setUsedDeps]);
 
   const getExternalResources = () => {
     const urls = [];
@@ -491,7 +491,7 @@ const Editor = ({
 
       setDebouncedUpdateTimer(timer);
     },
-    [activeFile, filesState]
+    [activeFile, debouncedUpdateTimer, filesState, getAllUsedPackages, updateDependencies]
   );
 
   useEffect(() => {
@@ -511,7 +511,7 @@ const Editor = ({
         setScreenName(filename);
       }
     },
-    [filesState]
+    [filesState, setActiveFile]
   );
 
   const getFrameworkDeps = (framework) => {
@@ -558,9 +558,9 @@ const Editor = ({
 
   useEffect(() => {
     getFiles(filesState);
-  }, [filesState]);
+  }, [filesState, getFiles]);
 
-  const mainFileMap = {
+  const mainFileMap = useMemo(() => ({
     react: "/App.js",
     "react-ts": "/App.tsx",
     vue: "/src/App.vue",
@@ -569,7 +569,7 @@ const Editor = ({
     "nextjs-ts": "/App.tsx",
     "react-native": "/App.js",
     "react-native-ts": "/App.tsx",
-  };
+  }), []);
 
   const mappedFiles = useCallback(() => {
     const mainExtension = mainFileMap[template].split(".").pop();
@@ -597,7 +597,7 @@ const Editor = ({
         code: filesState[activeFile]?.code,
       },
     };
-  }, [filesState, activeFile, template, previewFile]);
+  }, [mainFileMap, template, activeFile, filesState, previewFile]);
 
   useEffect(() => {
     const mainExtension = mainFileMap[template].split(".").pop();
@@ -609,7 +609,7 @@ const Editor = ({
     if (exportRegex.test(filesState[activeFile]?.code)) {
       setPreviewFile(activeFile);
     }
-  }, [activeFile]);
+  }, [activeFile, filesState, mainFileMap, setPreviewFile, template]);
 
   const handleResetPreview = useCallback(() => {
     const iframe = document.querySelector(".sp-preview-iframe");
@@ -882,13 +882,13 @@ const Editor = ({
           setFilesState={setFilesState}
         />
       )}
-      {/* eslint-disable-next-line react/no-children-prop */}
       <HelpModal
         isOpen={showHelpModal}
         onClose={() => setShowHelpModal(false)}
         title={helpModalContent?.title}
-        children={helpModalContent?.children}
-      />
+      >
+        {helpModalContent?.children}
+      </HelpModal>
     </div>
   );
 };

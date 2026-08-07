@@ -3,9 +3,9 @@ import keyReplace from '../Project/utils';
 import { getCssVariables, getJSONConfig } from '../Project/common/getTokenConfigFiles';
 
 function ThemeCompiler({ initialTheme, setTheme, setFilesState }) {
-    const factors = Array.isArray(initialTheme?.factors) ? initialTheme.factors : [];
-    const groups = initialTheme?.groups || {};
-    const values = Array.isArray(initialTheme?.values) ? initialTheme.values : [];
+    const factors = useMemo(() => Array.isArray(initialTheme?.factors) ? initialTheme.factors : [], [initialTheme?.factors]);
+    const groups = useMemo(() => initialTheme?.groups || {}, [initialTheme?.groups]);
+    const values = useMemo(() => Array.isArray(initialTheme?.values) ? initialTheme.values : [], [initialTheme?.values]);
 
     const getAllTokens = useMemo(() => {
         if (!factors || !groups) return [];

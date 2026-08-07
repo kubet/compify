@@ -18,51 +18,6 @@ function ColorPickerConent({ type, value, onChange }) {
     const pickerRef = useRef(null);
     const [isDragging, setIsDragging] = useState(false);
 
-    const updateColorFromPosition = useCallback((x, y) => {
-        if (!pickerRef.current) return;
-
-        const rect = pickerRef.current.getBoundingClientRect();
-        const saturation = Math.max(0, Math.min(100, (x / rect.width) * 100));
-        const brightness = Math.max(0, Math.min(100, 100 - (y / rect.height) * 100));
-
-        updateColor(Color({
-            h: color.hue(),
-            s: saturation,
-            v: brightness
-        }));
-    }, [color]);
-
-    const handleMouseDown = (e) => {
-        setIsDragging(true);
-        updateColorFromPosition(
-            e.clientX - pickerRef.current.getBoundingClientRect().left,
-            e.clientY - pickerRef.current.getBoundingClientRect().top
-        );
-    };
-
-    const handleMouseMove = useCallback((e) => {
-        if (!isDragging) return;
-        updateColorFromPosition(
-            e.clientX - pickerRef.current.getBoundingClientRect().left,
-            e.clientY - pickerRef.current.getBoundingClientRect().top
-        );
-    }, [isDragging, updateColorFromPosition]);
-
-    const handleMouseUp = () => {
-        setIsDragging(false);
-    };
-
-    useEffect(() => {
-        if (isDragging) {
-            window.addEventListener('mousemove', handleMouseMove);
-            window.addEventListener('mouseup', handleMouseUp);
-        }
-        return () => {
-            window.removeEventListener('mousemove', handleMouseMove);
-            window.removeEventListener('mouseup', handleMouseUp);
-        };
-    }, [isDragging, handleMouseMove]);
-
     const detectFormat = useCallback((colorStr) => {
         if (type) return;
         const trimmed = colorStr?.trim();
@@ -77,26 +32,12 @@ function ColorPickerConent({ type, value, onChange }) {
         if (trimmed?.startsWith('hsl')) return 'hsl';
         if (trimmed?.startsWith('rgb')) return 'rgb';
         return 'hex';
-    }, []);
+    }, [type]);
 
     const [colorFormat, setColorFormat] = useState(detectFormat(value));
 
     const updateColor = useCallback((newColor, updateType) => {
         if (type && value !== undefined) {
-            let updatedColor;
-            switch (type) {
-                case 'hue':
-                    updatedColor = color.hue(newColor);
-                    break;
-                case 'saturation':
-                    updatedColor = color.saturationv(newColor);
-                    break;
-                case 'lightness':
-                    updatedColor = color.lightness(newColor);
-                    break;
-                default:
-                    updatedColor = newColor;
-            }
             onChange(newColor);
             return;
         }
@@ -138,7 +79,53 @@ function ColorPickerConent({ type, value, onChange }) {
         }
 
         onChange(formattedColor);
-    }, [onChange, type, color, colorFormat]);
+    }, [type, value, colorFormat, onChange, color]);
+
+
+    const updateColorFromPosition = useCallback((x, y) => {
+        if (!pickerRef.current) return;
+
+        const rect = pickerRef.current.getBoundingClientRect();
+        const saturation = Math.max(0, Math.min(100, (x / rect.width) * 100));
+        const brightness = Math.max(0, Math.min(100, 100 - (y / rect.height) * 100));
+
+        updateColor(Color({
+            h: color.hue(),
+            s: saturation,
+            v: brightness
+        }));
+    }, [color, updateColor]);
+
+    const handleMouseDown = (e) => {
+        setIsDragging(true);
+        updateColorFromPosition(
+            e.clientX - pickerRef.current.getBoundingClientRect().left,
+            e.clientY - pickerRef.current.getBoundingClientRect().top
+        );
+    };
+
+    const handleMouseMove = useCallback((e) => {
+        if (!isDragging) return;
+        updateColorFromPosition(
+            e.clientX - pickerRef.current.getBoundingClientRect().left,
+            e.clientY - pickerRef.current.getBoundingClientRect().top
+        );
+    }, [isDragging, updateColorFromPosition]);
+
+    const handleMouseUp = () => {
+        setIsDragging(false);
+    };
+
+    useEffect(() => {
+        if (isDragging) {
+            window.addEventListener('mousemove', handleMouseMove);
+            window.addEventListener('mouseup', handleMouseUp);
+        }
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('mouseup', handleMouseUp);
+        };
+    }, [isDragging, handleMouseMove]);
 
     const getSliderValue = (vtype) => {
         if (type && value !== undefined) return value;

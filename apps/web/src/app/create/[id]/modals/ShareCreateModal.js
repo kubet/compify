@@ -33,7 +33,7 @@ function ShareCreateModal({ id, image, shareModalOpen, setShareModalOpen, shareU
         img.onerror = () => {
             setBackgroundImage('url(/the-cube.webp)');
         };
-    }, [id]);
+    }, [id, privacy]);
 
     const handleCopyUrl = async () => {
         try {

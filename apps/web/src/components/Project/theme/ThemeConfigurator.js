@@ -200,7 +200,7 @@ const ThemeConfigurator = ({ factors, values, updateFactor, replaceValue, groups
         return [...factorTokens, ...groupTokens, ...values];
     }, [factors, groups, values]);
 
-    const resolveMetaToken = (key, depth = 0, tokens) => {
+    const resolveMetaToken = useCallback((key, depth = 0, tokens) => {
         if (!key?.includes('${')) {
             return null;
         }
@@ -236,7 +236,7 @@ const ThemeConfigurator = ({ factors, values, updateFactor, replaceValue, groups
 
             return `${value}${suffix}`;
         });
-    };
+    }, []);
 
     const handleSliderChange = useCallback((index, value) => {
         debouncedUpdateFactor(index, value);
@@ -266,7 +266,7 @@ const ThemeConfigurator = ({ factors, values, updateFactor, replaceValue, groups
             value: item.value,
             c: item.c
         })) : null;
-    }, [groups, getAllTokens]);
+    }, [resolveMetaToken, getAllTokens, groups]);
 
     return (
         <motion.div

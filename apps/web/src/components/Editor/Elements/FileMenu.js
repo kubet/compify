@@ -87,7 +87,7 @@ function FileTreeItem({
                 setExpandedFolders(prev => [...prev, item.path || name]);
             }
         }
-    }, [searchQuery, isDirectory, isExpanded, item.children, item.path, name]);
+    }, [searchQuery, isDirectory, isExpanded, item.children, item.path, name, setExpandedFolders]);
 
     const toggleFolder = (e) => {
         e.stopPropagation();
@@ -460,7 +460,7 @@ function FileDropdown({
             onSelect(pendingFileSwitch);
             setPendingFileSwitch(null);
         }
-    }, [pendingFileSwitch]);
+    }, [onSelect, pendingFileSwitch]);
 
     // Search through the file tree
     const searchFiles = (tree, query) => {

@@ -3,7 +3,7 @@ import DesignTokenWrapperStep from '@/components/Project/Steps/DesignTokenWrappe
 import SimpleAi from '@/components/Project/Steps/SimpleAi'
 import ThemeSelectionInterface from '@/components/Project/Steps/ThemeSelectionInterface'
 import { useRouter, useSearchParams } from 'next/navigation'
-import React, { useState, useEffect, Suspense, useRef } from 'react'
+import React, { useCallback, useState, useEffect, Suspense, useRef } from 'react'
 import { getTheme, insertTheme } from '@/lib/api'
 import { Toast } from '@/components/Elements'
 
@@ -18,8 +18,7 @@ const ThemeContent = () => {
     const c = useRef(null)
     const [themeId, setThemeId] = useState(null)
 
-    const fetchTheme = async (id) => {
-        const themeIdToFetch = id || themeId
+    const fetchTheme = useCallback(async (themeIdToFetch) => {
         if (themeIdToFetch) {
             setIsLoading(true)
             try {
@@ -36,14 +35,14 @@ const ThemeContent = () => {
             }
             setIsLoading(false)
         }
-    }
+    }, [])
 
     // Use effect just to initialize
     useEffect(() => {
         c.current = searchParams.get('c')
         setThemeId(searchParams.get('t'))
         fetchTheme(searchParams.get('t'))
-    }, [searchParams])
+    }, [fetchTheme, searchParams])
 
     const handleSaveTheme = async (themeDetails) => {
         setIsLoading(true)

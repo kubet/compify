@@ -1,5 +1,5 @@
 'use client'
-import React, { useEffect, useState, useRef } from 'react'
+import React, { useCallback, useEffect, useState, useRef } from 'react'
 import Editor from '@/components/Editor'
 import { motion } from 'framer-motion';
 import { Button } from '@/components/Elements';
@@ -100,7 +100,7 @@ function ViewPage() {
 
 
 
-    const loadComponent = async (id) => {
+    const loadComponent = useCallback( async (id) => {
         const response = await getViewComponent(id);
         if (response.status === 200) {
             await setCompFilesByFramework(response.data.usedUiFrameworks, response.data.files);
@@ -128,14 +128,14 @@ function ViewPage() {
         if (response.status === 404) {
             router.push('/not-found');
         }
-    }
+    }, [router])
 
     useEffect(() => {
         const id = params.slug;
         if (id) {
             loadComponent(id);
         }
-    }, [params]);
+    }, [loadComponent, params]);
 
     // useEffect(() => {
     //     if (imageRequested) {

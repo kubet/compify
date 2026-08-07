@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useCallback, useState, useEffect } from 'react'
 import { PricingCard } from '../LandingSections/Sections'
 import { cancelSubscription, getAllPlans, getCheckoutSession, getUserSubscriptionPlans, performUpgradeSubscription, previewUpgradeSubscription } from '@/lib/api';
 import { useUser } from '@/auth/UseUser';
@@ -155,16 +155,16 @@ function PaymentPlans({ show = null }) {
     const [payNowModal, setPayNowModal] = useState({ isOpen: false, price: 0 });
     const isFreePlan = +pricingData?.currentPlan?.price === 0;
     const [supportModal, setSupportModal] = useState({ isOpen: false });
-    const loadPlans = async () => {
+    const loadPlans = useCallback( async () => {
         const resp = await getUserSubscriptionPlans(show);
         setPricingData(resp.data);
 
         setPeriod(resp.data?.currentPlan?.billingCycle || 'monthly');
-    }
+    }, [show])
 
     useEffect(() => {
         loadPlans();
-    }, []);
+    }, [loadPlans]);
 
     const getCheckoutLink = async (plan) => {
         if (isFreePlan) {
