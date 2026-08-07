@@ -59,7 +59,7 @@
     "short-uuid": "^5.2.0",
     "stripe": "^17.4.0",
     "swagger-ui-express": "^5.0.1",
-    "typeorm": "^0.3.20",
+    "typeorm": "^1.1.0",
     "zeptomail": "^6.0.0"
   },
   "devDependencies": {
