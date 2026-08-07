@@ -2,11 +2,9 @@ export const dynamic = "force-dynamic";
 
 import { fetchAllComponentsForSitemap } from "@/lib/api";
 import { source } from "@/lib/docs-source";
+import { siteUrl } from "@/constains";
 
 export default async function sitemap() {
-  const siteUrl = (
-    process.env.NEXT_PUBLIC_SITE_URL || "https://compify.app"
-  ).replace(/\/$/, "");
   // Base URLs that are always present
   const routes = [
     {

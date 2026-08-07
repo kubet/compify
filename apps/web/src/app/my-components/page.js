@@ -149,6 +149,7 @@ const MyComponentsPage = () => {
                                 options={[
                                     { value: '', label: 'All Components' },
                                     { value: 'public', label: 'Public Components' },
+                                    { value: 'free', label: 'Unlisted Components' },
                                     { value: 'private', label: 'Private Components' },
                                     { value: 'draft', label: 'Draft Components' },
                                 ]}
@@ -163,6 +164,7 @@ const MyComponentsPage = () => {
                                 options={[
                                     { value: '', label: 'All Components' },
                                     { value: 'public', label: 'Public Components' },
+                                    { value: 'free', label: 'Unlisted Components' },
                                     { value: 'private', label: 'Private Components' },
                                     { value: 'draft', label: 'Draft Components' },
                                 ]}

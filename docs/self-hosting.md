@@ -58,16 +58,44 @@ NEXT_PUBLIC_CDN_URL=http://localhost:9000/public
 
 `INTERNAL_API_TOKEN` is runtime configuration for both containers and must have the same value in each. Compose does this automatically from the single `.env` value.
 
-### Editor asset origin
+### Editor runtime dependencies
 
-`NEXT_PUBLIC_CDN_URL` controls the origin used for editor runtime assets such as
-`sui-content`, `font-list.json`, `tailwindv4.js`, and `capture.js`; the service
-worker receives the same origin. The default remains `https://cdn.compify.app`
-for compatibility. A fully independent installation must mirror the assets it
-is licensed to redistribute at the same paths and set `NEXT_PUBLIC_CDN_URL` to
-that HTTPS origin before building the web image. The repository intentionally
-does not copy remote assets of unverified provenance into the open-source
-release.
+`NEXT_PUBLIC_CDN_URL` controls the browser-reachable origin used for editor
+runtime assets such as `sui-content`, `font-list.json`, `tailwindv4.js`, and
+`capture.js`; the service worker receives the same origin. The example points to
+the loopback MinIO public bucket, but that fresh bucket does not contain these
+assets. A fully independent installation must mirror only assets it is licensed
+to redistribute at the same paths and rebuild the web image with that origin.
+The repository intentionally does not copy remote assets of unverified
+provenance into the open-source release.
+
+Compify also does not ship a Sandpack bundler. Set `NEXT_PUBLIC_BUNDLER_URL` to
+an absolute, browser-reachable HTTP(S) URL for a compatible service and rebuild
+the web image. When it is unset, component editing and interactive preview fail
+closed with an operator-facing explanation rather than sending source to an
+undeclared third party or a nonexistent local route.
+
+All `NEXT_PUBLIC_*` values are embedded at image build time. After changing any
+of them, run `docker compose up -d --build web`; restarting the old container is
+not sufficient.
+
+### Optional authentication capabilities
+
+Google OAuth and Turnstile are disabled by default. Enable them only through
+the paired operator flags:
+
+```dotenv
+GOOGLE_OAUTH_ENABLED=true
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+
+TURNSTILE_ENABLED=true
+TURNSTILE_SITE_KEY=...
+CLOUDFLARE_TURNSTILE_KEY=...
+```
+
+API startup and the web build reject partial enabled configurations. Leaving an
+enabled flag false keeps the corresponding UI and server enforcement disabled.
 
 ### Database and object storage
 

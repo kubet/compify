@@ -1,54 +1,49 @@
 ---
 title: Getting started
-description: Choose a hosted or self-hosted setup and install your first component.
+description: Build Compify with Bun and translate a supported Storybook story locally.
 ---
 
 ## Requirements
 
-- [Bun 1.3.9](https://bun.sh/) for repository and CLI workflows
+- [Bun 1.3.9](https://bun.sh/)
 - Git
-- Docker with Compose for the recommended self-hosted deployment
+- A React Storybook repository for the translation workflow
+- Docker with Compose only if you want to run the self-hosting baseline
 
-## Use the hosted service
+## Build the current source
 
-Open [the editor](https://compify.app/create), create a component, and publish it.
-Install the CLI with Bun:
-
-```bash
-bun add --global @compify/cli
-compify login
-compify add @owner/component
-```
-
-The CLI writes source files into the current project and records them in
-`components.json`. See the [CLI reference](/docs/cli) for non-interactive and
-machine-readable workflows.
-
-## Run a self-hosted stack
+The Storybook commands and addon described in these docs are available from the
+repository source/release candidate. This documentation does not imply package
+registry availability or a managed hosted service.
 
 ```bash
-cp deploy/self-host.env.example .env
-# Replace every placeholder secret and set your public origins.
-docker compose up -d --build
-docker compose ps
+git clone https://github.com/kubet/compify.git
+cd compify/packages/cli
+bun install --frozen-lockfile
+bun run build
+bun link
+compify --help
 ```
 
-The web application defaults to [http://localhost:3000](http://localhost:3000) and the API to
-[http://localhost:3009](http://localhost:3009). Confirm both deployment probes:
+## Inspect before translating
+
+From a React Storybook project:
 
 ```bash
-curl --fail http://localhost:3009/health
-curl --fail http://localhost:3009/ready
+compify storybook inspect src/components/Button.stories.tsx
+compify storybook export src/components/Button.stories.tsx \
+  --output .compify/button.registry-item.json
 ```
 
-Continue with the [self-hosting guide](/docs/self-hosting) before exposing the
-stack to the internet.
+Inspection is static: it parses source without importing or executing the story
+module. Support is intentionally constrained; read [Storybook translation](/docs/storybook)
+before relying on it in automation.
 
-## Choose an installation path
+## Choose the next step
 
 <Cards>
-  <Card title="Registry" href="/docs/registry">Best for shadcn-compatible projects.</Card>
-  <Card title="Compify CLI" href="/docs/cli">Best for updates, diffs, removal, and automation.</Card>
-  <Card title="MCP" href="/docs/mcp">Best for coding agents that need registry context.</Card>
-  <Card title="API" href="/docs/api-reference">Best for service integrations.</Card>
+  <Card title="Review and publish" href="/docs/publishing">Inspect the generated item and use an authenticated publish.</Card>
+  <Card title="Install from a registry" href="/docs/registry">Use shadcn-compatible registry endpoints.</Card>
+  <Card title="Use MCP context" href="/docs/mcp">Understand the separate Storybook and Compify MCP roles.</Card>
+  <Card title="Self-host" href="/docs/self-hosting">Run the Compose baseline under your control.</Card>
 </Cards>

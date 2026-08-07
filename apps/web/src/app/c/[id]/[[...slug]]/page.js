@@ -1,5 +1,5 @@
 import { notFound, redirect } from 'next/navigation';
-import { baseUrl } from '@/constains';
+import { baseUrl, siteUrl } from '@/constains';
 import { getPublicComponentInfo } from '@/lib/api';
 import ComponentDisplay from '../ComponentDisplay';
 
@@ -18,7 +18,7 @@ export async function generateMetadata(props) {
     const ogImageUrl = `${baseUrl}/c/og-image/${params.id}`;
     const title = resp.data.name || 'Compify';
     const description = resp.data.description || 'Create and share beautiful components';
-    const canonicalUrl = `${baseUrl}/c/${params.id}`;
+    const canonicalUrl = `${siteUrl}/c/${params.id}`;
 
     // Simplified JSON-LD schema with only essential, verifiable information
     const jsonLd = {
@@ -32,8 +32,8 @@ export async function generateMetadata(props) {
                 'description': description,
                 'isPartOf': {
                     '@type': 'WebSite',
-                    '@id': `${baseUrl}#website`,
-                    'url': baseUrl,
+                    '@id': `${siteUrl}#website`,
+                    'url': siteUrl,
                     'name': 'Compify'
                 }
             },
@@ -54,8 +54,8 @@ export async function generateMetadata(props) {
                         '@type': 'ListItem',
                         'position': 1,
                         'item': {
-                            '@id': baseUrl,
-                            'url': baseUrl,
+                            '@id': siteUrl,
+                            'url': siteUrl,
                             'name': 'Home'
                         }
                     },
@@ -63,8 +63,8 @@ export async function generateMetadata(props) {
                         '@type': 'ListItem',
                         'position': 2,
                         'item': {
-                            '@id': `${baseUrl}/c`,
-                            'url': `${baseUrl}/c`,
+                            '@id': `${siteUrl}/c`,
+                            'url': `${siteUrl}/c`,
                             'name': 'Components'
                         }
                     },

@@ -1,126 +1,110 @@
 ---
 title: CLI reference
-description: Install and use the Bun-powered Compify command-line interface.
+description: Inspect Storybook source and manage Compify components with the Bun-powered CLI.
 ---
 
-The `compify` CLI pulls components you (or others) published on
-[compify.app](https://compify.app) into any project, tracks what's installed
-in `compify.json`, and keeps components up to date.
+The current source/release candidate provides local Storybook translation and
+the existing Compify component-management commands. Package-registry or managed
+hosted-service availability is not implied.
 
-> Agent-friendly by design: every command works non-interactively with
-> `-y`/`--silent`, `info --json` emits machine-readable state, and component
-> addresses are stable (`@user/name`).
-
-## Install
+## Build from source
 
 ```bash
-bun add --global @compify/cli
-# or from the monorepo:
-cd packages/cli && bun install --frozen-lockfile && bun run build && bun link
+cd packages/cli
+bun install --frozen-lockfile
+bun run build
+bun link
 ```
 
-## Authenticate
+## Storybook commands
+
+All three commands accept an optional story-file argument. When it is omitted,
+the CLI searches under `--cwd` and proceeds only if exactly one matching story
+file exists. Common options are `--cwd`, `--name`, `--description`,
+`--publishing-name`, `--component-entry <path>`, and `--visibility` (`private`,
+`public`, or `unlisted`; default `private`). The CLI normally infers the
+installable component entry from the CSF default meta `component` import;
+`--component-entry` provides an explicit override when that is not possible.
+`public` items are indexed, `unlisted` items are direct-address only, and
+`private` items are owner-only.
+
+### `compify storybook inspect [entry]`
+
+Statically parse a React CSF2/CSF3 story and report discovered stories, the
+separate installable component graph, declared dependencies, provenance, a deterministic digest, and
+portability diagnostics.
 
 ```bash
-compify login             # prompts for an API token
-compify login -t <token>  # non-interactive
+compify storybook inspect src/Button.stories.tsx
+compify storybook inspect src/Button.stories.tsx --json
 ```
 
-Generate a token on compify.app under **Profile → CLI token**. `login` validates
-the token before storing it in your OS keychain, never in the project. For
-headless CI/SSH sessions, set `COMPIFY_TOKEN` instead of using the keychain.
+`--json` emits machine-readable output. Inspection exits unsuccessfully when it
+reports an error diagnostic.
 
-### Use a self-hosted server
+### `compify storybook export [entry]`
 
-Select another API globally or with environment variables:
+Translate the bundle into a local shadcn registry item.
 
 ```bash
+compify storybook export src/Button.stories.tsx \
+  --output .compify/button.registry.json
+```
+
+`-o, --output <file>` chooses the path; otherwise the CLI writes
+`<component-name>.registry.json`. Existing files are refused unless `--force`
+is present.
+
+### `compify storybook publish [entry]`
+
+Translate and publish the bundle to the configured Compify API. Authentication
+is required.
+
+```bash
+COMPIFY_API_URL=https://api.example.com compify storybook publish \
+  src/Button.stories.tsx --publishing-name button --visibility public
+```
+
+The target must be a self-hosted current-source deployment containing
+`POST /cli/publish-story`; the CLI default API does not currently expose that
+endpoint. `--json` emits the server response. Export and publish both refuse
+bundles with error diagnostics or non-portable stories.
+The story source and Storybook-only dependencies are metadata inputs and are not
+included in the installable component files. The API independently verifies the deterministic payload digest.
+
+The parser does not import or execute the story module. See
+[Storybook translation](./storybook.mdx) for the supported CSF subset and
+limitations.
+
+## Authentication and API selection
+
+```bash
+COMPIFY_API_URL=https://api.example.com compify login -t <token>
 compify --api-url https://api.example.com login -t <token>
 COMPIFY_API_URL=https://api.example.com compify list
 ```
 
-Set `--web-url` / `COMPIFY_WEB_URL` as well when MCP results should link to a
-self-hosted web frontend. Options must appear before the subcommand. Tokens are
-isolated per API URL in the OS keychain; the hosted compify.app credential
-keeps its existing keychain entry. Trailing slashes are accepted.
+For Storybook publishing, always select the self-hosted release-candidate API
+explicitly; bare commands use the default API where the publish endpoint is not
+currently deployed. `login` validates the token before storing it in the OS keychain. For headless
+environments, set `COMPIFY_TOKEN`. Global options such as `--api-url` and
+`--web-url` must appear before the subcommand.
 
-## Commands
+## Existing component commands
 
-### `compify init`
+- `compify init` — create `compify.json`; use `-y` for defaults and `-p <path>`
+  for the component directory.
+- `compify add [components...]` — add by component id or `@owner/name`.
+  Supports `--yes`, `--overwrite`, `--path`, `--flat`, `--cwd`, and `--silent`.
+- `compify list` — list components for the authenticated account; supports
+  `--json` and `--silent`.
+- `compify info` — show project and installed state; supports `--json`.
+- `compify diff [componentId]` — compare installed source with the registry.
+- `compify migrate [componentId]` — update installed source; backups are enabled
+  by default.
+- `compify remove [components...]` — remove files and manifest entries.
+- `compify mcp` — run the Compify registry MCP server over stdio.
+- `compify logout` — clear stored credentials.
 
-Create `compify.json` in the current project (`-y` for defaults,
-`-p <path>` to set where component files go).
-
-### `compify mcp`
-
-Run a Model Context Protocol server over stdio for coding agents —
-see [mcp.md](./mcp.md).
-
-### `compify add [components...]`
-
-Add one or more components to the current project.
-
-```bash
-compify add @acme/prism-pricing-card   # by publishing domain
-compify add uSM5tu8fZCCFKdpVEdtW2n             # by component id
-compify add                                     # interactive picker (your library)
-```
-
-| Flag                | Meaning                                      |
-| ------------------- | -------------------------------------------- |
-| `-y, --yes`         | skip confirmation prompts                    |
-| `-o, --overwrite`   | overwrite existing files                     |
-| `-p, --path <path>` | target directory for component files         |
-| `-f, --flat`        | flat files instead of a per-component folder |
-| `-c, --cwd <cwd>`   | run against another directory                |
-| `-s, --silent`      | mute output                                  |
-
-The first `add` creates `compify.json` (component manifest + `componentPath`).
-
-### `compify list`
-
-List components owned by your account. Use `--json` for machine-readable output
-or `--silent` to perform the request without human-readable output.
-
-### `compify info`
-
-Show project + installed component state. `--json` for machines:
-
-```bash
-compify info --json
-```
-
-### `compify diff [componentId]`
-
-Check installed components against the registry; shows what changed upstream.
-
-### `compify migrate [componentId]`
-
-Update installed components to their latest published versions.
-Backs up replaced files to `.compify-backup/` (`--backup`, on by default).
-
-### `compify remove [components...]`
-
-Remove installed components and their manifest entries.
-
-### `compify logout`
-
-Clear stored credentials.
-
-## Per-project workflow
-
-```bash
-# once per machine
-compify login
-
-# per project
-compify add @you/button @you/pricing-card
-compify diff          # later: anything changed upstream?
-compify migrate       # pull updates (with backups)
-```
-
-## Prefer shadcn tooling?
-
-Public compify components are also served as shadcn registry items — see
-[docs/registry.md](./registry.md). `bunx shadcn add @compify/<user>/<name>`
-works without the compify CLI at all.
+Public registry items can also be installed through shadcn tooling; see
+[Registry](./registry.md).

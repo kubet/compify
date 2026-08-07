@@ -1,4 +1,4 @@
-import { cdnUrl } from '@/constains';
+import { cdnUrl, siteUrl } from '@/constains';
 import NavBar from "@/components/NavBar";
 import "./globals.css";
 import { UserProvider } from '@/auth/UseUser';
@@ -12,6 +12,7 @@ const suse = localFont({
 })
 
 export const metadata = {
+  metadataBase: new URL(siteUrl),
   title: {
     default: 'Compify - Build & Share Beautiful UI Components | Component Library',
     template: '%s | Compify - Component Builder'

@@ -24,9 +24,36 @@ describe('environment configuration', () => {
       validateEnvironment({
         ...valid(),
         JWT_SECRET: 'short',
+        GOOGLE_OAUTH_ENABLED: 'true',
         GOOGLE_CLIENT_ID: 'id',
       }),
-    ).toThrow(/JWT_SECRET.*GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET/s);
+    ).toThrow(/JWT_SECRET.*GOOGLE_CLIENT_SECRET is required/s);
+  });
+
+  it('requires complete credentials for enabled auth capabilities', () => {
+    expect(() =>
+      validateEnvironment({ ...valid(), GOOGLE_OAUTH_ENABLED: 'true' }),
+    ).toThrow(/GOOGLE_CLIENT_ID.*GOOGLE_CLIENT_SECRET/s);
+    expect(() =>
+      validateEnvironment({ ...valid(), TURNSTILE_ENABLED: 'true' }),
+    ).toThrow(/CLOUDFLARE_TURNSTILE_KEY.*TURNSTILE_SITE_KEY/s);
+    expect(() =>
+      validateEnvironment({
+        ...valid(),
+        GOOGLE_OAUTH_ENABLED: 'true',
+        GOOGLE_CLIENT_ID: 'id',
+        GOOGLE_CLIENT_SECRET: 'secret',
+        TURNSTILE_ENABLED: 'true',
+        CLOUDFLARE_TURNSTILE_KEY: 'secret',
+        TURNSTILE_SITE_KEY: 'site-key',
+      }),
+    ).not.toThrow();
+  });
+
+  it('rejects invalid capability flags', () => {
+    expect(() =>
+      validateEnvironment({ ...valid(), GOOGLE_OAUTH_ENABLED: 'yes' }),
+    ).toThrow(/GOOGLE_OAUTH_ENABLED must be either true or false/);
   });
 
   it('validates the trusted reverse-proxy hop count', () => {

@@ -1,29 +1,32 @@
 "use client"
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import axios from 'axios';
+import { whoAmI } from '@/lib/api';
 
 const UserContext = createContext(undefined);
 
 export const UserProvider = ({ children }) => {
-    const [user, setUser] = useState(() => {
-        if (typeof window !== 'undefined') {
-            const storedUser = localStorage.getItem('user');
-            return storedUser ? JSON.parse(storedUser) : {};
-        }
-        return {};
-    });
-
-    const isSignedIn = !!user.email;
+    const [user, setUser] = useState({});
+    const [isAuthLoading, setIsAuthLoading] = useState(true);
 
     useEffect(() => {
-        if (typeof window !== 'undefined') {
-            localStorage.setItem('user', JSON.stringify(user));
-        }
-    }, [user]);
+        let cancelled = false;
+        const hydrateSession = async () => {
+            const response = await whoAmI();
+            if (cancelled) return;
+            setUser(response.status === 200 ? response.data : {});
+            setIsAuthLoading(false);
+        };
+        hydrateSession();
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+
+    const isSignedIn = !isAuthLoading && !!user.email;
 
     return (
-        <UserContext.Provider value={{ user, setUser, isSignedIn }}>
+        <UserContext.Provider value={{ user, setUser, isSignedIn, isAuthLoading }}>
             {children}
         </UserContext.Provider>
     );
@@ -41,20 +44,17 @@ export function useUser() {
 
 export function withAuth(WrappedComponent) {
     return function AuthComponent(props) {
-        const { isSignedIn } = useUser();
+        const { isSignedIn, isAuthLoading } = useUser();
         const router = useRouter();
-        const [isLoading, setIsLoading] = useState(true);
 
         useEffect(() => {
-            if (!isSignedIn) {
+            if (!isAuthLoading && !isSignedIn) {
                 router.push('/login');
-            } else {
-                setIsLoading(false);
             }
-        }, [isSignedIn, router]);
+        }, [isAuthLoading, isSignedIn, router]);
 
-        if (isLoading) {
-            return null; // or a loading spinner
+        if (isAuthLoading || !isSignedIn) {
+            return null;
         }
 
         return <WrappedComponent {...props} />;

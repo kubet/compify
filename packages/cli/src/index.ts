@@ -9,6 +9,7 @@ import { remove } from "@/src/commands/remove"
 import { list } from "@/src/commands/list"
 import { init } from "@/src/commands/init"
 import { mcp } from "@/src/commands/mcp"
+import { storybook } from "@/src/commands/storybook"
 import { Command } from "commander"
 import { setRuntimeUrls } from "@/src/utils/config"
 
@@ -44,6 +45,7 @@ async function main() {
     .addCommand(list)
     .addCommand(init)
     .addCommand(mcp)
+    .addCommand(storybook)
   program.parse()
 }
 

@@ -383,6 +383,7 @@ export class ComponentService {
     }
 
     const id = createComponentDto.id;
+    let previousComponent: Component | undefined;
     const component = {
       ...createComponentDto,
       user,
@@ -414,21 +415,52 @@ export class ComponentService {
       if (!foundComponent) {
         throw new ForbiddenException();
       }
+      // TypeORM mutates/saves the update object below; retain an independent
+      // copy so metadata can be compensated if object storage fails.
+      previousComponent = { ...foundComponent } as Component;
       Object.assign(component, { id: shortIdToUuid(id) });
     } else {
       await this.limiterService.componentUsage(user);
     }
-    const savedComponent = await this.componentRepository.save(component);
+    const desiredVisibility = component.visibility;
+    const requiresVisibilityStaging =
+      desiredVisibility === ComponentVisibility.PUBLIC ||
+      desiredVisibility === ComponentVisibility.FREE;
+    // Reserve the domain and metadata while remaining unreachable through all
+    // public registry paths until its matching source has been persisted.
+    const stagedComponent = requiresVisibilityStaging
+      ? { ...component, visibility: ComponentVisibility.PRIVATE }
+      : component;
+    let savedComponent = await this.componentRepository.save(stagedComponent);
     const objectName = `${savedComponent.id}`;
-    await this.minioService.uploadFile(
-      objectName,
-      {
-        buffer: Buffer.from(createComponentDto.code),
-        size: createComponentDto.code.length,
-        mimetype: 'text/plain',
-      },
-      'components',
-    );
+    try {
+      await this.minioService.uploadFile(
+        objectName,
+        {
+          buffer: Buffer.from(createComponentDto.code),
+          size: Buffer.byteLength(createComponentDto.code),
+          mimetype: 'text/plain',
+        },
+        'components',
+      );
+    } catch (error) {
+      // Upload did not replace the source, so restoring the exact prior row is
+      // safe. Newly reserved domains are removed entirely.
+      if (!id) await this.componentRepository.delete(savedComponent.id);
+      else if (previousComponent)
+        await this.componentRepository.save(previousComponent);
+      throw error;
+    }
+
+    if (requiresVisibilityStaging) {
+      // Promotion happens only after source persistence. If this DB write
+      // fails, the row remains PRIVATE (brief 404) rather than exposing a
+      // mismatched metadata/source pair.
+      savedComponent = await this.componentRepository.save({
+        ...savedComponent,
+        visibility: desiredVisibility,
+      });
+    }
 
     return {
       ...savedComponent,

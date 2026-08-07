@@ -452,7 +452,7 @@ export class UserService {
   }
 
   async verifyCloudflareToken(token: string, req: Request) {
-    if (!process.env.CLOUDFLARE_TURNSTILE_KEY)
+    if (process.env.TURNSTILE_ENABLED !== 'true')
       return { success: true, disabled: true };
     const clientIp = this.getClientIp(req);
     const response = await fetch(

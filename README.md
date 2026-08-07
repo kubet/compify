@@ -1,70 +1,65 @@
 # Compify
 
-Build, preview and share UI components. Live at [compify.app](https://compify.app).
+Compify translates selected React Storybook source into reviewable shadcn
+registry artifacts. Storybook stays upstream for authoring, tests, and docs;
+Compify handles the supported translation and registry distribution path.
+
+The repository also contains the existing browser editor, registry API,
+Bun-powered component CLI, Compify MCP server, and self-hosting baseline. See
+[Product direction](PRODUCT.md) for the current/next boundary.
 
 ## Repository layout
 
-| Path                    | What                                      | Stack                                 |
-| ----------------------- | ----------------------------------------- | ------------------------------------- | --------- |
-| `apps/web`              | compify.app frontend                      | Next.js 16, React 19, Tailwind        |
-| `apps/api`              | REST API (auth, components, AI, billing)  | NestJS 11, TypeORM, PostgreSQL, MinIO |
-| `packages/cli`          | `compify` CLI (`compify add <id           | @user/name>`)                         | Bun, tsup |
-| `packages/compify-pack` | Vendored Sandpack fork used by the editor | React, rollup                         |
-| `packages/templates`    | Project templates                         | —                                     |
+| Path | What | Stack |
+| --- | --- | --- |
+| `apps/web` | Browser editor, previews, and documentation | Next.js 16, React 19, Tailwind |
+| `apps/api` | REST API for components and registry artifacts | NestJS 11, TypeORM, PostgreSQL, MinIO |
+| `packages/cli` | `compify` CLI, including static Storybook translation | Bun, tsup |
+| `packages/storybook` | Manager-only Storybook portability metadata addon | Storybook, React, tsup |
+| `packages/compify-pack` | Vendored Sandpack fork used by the editor | React, rollup |
+| `packages/templates` | Project templates | — |
 
 ## Docs
 
-- [Documentation site](https://compify.app/docs) — Fumadocs guides with navigation and search
-- [OpenAPI JSON](https://api.compify.app/openapi.json) and [read-only API reference](https://api.compify.app/api/docs)
-- [Product direction](PRODUCT.md) — positioning, personas, roadmap
+- [Documentation](docs/index.mdx)
+- [Storybook translation](docs/storybook.mdx)
+- [Getting started](docs/getting-started.mdx)
 - [CLI reference](docs/cli.md)
-- [shadcn registry interop](docs/registry.md) — `bunx shadcn add @compify/<user>/<name>`
-- [Publishing guide](docs/publishing.md)
-- [MCP server for agents](docs/mcp.md) — `compify mcp`
-- [Self-hosting with Docker Compose](docs/self-hosting.md) — reproducible single-host setup
+- [Publishing](docs/publishing.md)
+- [shadcn registry interop](docs/registry.md)
+- [MCP and the official Storybook MCP](docs/mcp.md)
+- [Product-market-fit research](docs/product-market-fit.md)
+- [Self-hosting](docs/self-hosting.md)
+- [OpenAPI reference](docs/api-reference.mdx)
 
 ## Development
 
-Each app is self-contained for now (no workspace hoisting yet). Bun 1.3.9 is the only supported package manager; each package commits its own `bun.lock`. The CLI runs on Bun. Next.js uses its supported Node runtime in the production web image while dependencies and scripts remain Bun-managed.
+Each app is self-contained; there is no workspace hoisting. Bun 1.3.9 is the
+only supported package manager, and each package commits its own `bun.lock`.
+The production web image uses Next.js's supported runtime while dependencies
+and scripts remain Bun-managed.
 
 ```bash
 # frontend — http://localhost:3000
 cd apps/web && bun install && bun run dev
 
-# api — http://localhost:3009 (needs PostgreSQL + MinIO, see .env.stage.local)
+# api — http://localhost:3009 (needs PostgreSQL + MinIO)
 cd apps/api && bun install && bun run start:dev
 
 # cli
 cd packages/cli && bun install && bun run build
 ```
 
-### API environment
+## Deployment boundary
 
-`apps/api` reads `.env.stage.<STAGE>` (`local` | `prod`). Required: PostgreSQL
-credentials, MinIO keys, JWT secret; optional: AI provider keys, Stripe,
-ZeptoMail, Turnstile. Env files are gitignored — never commit them.
-
-### Storage
-
-MinIO buckets: `components` (one JSON object per component id holding its
-files), `images` (`<shortId>` preview + `<shortId>-og` social image, webp),
-`public` (static assets, served via cdn.compify.app), `projects`.
-
-## Self-hosting status
-
-A Docker Compose deployment now provisions the web app, API, PostgreSQL,
-MinIO, buckets, schema migrations, and the default free plan. Follow the
-[self-hosting guide](docs/self-hosting.md). It targets local or single-server
-installations. Review the security notes and production checklist in that guide before exposing an installation publicly.
-
-## Production deployment
-
-The public repository intentionally contains no hosted Compify production
-credentials, topology, or private deployment automation. Operators can use the
-container images and Compose baseline in the [self-hosting guide](docs/self-hosting.md)
-as a starting point, then add their own TLS termination, secret manager,
-backups, monitoring, and deployment system.
+Docker Compose provides a reproducible local or single-server self-hosting
+baseline. The public repository does not promise a managed hosted deployment or
+contain production credentials, topology, or private deployment automation.
+Before exposing an installation, follow the security and production checklist
+in the [self-hosting guide](docs/self-hosting.md).
 
 ## License
 
-Original Compify code is MIT-licensed. The vendored `compify-pack` Sandpack derivative retains its upstream Apache-2.0 license; see `packages/compify-pack/PROVENANCE.md`.
+Original Compify code is MIT-licensed. The vendored `compify-pack` Sandpack
+derivative retains its upstream Apache-2.0 license; see
+`packages/compify-pack/PROVENANCE.md`.

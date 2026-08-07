@@ -1,75 +1,90 @@
-# Compify — product direction (2026)
-
-## The one-liner
-
-**Your components, everywhere your agents work.** Build a component in a live
-browser editor, publish it as `@you/name`, and it is instantly installable in
-any project — by you, your team, or a coding agent — through the industry-
-standard shadcn registry protocol, the compify CLI, and (next) MCP.
-
-## Why this, why now
-
-The market shifted under the original app:
-
-1. **The shadcn registry protocol became the USB-C of UI components.**
-   `registry-item.json` is how components move in 2026. v0, the shadcn CLI and
-   the official shadcn MCP all consume it. Anything that serves this format is
-   installable everywhere; anything that doesn't is an island.
-2. **Agents are the new package consumers.** Claude Code, Cursor and Windsurf
-   install UI through CLIs and MCP servers, not copy-paste. Distribution =
-   being addressable by an agent in one tool call.
-3. **21st.dev owns "browse 10,000 community components + AI generation".**
-   Competing head-on with a catalog is a losing move at our size.
+# Compify — current and next
 
 ## Positioning
 
-Compify is **the personal/team registry with a live editor**:
+**Turn selected React Storybook source into reviewable shadcn registry artifacts.**
 
-- **21st.dev** = discover other people's components.
-- **shadcn/ui** = the protocol + a canonical library.
-- **Compify** = *make and serve your own*: edit with live preview in the
-  browser (the "storybook" part), publish as `@user/name`, and it's served in
-  registry-item format from day one. Your design system as a service.
+Storybook remains the upstream place where a team authors, exercises, tests, and
+documents components. Compify is a translation and distribution layer: it reads
+supported source, lets a maintainer select the intended component surface, and
+produces source-owned artifacts for the shadcn registry ecosystem. It is not a
+replacement for Storybook, a component marketplace, or a second source of truth.
 
-The editor is the moat: no other registry has publish-from-a-live-sandbox.
-The registry protocol is the distribution: we adopt it rather than invent one.
+The official Storybook MCP server is complementary. It helps agents understand
+and work with a running Storybook; Compify's job is to package selected source
+for installation through a registry. Its MCP/manifests path is currently
+preview/unstable and React-only, so it is not a stable cross-renderer contract.
+Teams may use either or both.
 
-## How people use it (personas)
+## Current product
 
-1. **Solo dev**: curates their own library across client projects.
-   `bunx shadcn add @compify/me/pricing-card` in every new repo.
-2. **Agent-driven dev**: adds the compify registry to `components.json` once;
-   from then on their agent installs house components by name.
-3. **Team (later)**: shared org namespace `@acme/*`, private registry with
-   token auth (shadcn registries support auth headers natively — our paid tier).
+The repository currently provides:
 
-## What ships when
+- a browser editor and preview for React component source;
+- public shadcn-compatible registry items and an index;
+- a Bun-powered CLI for installing and managing published Compify components;
+- source/release-candidate CLI commands that statically inspect a React CSF
+  bundle, export a deterministic registry item, and publish it to a configured
+  authenticated self-hosted API built from the current source candidate;
+- the source/release-candidate `@compify/storybook` manager addon, which displays
+  author-provided portability and distribution metadata without inspecting or
+  publishing source;
+- a Compify MCP server for searching and reading that registry; and
+- a Docker Compose baseline for self-hosting.
 
-**Phase 1 — speak the standard (now)**
-- `GET /r/{user}/{name}.json` — shadcn registry-item endpoint ✅
-- `GET /r/registry.json` — public index ✅
-- Docs: registry interop, CLI reference, publishing guide ✅
-- `llms.txt` for agent discovery ✅
+Package-registry availability is not implied. The public repository does **not** claim
+a managed hosted deployment, private registry, organization namespace,
+versioned publishing, or general framework conversion.
 
-**Phase 2 — agent-native (in progress)**
-- `compify mcp` — stdio MCP server in the CLI (search / view / install tools)
-  so agents without shadcn set up can still use compify directly. ✅
-- Per-component agent docs (`docs` field in registry items, richer metadata). ✅
-- Publish the current CLI release to npm as `@compify/cli` and automate releases.
+## Next: validate and harden the wedge
 
-**Phase 3 — teams & revenue**
-- Org namespaces (`@org/name`) — usernames and org handles share one
-  namespace pool (already unique-constrained, org table joins it later).
-- Private registries with bearer-token auth → the paid tier. This maps 1:1
-  onto shadcn's registries auth config, so private components work in every
-  tool on day one.
-- Versioned publishes (`@user/name@1.2.0`) so `compify update`/agent installs
-  are reproducible.
+The smallest trustworthy React CSF pipeline now exists in repository source:
+inspect locally, export deterministically, and publish one explicitly selected
+story-file bundle to a configured API. The next work is evidence and reliability,
+not a broader promise:
 
-## Decisions made
+1. Test real pilot repositories and publish an explicit supported-version matrix.
+2. Categorize unsupported syntax and add only patterns repeated across qualified
+   teams.
+3. Prove exported artifacts in separate consumer applications and CI.
+4. Connect CLI diagnostics and addon metadata only after a safe, reviewable
+   contract exists; the addon currently displays author assertions only.
+5. Measure repeat export/install behavior against the 90-day scorecard.
 
-- **Orgs: not yet.** Single-user namespaces until teams actually show up.
-  Schema is org-ready (unique handles, publishingDomain is `handle/name`).
-- **Don't build a marketplace.** The gallery is a showcase, not the product.
-- **Registry format is canonical.** The CLI's own format stays for the
-  editor round-trip; everything public is also served as registry items.
+The boundary remains intentionally narrow: React Component Story Format (CSF),
+static imports, text files, and serializable metadata/args. No story module is
+executed during discovery. Dynamic configuration, arbitrary render functions,
+decorators, loaders, play functions, and framework-specific runtime behavior
+are not promises of faithful conversion. Export currently operates on a whole
+selected story file, not one named story within it.
+
+## Why this order
+
+Storybook already owns authoring, interaction, documentation, and test context.
+Rebuilding those workflows would create migration cost and split ownership.
+A reviewable translation step instead connects an established upstream workflow
+to shadcn's source-distribution protocol. The wedge is useful only if teams can
+adopt it component by component and keep Storybook unchanged.
+
+## Primary users
+
+1. **Design-system maintainer** — selects a supported public surface and reviews
+   the generated artifact before distribution.
+2. **Application engineer** — installs approved source into an application with
+   familiar shadcn or Compify tooling.
+3. **Platform/tooling engineer** — runs deterministic inspection/export in CI
+   and enforces repository policy.
+4. **Coding-agent user** — uses Storybook MCP for upstream context and registry
+   tooling for installation, without confusing the two roles.
+
+## Near-term decisions
+
+- Storybook source is upstream; generated registry artifacts are outputs.
+- Static analysis and explicit selection take priority over breadth.
+- React CSF comes first. Other renderers and opaque runtime stories remain out
+  of scope until measured demand and fixtures justify support.
+- The official Storybook MCP is an integration neighbor, not a competitor.
+- Keep existing editor, registry, CLI, MCP, and self-hosting paths maintained;
+  do not describe roadmap items as shipped.
+- Validate the wedge with the falsification tests and 90-day measures in
+  [docs/product-market-fit.md](docs/product-market-fit.md).

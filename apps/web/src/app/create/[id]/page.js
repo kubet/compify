@@ -243,7 +243,7 @@ function EditComponent() {
             }
         }
     }
-    const handleSaveComponent = async (propSetup = null) => {
+    const handleSaveComponent = async (propSetup = null, visibilityOverride = null) => {
         const filteredFiles = Object.fromEntries(
             Object.entries(files).filter(([_, fileData]) => fileData.hidden !== true)
         );
@@ -252,7 +252,7 @@ function EditComponent() {
             description,
             code: JSON.stringify(filteredFiles),
             language: template,
-            visibility: privacy,
+            visibility: visibilityOverride ?? privacy,
             isShared: isShared,
             pageSettings: previewSettings,
             usedUiFrameworks: usedUiFrameworks,
@@ -282,6 +282,7 @@ function EditComponent() {
         handleSaveGif();
         setShowToast(true);
         setPublishModalOpen(false);
+        return response.status === 201;
     };
     const handleSave = async () => {
         setImageRequested(true);

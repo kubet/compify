@@ -1,51 +1,65 @@
 ---
 title: Registry
-description: Consume published Compify components through the shadcn-compatible registry.
+description: Consume Compify artifacts through a shadcn-compatible registry deployment.
 ---
 
-Every public component on compify.app is served in
-[shadcn registry-item format](https://ui.shadcn.com/docs/registry), so you can
-install components with the tooling you already use — no compify CLI required.
+A configured Compify API can serve public components in shadcn registry-item
+format. This describes the protocol surface; it does not promise a managed
+hosted registry. Substitute the origin of the API you operate.
 
 ## One-off install
 
 ```bash
-bunx shadcn@latest add https://api.compify.app/r/glass-3d-text.json
+# self-hosted HTTPS origin
+bunx shadcn@latest add https://registry.example.com/r/glass-3d-text.json
+
+# local Compose API
+bunx shadcn@latest add http://localhost:3009/r/glass-3d-text.json
 ```
 
-## Configure the namespace (recommended)
+## Configure a namespace
 
-Add compify to `components.json` in your project:
+Add a registry deployment to `components.json`:
 
 ```json
 {
   "registries": {
-    "@compify": "https://api.compify.app/r/{name}.json"
+    "@compify": "https://registry.example.com/r/{name}.json"
   }
 }
 ```
 
-Then install any component as `@compify/<name>`:
+Then install an available component:
 
 ```bash
 bunx shadcn@latest add @compify/glass-3d-text
 ```
 
-## Agents (shadcn MCP)
+## Storybook relationship
 
-If you use the official shadcn MCP server with Claude Code, Cursor or
-Windsurf, the `@compify` namespace configured above is automatically available
-to your agent — it can search, view and install compify components with
-natural language ("add the prism pricing card from compify").
+Storybook remains upstream for authoring, tests, and documentation. The
+`compify storybook export` command produces a local registry item for review;
+`publish` sends a supported source bundle to the configured API. See
+[Storybook translation](./storybook.mdx). The official Storybook MCP provides
+upstream context and does not itself turn stories into Compify artifacts.
 
-## Registry index
+## Agents
 
-`GET https://api.compify.app/r/registry.json` lists all public components
-(name, title, description) in shadcn `registry.json` format.
+The official shadcn MCP can use namespaces configured in `components.json`.
+That is often enough for agents that need to search, view, and install available
+registry items. The separate Compify MCP exposes Compify registry metadata; see
+[MCP integrations](./mcp.md).
 
-## What's in an item
+## Registry index and item shape
 
-- `files` — the component source (compify-internal files like `globals.css`
-  and `tailwind.config.*` are stripped; your project keeps its own setup)
-- `dependencies` — npm packages the component needs (e.g. `framer-motion`)
-- `docs` / `meta.source` — link to the live preview on compify.app
+`GET https://registry.example.com/r/registry.json` lists `public` components in
+shadcn `registry.json` format. `unlisted` components are omitted from that index
+but remain available by direct address; `private` components are owner-only. An
+item can contain:
+
+- `files` — component source selected for distribution;
+- `dependencies` — required external packages; and
+- `docs` / `meta` — descriptive and provenance metadata.
+
+Generated files are derived outputs. Review them and test installation in a
+consumer project rather than assuming Storybook runtime behavior was captured.

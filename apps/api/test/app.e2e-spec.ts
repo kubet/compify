@@ -61,6 +61,9 @@ describe('shipped AppModule HTTP contract', () => {
     expect(body.paths['/cli/get-all'].get.security).toContainEqual({
       'cli-token': [],
     });
+    expect(body.paths['/cli/publish-story'].post.security).toContainEqual({
+      'cli-bearer': [],
+    });
     expect(body.paths['/c/fetch/sitemap/all'].get.security).toContainEqual({
       'internal-api-key': [],
     });
@@ -68,6 +71,7 @@ describe('shipped AppModule HTTP contract', () => {
       bearer: { type: 'http', scheme: 'bearer' },
       'browser-cookie': { type: 'apiKey', in: 'cookie', name: 'compify_auth' },
       'cli-token': { type: 'apiKey', in: 'header', name: 'x-cli-token' },
+      'cli-bearer': { type: 'http', scheme: 'bearer' },
       'internal-api-key': { type: 'apiKey', in: 'header', name: 'x-api-key' },
     });
   });

@@ -4,10 +4,10 @@ import { motion } from "framer-motion";
 import { Eye, EyeOff, Mail, Lock, CircleAlert, X } from "lucide-react";
 import { GradientSpot } from "@/components/Common";
 import { Button, InputField } from "@/components/Elements";
-import { loginUser, whoAmI, loginWithGoogle } from "@/lib/api";
+import { loginUser, whoAmI } from "@/lib/api";
 import { useUser } from "@/auth/UseUser";
 import { useRouter } from "next/navigation";
-import { baseUrl } from "@/constains";
+import { baseUrl, googleOAuthEnabled } from "@/constains";
 import GoogleButton from "@/components/Login/GoogleButton";
 import MiniButton from "@/components/Elements/MiniButton";
 
@@ -196,16 +196,20 @@ const LoginPage = () => {
               fullWidth={true}
             />
 
-            <div className="relative flex items-center gap-3">
-              <div className="w-full border-t border-gray-700"></div>
-              <span className="text-sm text-gray-400 whitespace-nowrap">
-                Or continue to
-              </span>
-              <div className="w-full border-t border-gray-700"></div>
-            </div>
-            <div className="w-full flex justify-center">
-              <GoogleButton onClick={handleGoogleLogin} />
-            </div>
+            {googleOAuthEnabled && (
+              <>
+                <div className="relative flex items-center gap-3">
+                  <div className="w-full border-t border-gray-700"></div>
+                  <span className="text-sm text-gray-400 whitespace-nowrap">
+                    Or continue with
+                  </span>
+                  <div className="w-full border-t border-gray-700"></div>
+                </div>
+                <div className="w-full flex justify-center">
+                  <GoogleButton onClick={handleGoogleLogin} />
+                </div>
+              </>
+            )}
           </div>
 
           <p className="text-center text-gray-400 text-sm">

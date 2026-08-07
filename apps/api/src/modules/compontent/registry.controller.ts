@@ -49,8 +49,8 @@ export class RegistryController {
     const components = await this.componentRepository
       .createQueryBuilder('component')
       .leftJoinAndSelect('component.user', 'user')
-      .where('component.visibility IN (:...vis)', {
-        vis: [ComponentVisibility.PUBLIC, ComponentVisibility.FREE],
+      .where('component.visibility = :visibility', {
+        visibility: ComponentVisibility.PUBLIC,
       })
       .andWhere('component.publishingDomain IS NOT NULL')
       .orderBy('component.upvotesCount', 'DESC')
@@ -110,7 +110,18 @@ export class RegistryController {
       (
         await this.minioService.getFile('components', component.id)
       )?.buffer?.toString() || '{}';
-    const files = JSON.parse(raw);
+    let files: Record<string, { code?: unknown }>;
+    try {
+      const parsed: unknown = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+        throw new Error('Component source is not a file map');
+      }
+      files = parsed as Record<string, { code?: unknown }>;
+    } catch {
+      throw new NotFoundException(
+        `Component "@${publishingDomain}" source is unavailable`,
+      );
+    }
 
     // Dependency names only (no version pins): the editor pins versions for
     // its own sandbox runtime, but consumer projects must resolve versions

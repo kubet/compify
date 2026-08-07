@@ -4,8 +4,8 @@ import { motion } from 'framer-motion';
 import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
 import { GradientSpot } from '@/components/Common';
 import { Button, InputField, Toast } from '@/components/Elements';
-import { registerUser, resendVerificationEmail, loginWithGoogle } from '@/lib/api';
-import { baseUrl } from '@/constains';
+import { registerUser, resendVerificationEmail } from '@/lib/api';
+import { baseUrl, googleOAuthEnabled, turnstileEnabled, turnstileSiteKey } from '@/constains';
 import GoogleButton from '@/components/Login/GoogleButton';
 import { useRouter } from 'next/navigation';
 
@@ -28,16 +28,16 @@ const RegisterPage = () => {
     }, []);
 
     useEffect(() => {
-        // Correctly attach the callback to window
-        window.onTurnstileCallback = turnstileCallback;
+        if (!turnstileEnabled) return;
 
+        window.onTurnstileCallback = turnstileCallback;
         const script = document.createElement('script');
         script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
         script.async = true;
         document.body.appendChild(script);
 
         return () => {
-            document.body.removeChild(script);
+            script.remove();
             delete window.onTurnstileCallback;
         };
     }, [turnstileCallback]);
@@ -98,7 +98,7 @@ const RegisterPage = () => {
             return;
         }
 
-        if (!turnstileToken) {
+        if (turnstileEnabled && !turnstileToken) {
             setToastMessage('Please complete the security check');
             setToastType('error');
             setShowToast(true);
@@ -218,14 +218,16 @@ const RegisterPage = () => {
                 </div>
 
                 <div className="pt-2 flex justify-center items-center flex-col w-full">
-                    <div
-                        className="cf-turnstile"
-                        data-callback="onTurnstileCallback"
-                        data-sitekey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
-                        data-theme="dark"
-                        data-size="flexible"
-                        style={{ width: '100%', paddingBottom: '10px' }}
-                    ></div>
+                    {turnstileEnabled && (
+                        <div
+                            className="cf-turnstile"
+                            data-callback="onTurnstileCallback"
+                            data-sitekey={turnstileSiteKey}
+                            data-theme="dark"
+                            data-size="flexible"
+                            style={{ width: '100%', paddingBottom: '10px' }}
+                        ></div>
+                    )}
                     <div className="w-full space-y-5">
 
                         <Button
@@ -235,15 +237,18 @@ const RegisterPage = () => {
                             fullWidth={true}
                         />
 
-                        <div className="relative flex items-center gap-3">
-                            <div className="w-full border-t border-gray-700"></div>
-                            <span className="text-sm text-gray-400 whitespace-nowrap">Or continue to</span>
-                            <div className="w-full border-t border-gray-700"></div>
-                        </div>
-
-                        <div className='w-full flex justify-center'>
-                            <GoogleButton onClick={handleGoogleSignup} />
-                        </div>
+                        {googleOAuthEnabled && (
+                            <>
+                                <div className="relative flex items-center gap-3">
+                                    <div className="w-full border-t border-gray-700"></div>
+                                    <span className="text-sm text-gray-400 whitespace-nowrap">Or continue with</span>
+                                    <div className="w-full border-t border-gray-700"></div>
+                                </div>
+                                <div className='w-full flex justify-center'>
+                                    <GoogleButton onClick={handleGoogleSignup} />
+                                </div>
+                            </>
+                        )}
                     </div>
                 </div>
                 <p className="text-sm text-gray-400 text-center">

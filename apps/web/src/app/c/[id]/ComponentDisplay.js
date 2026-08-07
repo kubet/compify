@@ -2,14 +2,14 @@
 
 import Button from '@/components/Elements/Button';
 import Chip from '@/components/Elements/Chip';
-import { Code2, LogIn, Heart, Boxes, PackageOpen, Share2, ArrowUpRight, Check, Terminal, Copy } from 'lucide-react';
+import { Code2, Heart, Boxes, PackageOpen, Share2, Check, Terminal, Copy } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { baseUrl } from '@/constains';
 import { motion } from 'framer-motion';
-import { runtimeLables, uiLibsLabels } from '@/components/Editor/Templates/common';
 import { useUser } from '@/auth/UseUser';
+import { runtimeLables, uiLibsLabels } from '@/components/Editor/Templates/common';
 import { useEffect, useState } from 'react';
 
 const fadeInUp = {
@@ -119,6 +119,7 @@ export default function ComponentDisplay({ data }) {
     const router = useRouter();
     const [mounted, setMounted] = useState(false);
     const [showCopied, setShowCopied] = useState(false);
+    const [installCopied, setInstallCopied] = useState(false);
 
     useEffect(() => {
         setMounted(true);
@@ -129,17 +130,29 @@ export default function ComponentDisplay({ data }) {
     }
 
     const { name, description, language, usedUiFrameworks, upvotesCount, publishingDomain } = data;
+    const registryPath = publishingDomain?.replace(/^compify\//, '');
+    const installCommand = registryPath
+        ? `bunx shadcn@latest add ${baseUrl}/r/${registryPath}.json`
+        : null;
+
+    const handleInstallCopy = async () => {
+        if (!installCommand) return;
+        await navigator.clipboard.writeText(installCommand);
+        setInstallCopied(true);
+        setTimeout(() => setInstallCopied(false), 2000);
+    };
 
     const filteredUsedUiFrameworks = usedUiFrameworks.filter(framework => framework !== 'theme');
+
 
     const handleClick = () => {
         if (isSignedIn) {
             router.push(`/create/${data.id}`);
         } else {
             localStorage.setItem('afterLoginForwardLink', window.location.pathname);
-            router.push(`/login`);
+            router.push('/login');
         }
-    }
+    };
 
     const handleShare = async (type = 'copy') => {
         const url = window.location.href;
@@ -168,20 +181,11 @@ export default function ComponentDisplay({ data }) {
                     <div className="flex items-center justify-between gap-3">
                         <div className="flex items-center gap-3">
                             <div className="shrink-0 p-2 rounded-xl bg-purple-500/10">
-                                {isSignedIn ? <PackageOpen size={18} className="text-purple-300" /> : <LogIn size={18} className="text-purple-300" />}
+                                <PackageOpen size={18} className="text-purple-300" />
                             </div>
                             <p className="text-sm font-medium text-gray-200">
-                                {isSignedIn ? (
-                                    <>
-                                        <span className="hidden sm:inline">Click customize to use this component</span>
-                                        <span className="sm:hidden">Click customize to use component</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <span className="hidden sm:inline">Login to customize and use this component</span>
-                                        <span className="sm:hidden">Login to use component</span>
-                                    </>
-                                )}
+                                <span className="hidden sm:inline">{installCommand ? 'Install this component directly with the shadcn CLI' : 'No registry install URL is available for this component'}</span>
+                                <span className="sm:hidden">{installCommand ? 'Install with shadcn' : 'Install unavailable'}</span>
                             </p>
                         </div>
 
@@ -210,14 +214,16 @@ export default function ComponentDisplay({ data }) {
                                     </div>
                                 </div>
                             </div>
-                            <Button
-                                text={isSignedIn ? "Customize" : "Login"}
-                                showIcon={false}
-                                color="purple"
-                                size="small"
-                                blurBackground={true}
-                                onClick={handleClick}
-                            />
+                            {installCommand && (
+                                <Button
+                                    text={installCopied ? "Copied!" : "Copy install command"}
+                                    showIcon={false}
+                                    color="purple"
+                                    size="small"
+                                    blurBackground={true}
+                                    onClick={handleInstallCopy}
+                                />
+                            )}
                         </div>
 
                         {/* Mobile buttons */}
@@ -231,7 +237,6 @@ export default function ComponentDisplay({ data }) {
                                     size="small"
                                     blurBackground={true}
                                     onClick={() => handleShare('copy')}
-                                    className="w-[38px] px-0"
                                 />
                                 <div className="absolute right-0 top-full mt-2 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 z-50">
                                     <div className="rounded-2xl border border-white/10 bg-[#111111] shadow-xl p-1 min-w-[160px]">
@@ -247,16 +252,17 @@ export default function ComponentDisplay({ data }) {
                                     </div>
                                 </div>
                             </div>
-                            <Button
-                                text=""
-                                showIcon={true}
-                                Icon={isSignedIn ? ArrowUpRight : LogIn}
-                                color="purple"
-                                size="small"
-                                blurBackground={true}
-                                onClick={handleClick}
-                                className="w-[38px] px-0"
-                            />
+                            {installCommand && (
+                                <Button
+                                    text={installCopied ? "Copied" : "Install"}
+                                    showIcon={true}
+                                    Icon={installCopied ? Check : Terminal}
+                                    color="purple"
+                                    size="small"
+                                    blurBackground={true}
+                                    onClick={handleInstallCopy}
+                                />
+                            )}
                         </div>
                     </div>
                 </motion.div>
@@ -403,7 +409,7 @@ export default function ComponentDisplay({ data }) {
                                     <div className="space-y-2">
                                         <InstallCommand
                                             label="shadcn"
-                                            command={`bunx shadcn@latest add https://api.compify.app/r/${publishingDomain.replace(/^compify\//, '')}.json`}
+                                            command={installCommand}
                                         />
                                         <InstallCommand
                                             label="compify"

@@ -1,4 +1,4 @@
-import { baseUrl } from '@/constains';
+import { siteUrl } from '@/constains';
 
 export default function robots() {
     return {
@@ -8,6 +8,6 @@ export default function robots() {
                 allow: '/',
                 disallow: ['/terms', '/create/*']
             }],
-        sitemap: `https://compify.app/sitemap.xml`,
+        sitemap: `${siteUrl}/sitemap.xml`,
     }
 }

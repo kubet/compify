@@ -6,6 +6,31 @@ import { getApiUrl } from './config';
 
 // COMPIFY_API_URL and the global --api-url option select a self-hosted server.
 const getBaseUrl = () => `${getApiUrl()}/cli`;
+
+export interface PublishStoryRequest {
+  schemaVersion: 1;
+  name: string;
+  description?: string;
+  publishingName: string;
+  visibility: "public" | "private" | "unlisted";
+  language: "tsx" | "jsx" | "ts" | "js";
+  entry: string;
+  files: Record<string, string>;
+  dependencies: Record<string, string>;
+  stories: Array<{ exportName: string; name: string; args?: unknown; portable: boolean }>;
+  provenance: { storyPath: string; gitCommit?: string; gitRemote?: string };
+  digest: string;
+}
+
+
+export interface PublishStoryResponse {
+  componentId: string;
+  publishingDomain: string;
+  digest: string;
+  registryUrl: string | null;
+  previewUrl: string;
+}
+
 export interface ComponentResponse {
   id: string;
   name: string;
@@ -73,6 +98,29 @@ export class ApiClient {
       throw new Error('Registry returned an invalid component list');
     }
     return body as ComponentResponse[];
+  }
+
+  async publishStory(payload: PublishStoryRequest): Promise<PublishStoryResponse> {
+    const token = await this.authManager.getToken();
+    if (!token) throw new Error('Authentication required. Please login first.');
+    const response = await fetch(`${getBaseUrl()}/publish-story`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) {
+      if (response.status === 401) throw new Error('Authentication required. Please login first.');
+      let details = response.statusText;
+      try {
+        const body = await response.json() as any;
+        details = body?.error || body?.message || details;
+      } catch {}
+      throw new Error(`Failed to publish story: ${response.status} ${details}`);
+    }
+    return await response.json() as PublishStoryResponse;
   }
 
   async validateToken(token: string): Promise<void> {

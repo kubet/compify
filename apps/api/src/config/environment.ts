@@ -88,7 +88,12 @@ export function validateEnvironment(config: Record<string, unknown>) {
     }
   }
 
-  for (const key of ['DB_SYNCHRONIZE', 'MINIO_USE_SSL']) {
+  for (const key of [
+    'DB_SYNCHRONIZE',
+    'MINIO_USE_SSL',
+    'GOOGLE_OAUTH_ENABLED',
+    'TURNSTILE_ENABLED',
+  ]) {
     if (
       config[key] !== undefined &&
       !['true', 'false'].includes(String(config[key]))
@@ -125,7 +130,18 @@ export function validateEnvironment(config: Record<string, unknown>) {
     errors.push('JWT_SECRET must contain at least 32 characters');
   }
 
-  requireTogether(config, ['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET'], errors);
+  if (String(config.GOOGLE_OAUTH_ENABLED) === 'true') {
+    for (const key of ['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET']) {
+      if (!config[key])
+        errors.push(`${key} is required when GOOGLE_OAUTH_ENABLED=true`);
+    }
+  }
+  if (String(config.TURNSTILE_ENABLED) === 'true') {
+    for (const key of ['CLOUDFLARE_TURNSTILE_KEY', 'TURNSTILE_SITE_KEY']) {
+      if (!config[key])
+        errors.push(`${key} is required when TURNSTILE_ENABLED=true`);
+    }
+  }
   requireTogether(
     config,
     ['ZEPTOMAIL_API_URL', 'ZEPTOMAIL_API_TOKEN', 'EMAIL_FROM_ADDRESS'],

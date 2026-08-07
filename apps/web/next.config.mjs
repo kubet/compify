@@ -5,6 +5,44 @@ import { createMDX } from "fumadocs-mdx/next";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const withMDX = createMDX();
 
+for (const key of [
+  "NEXT_PUBLIC_GOOGLE_OAUTH_ENABLED",
+  "NEXT_PUBLIC_TURNSTILE_ENABLED",
+]) {
+  const value = process.env[key];
+  if (value && !["true", "false"].includes(value)) {
+    throw new Error(`${key} must be true or false`);
+  }
+}
+if (
+  process.env.NEXT_PUBLIC_TURNSTILE_ENABLED === "true" &&
+  !process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
+) {
+  throw new Error(
+    "NEXT_PUBLIC_TURNSTILE_SITE_KEY is required when NEXT_PUBLIC_TURNSTILE_ENABLED=true",
+  );
+}
+
+const publicUrlVariables = [
+  "NEXT_PUBLIC_API_URL",
+  "NEXT_PUBLIC_SITE_URL",
+  "NEXT_PUBLIC_CDN_URL",
+  "NEXT_PUBLIC_BUNDLER_URL",
+];
+for (const variableName of publicUrlVariables) {
+  const value = process.env[variableName];
+  if (!value) continue;
+  let parsedUrl;
+  try {
+    parsedUrl = new URL(value);
+  } catch {
+    throw new Error(`${variableName} must be an absolute HTTP(S) URL`);
+  }
+  if (!["http:", "https:"].includes(parsedUrl.protocol)) {
+    throw new Error(`${variableName} must be an absolute HTTP(S) URL`);
+  }
+}
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Bun links the local package to repository source, so Turbopack needs the

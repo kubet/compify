@@ -1,39 +1,48 @@
 ---
 title: Compify documentation
-description: Build, publish, install, and self-host reusable interface components.
+description: Translate selected React Storybook source into shadcn registry artifacts.
 ---
 
-Compify combines a browser-based component editor, a shadcn-compatible registry,
-a Bun-powered CLI, and an MCP server for coding agents.
+Storybook stays the upstream authoring, test, and documentation environment.
+Compify provides a deliberately narrower path from supported React CSF source to
+reviewable shadcn registry artifacts. Existing editor, registry, CLI, MCP, and
+self-hosting workflows remain available.
 
 <Cards>
-  <Card title="Get started" href="/docs/getting-started" description="Run Compify, configure its URLs, and publish your first component." />
-  <Card title="Install components" href="/docs/registry" description="Use the registry or CLI from an existing project." />
-  <Card title="Self-host" href="/docs/self-hosting" description="Deploy the complete PostgreSQL, MinIO, API, and web stack." />
-  <Card title="API reference" href="/docs/api-reference" description="Use the generated OpenAPI document and read-only Swagger reference." />
+  <Card title="Storybook translation" href="/docs/storybook" description="Inspect supported CSF, export an artifact, and publish an explicit selection." />
+  <Card title="Get started" href="/docs/getting-started" description="Build the CLI and choose a local workflow." />
+  <Card title="Registry" href="/docs/registry" description="Install published artifacts with shadcn-compatible tooling." />
+  <Card title="Self-host" href="/docs/self-hosting" description="Run the included local or single-server Compose baseline." />
 </Cards>
 
-## The workflow
+## Source-to-distribution workflow
 
 <Steps>
-### Build
+### Author and verify in Storybook
 
-Create or import a React component in the live editor. Compify supports multiple
-files, dependencies, themes, and sandboxed previews.
+Keep component implementation, stories, tests, and documentation in the source
+repository. Compify does not replace these Storybook responsibilities.
 
-### Publish
+### Inspect and select
 
-Choose visibility and a stable `@owner/component` address. Public components
-receive a preview page and registry endpoint.
+Use static inspection on a supported React CSF file. Resolve unsupported input
+before exporting, and specify one story file when a project contains several.
 
-### Install
+### Export and review
 
-Pull the component with the Compify CLI, the shadcn CLI, or an MCP-enabled coding
-agent. Source files stay in your project and remain editable.
+Generate a local shadcn registry item. Review its source, dependencies, name,
+and metadata just as you would any other build artifact.
+
+### Publish or install
+
+An authenticated publish can send the selected translation to a configured
+Compify API. Consumers can install available items through registry or Compify
+CLI tooling.
 </Steps>
 
-<Callout title="Self-host friendly">
-All browser-facing API, site, and editor-asset origins are configurable. The
-included Compose stack runs migrations and provisions the required object-storage
-buckets automatically.
+<Callout title="Two complementary MCP paths">
+The official Storybook MCP supplies agents with upstream Storybook context; its
+MCP/manifests surface is currently preview/unstable and React-only. Compify MCP
+supplies registry search and artifact context. Neither is required
+for static Storybook translation, and Compify does not proxy the official server.
 </Callout>

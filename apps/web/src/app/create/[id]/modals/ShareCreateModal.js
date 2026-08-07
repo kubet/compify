@@ -25,7 +25,7 @@ function ShareCreateModal({ id, image, shareModalOpen, setShareModalOpen, shareU
     const [backgroundImage, setBackgroundImage] = useState(`url(${baseUrl}/c/og-image/${id}?v=${Math.floor(Date.now() / 1000)})`);
 
     useEffect(() => {
-        if (privacy !== 'public') return;
+        if (privacy !== 'public' && privacy !== 'free') return;
 
         const img = new Image();
         img.src = `${baseUrl}/c/og-image/${id}?v=${Math.floor(Date.now() / 1000)}`;
@@ -116,7 +116,7 @@ function ShareCreateModal({ id, image, shareModalOpen, setShareModalOpen, shareU
                     className="p-4 mb-6"
                     hoverEffect={false}
                 >
-                    {privacy === 'public' ? (
+                    {(privacy === 'public' || privacy === 'free') ? (
                         <div
                             className='w-full aspect-[1.9] rounded-xl overflow-hidden relative group'
                             style={{
@@ -133,16 +133,16 @@ function ShareCreateModal({ id, image, shareModalOpen, setShareModalOpen, shareU
                                 <Lock size={32} className="text-zinc-400" />
                             </div>
                             <div className="text-center px-6">
-                                <h3 className="text-lg font-semibold text-zinc-300 mb-2">Private Component</h3>
+                                <h3 className="text-lg font-semibold text-zinc-300 mb-2">Private component</h3>
                                 <p className="text-zinc-400 text-sm">
-                                    To share this component, please make it public in the publish settings.
+                                    To share this component, please set its visibility to Public or Unlisted in the publish settings.
                                 </p>
                             </div>
                         </div>
                     )}
 
                     {/* URL Share Section */}
-                    {privacy === 'public' && (
+                    {(privacy === 'public' || privacy === 'free') && (
                         <div
                             className="mt-4 relative cursor-pointer"
                             onClick={handleCopyUrl}
@@ -181,7 +181,7 @@ function ShareCreateModal({ id, image, shareModalOpen, setShareModalOpen, shareU
                 </CardWrapper>
 
                 {/* Share Options Grid */}
-                {privacy === 'public' && (
+                {(privacy === 'public' || privacy === 'free') && (
                     <div className="flex items-center justify-between w-full px-1">
                         {shareOptions.map((option) => (
                             <LabelButton

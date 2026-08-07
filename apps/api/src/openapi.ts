@@ -41,6 +41,10 @@ export function setupOpenApi(app: INestApplication): void {
       },
       'browser-cookie',
     )
+    .addBearerAuth(
+      { type: 'http', scheme: 'bearer', bearerFormat: 'CLI token' },
+      'cli-bearer',
+    )
     .addApiKey(
       { type: 'apiKey', in: 'header', name: 'x-cli-token' },
       'cli-token',

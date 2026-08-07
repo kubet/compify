@@ -17,10 +17,7 @@ export class GoogleOAuthGuard
   }
 
   canActivate(context: ExecutionContext) {
-    if (
-      !this.configService.get<string>('GOOGLE_CLIENT_ID') ||
-      !this.configService.get<string>('GOOGLE_CLIENT_SECRET')
-    ) {
+    if (this.configService.get<string>('GOOGLE_OAUTH_ENABLED') !== 'true') {
       throw new ServiceUnavailableException('Google OAuth is not configured');
     }
     return super.canActivate(context);

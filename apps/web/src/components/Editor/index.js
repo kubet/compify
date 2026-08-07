@@ -724,156 +724,164 @@ const Editor = ({
         </div>
       </div>
       <div ref={resizeContainerRef} className="w-full h-full">
-        <SandpackProvider
-          key={usedUiFrameworks.join("-")}
-          template={getTemplate()}
-          theme="dark"
-          files={mappedFiles()}
-          customSetup={{
-            dependencies: memoizedDependencies,
-          }}
-          options={{
-            bundlerURL: bundlerUrl,
-            externalResources: [
-              `${cdnUrl}/capture.js`,
-              "https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js",
-              ...getExternalResources(),
-            ],
-          }}
-          style={{ height: "100%" }}
-        >
-          <SandpackLayout
-            style={{
-              display: "flex",
-              flexDirection: "row",
-              flexGrow: "1",
-              width: "100%",
-              height: "100%",
-              flexWrap: "nowrap",
-              position: "relative",
-              border: "1px solid rgba(255,255,255,0.15)",
-              backgroundColor: "#0a0a0a",
-              borderRadius: "0px 0px 10px 10px",
+        {bundlerUrl ? (
+          <SandpackProvider
+            key={usedUiFrameworks.join("-")}
+            template={getTemplate()}
+            theme="dark"
+            files={mappedFiles()}
+            customSetup={{
+              dependencies: memoizedDependencies,
             }}
+            options={{
+              bundlerURL: bundlerUrl,
+              externalResources: [
+                `${cdnUrl}/capture.js`,
+                "https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js",
+                ...getExternalResources(),
+              ],
+            }}
+            style={{ height: "100%" }}
           >
-            <div
-              className="relative overflow-auto"
+            <SandpackLayout
               style={{
-                width: selectedScreen === "fullscreen" ? 0 : editorWidth,
+                display: "flex",
+                flexDirection: "row",
+                flexGrow: "1",
+                width: "100%",
+                height: "100%",
+                flexWrap: "nowrap",
+                position: "relative",
+                border: "1px solid rgba(255,255,255,0.15)",
+                backgroundColor: "#0a0a0a",
+                borderRadius: "0px 0px 10px 10px",
               }}
             >
-              {showAdditionalMenu ? (
-                <ConfigurationMenu
-                  initSettings={previewSettings}
-                  previewSettings={previewSettings}
-                  setFonts={(fonts) =>
-                    setPreviewSettings({ ...previewSettings, fonts })
-                  }
-                  setMainFont={(font) =>
-                    setPreviewSettings({ ...previewSettings, fontFamily: font })
-                  }
-                  onBack={closeConfigurationMenu}
-                  setScreenName={setScreenName}
-                  setUsedUiFrameworks={setUsedUiFrameworks}
-                  usedUiFrameworks={usedUiFrameworks}
-                  initFrameworkConfigFiles={initFrameworkConfigFiles}
-                  template={template}
-                  closeConfigurationMenu={() => setShowAdditionalMenu(false)}
-                  changeActiveFile={handleFileSwitch}
-                  initialTheme={initialTheme}
-                  setTheme={setTheme}
-                  setFilesState={setFilesState}
-                  id={id}
-                  handleLoadTheme={handleLoadTheme}
-                  setDefaultOpenBotInput={setDefaultOpenBotInput}
-                />
-              ) : (
-                <DiffHighlightingEditor
-                  key={activeFile}
-                  originalCode={currentCode}
-                  setDefaultOpenBotInput={setDefaultOpenBotInput}
-                  defaultOpenBotInput={defaultOpenBotInput}
-                  onCodeChange={handleCodeUpdate}
-                  language={getLanguage()}
-                  enableCompletion={true}
-                  template={[template, ...usedUiFrameworks].join(" ")}
-                  onSave={onSave}
-                  showSave={isCurrentFileModified()}
-                  usedUiFrameworks={usedUiFrameworks}
-                  openHelpModal={openHelpModal}
-                  handleFileSwitch={handleFileSwitch}
-                  id={id}
-                  openMenu={() => setShowAdditionalMenu(true)}
-                  theme={initialTheme}
-                  setTheme={setTheme}
-                  selectFont={(font) => {
-                    setPreviewSettings({
-                      ...previewSettings,
-                      fonts: [...previewSettings?.fonts, font],
-                      fontFamily: font?.n,
-                    });
-                  }}
-                  files={filesState}
-                  setFiles={setFilesState}
-                  activeFile={activeFile}
-                  isSetupServer={isSetupServer}
-                />
-              )}
-            </div>
-            <div
-              ref={dividerRef}
-              className="w-1 bg-gray-700 cursor-col-resize hover:bg-gray-400 transition-colors hidden sm:block"
-              onMouseDown={startResize}
-            />
-            <div
-              style={
-                selectedScreen === "fullscreen"
-                  ? { width: "100%" }
-                  : { width: `calc(100% - ${editorWidth})` }
-              }
-              className="relative h-full"
-            >
               <div
-                className="w-full h-full flex items-center justify-center bg-[#0a0a0a] overflow-hidden"
-                style={{ maxHeight: "calc(80vh - 43px)" }}
+                className="relative overflow-auto"
+                style={{
+                  width: selectedScreen === "fullscreen" ? 0 : editorWidth,
+                }}
               >
-                <SandpackPreview
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    backgroundColor:
-                      previewSettings?.backgroundColor || "#0a0a0a",
-                    ...(selectedScreen === "phone" && {
-                      width: "367px",
-                      height: "722px",
-                      margin: "auto",
-                      border: "5px solid #1a1a1a",
-                      boxShadow:
-                        "0 0 0.2em 0.3em hsl(220, 20%, 12%), 0 0 0 6px hsl(220, 15%, 65%)",
-                      borderRadius: "68px",
-                      overflow: "hidden",
-                      transformOrigin: "center",
-                    }),
-                  }}
-                  showOpenInCodeSandbox={false}
-                  customLoader={
-                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#0a0a0a] z-10">
-                      <LoaderCube size={18} color="white" />
-                      <span className="text-white text-sm mt-2">
-                        Loading preview...
-                      </span>
-                    </div>
-                  }
-                  showOpenNewtab={false}
-                  showRefreshButton={false}
-                />
+                {showAdditionalMenu ? (
+                  <ConfigurationMenu
+                    initSettings={previewSettings}
+                    previewSettings={previewSettings}
+                    setFonts={(fonts) =>
+                      setPreviewSettings({ ...previewSettings, fonts })
+                    }
+                    setMainFont={(font) =>
+                      setPreviewSettings({ ...previewSettings, fontFamily: font })
+                    }
+                    onBack={closeConfigurationMenu}
+                    setScreenName={setScreenName}
+                    setUsedUiFrameworks={setUsedUiFrameworks}
+                    usedUiFrameworks={usedUiFrameworks}
+                    initFrameworkConfigFiles={initFrameworkConfigFiles}
+                    template={template}
+                    closeConfigurationMenu={() => setShowAdditionalMenu(false)}
+                    changeActiveFile={handleFileSwitch}
+                    initialTheme={initialTheme}
+                    setTheme={setTheme}
+                    setFilesState={setFilesState}
+                    id={id}
+                    handleLoadTheme={handleLoadTheme}
+                    setDefaultOpenBotInput={setDefaultOpenBotInput}
+                  />
+                ) : (
+                  <DiffHighlightingEditor
+                    key={activeFile}
+                    originalCode={currentCode}
+                    setDefaultOpenBotInput={setDefaultOpenBotInput}
+                    defaultOpenBotInput={defaultOpenBotInput}
+                    onCodeChange={handleCodeUpdate}
+                    language={getLanguage()}
+                    enableCompletion={true}
+                    template={[template, ...usedUiFrameworks].join(" ")}
+                    onSave={onSave}
+                    showSave={isCurrentFileModified()}
+                    usedUiFrameworks={usedUiFrameworks}
+                    openHelpModal={openHelpModal}
+                    handleFileSwitch={handleFileSwitch}
+                    id={id}
+                    openMenu={() => setShowAdditionalMenu(true)}
+                    theme={initialTheme}
+                    setTheme={setTheme}
+                    selectFont={(font) => {
+                      setPreviewSettings({
+                        ...previewSettings,
+                        fonts: [...previewSettings?.fonts, font],
+                        fontFamily: font?.n,
+                      });
+                    }}
+                    files={filesState}
+                    setFiles={setFilesState}
+                    activeFile={activeFile}
+                    isSetupServer={isSetupServer}
+                  />
+                )}
               </div>
-            </div>
-            {isResizing && (
-              <div className="absolute inset-0 bg-transparent cursor-col-resize" />
-            )}
-          </SandpackLayout>
-        </SandpackProvider>
+              <div
+                ref={dividerRef}
+                className="w-1 bg-gray-700 cursor-col-resize hover:bg-gray-400 transition-colors hidden sm:block"
+                onMouseDown={startResize}
+              />
+              <div
+                style={
+                  selectedScreen === "fullscreen"
+                    ? { width: "100%" }
+                    : { width: `calc(100% - ${editorWidth})` }
+                }
+                className="relative h-full"
+              >
+                <div
+                  className="w-full h-full flex items-center justify-center bg-[#0a0a0a] overflow-hidden"
+                  style={{ maxHeight: "calc(80vh - 43px)" }}
+                >
+                  <SandpackPreview
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      backgroundColor:
+                        previewSettings?.backgroundColor || "#0a0a0a",
+                      ...(selectedScreen === "phone" && {
+                        width: "367px",
+                        height: "722px",
+                        margin: "auto",
+                        border: "5px solid #1a1a1a",
+                        boxShadow:
+                          "0 0 0.2em 0.3em hsl(220, 20%, 12%), 0 0 0 6px hsl(220, 15%, 65%)",
+                        borderRadius: "68px",
+                        overflow: "hidden",
+                        transformOrigin: "center",
+                      }),
+                    }}
+                    showOpenInCodeSandbox={false}
+                    customLoader={
+                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#0a0a0a] z-10">
+                        <LoaderCube size={18} color="white" />
+                        <span className="text-white text-sm mt-2">
+                          Loading preview...
+                        </span>
+                      </div>
+                    }
+                    showOpenNewtab={false}
+                    showRefreshButton={false}
+                  />
+                </div>
+              </div>
+              {isResizing && (
+                <div className="absolute inset-0 bg-transparent cursor-col-resize" />
+              )}
+            </SandpackLayout>
+          </SandpackProvider>
+        ) : (
+          <div className="flex h-full items-center justify-center border border-white/15 bg-[#0a0a0a] p-8 text-center text-gray-300">
+            Component editing and interactive preview are unavailable. Set
+            NEXT_PUBLIC_BUNDLER_URL to a browser-reachable, Sandpack-compatible
+            bundler URL and rebuild the web application. See apps/web/README.md.
+          </div>
+        )}
       </div>
       {usedUiFrameworks?.includes("theme") && (
         <ThemeCompiler

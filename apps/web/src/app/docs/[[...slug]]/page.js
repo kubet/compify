@@ -1,4 +1,5 @@
 import { source } from '@/lib/docs-source';
+import { siteUrl } from '@/constains';
 import {
   DocsBody,
   DocsDescription,
@@ -38,6 +39,6 @@ export async function generateMetadata({ params }) {
   return {
     title: page.data.title,
     description: page.data.description,
-    alternates: { canonical: `https://compify.app${page.url}` },
+    alternates: { canonical: `${siteUrl}${page.url}` },
   };
 }

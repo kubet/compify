@@ -1,0 +1,177 @@
+---
+title: Storybook translation
+description: Statically inspect supported React CSF and produce reviewable shadcn registry artifacts.
+---
+
+Storybook is the upstream source for component implementation, stories, tests,
+and documentation. Compify translates a supported story source bundle into a
+shadcn registry item; it does not replace Storybook or promise faithful capture
+of Storybook runtime behavior.
+
+The CLI and `@compify/storybook` addon described here are present in the current
+repository source/release candidate. Their presence does not imply a managed
+hosted service or package-registry release.
+
+## CLI workflow
+
+Build and link the CLI from source, then run it from the React package containing
+the stories:
+
+```bash
+compify storybook inspect src/components/Button.stories.tsx
+compify storybook inspect src/components/Button.stories.tsx --json
+
+compify storybook export src/components/Button.stories.tsx \
+  --name button --output .compify/button.registry.json
+
+COMPIFY_API_URL=https://api.example.com compify login -t <token>
+COMPIFY_API_URL=https://api.example.com compify storybook publish \
+  src/components/Button.stories.tsx \
+  --publishing-name button --visibility private
+```
+
+The story-file argument is optional only when exactly one `*.stories.*` file can
+be inferred under the working directory. When several exist, specify one. Use
+`--cwd <path>` to choose another working directory. The CLI resolves the
+component source from the default meta `component` import (including the common
+`const meta = { component: Button } satisfies Meta; export default meta` form).
+Use `--component-entry <path>` to override or supply that source when it cannot
+be inferred:
+
+```bash
+compify storybook inspect src/components/Button.stories.tsx \
+  --component-entry src/components/Button.tsx
+```
+
+See the [CLI reference](./cli.md) for other options.
+
+`inspect` reports all named stories discovered in the selected file. The
+current CLI bundles at file level; it does not export only one named story from
+that file.
+
+## Supported source boundary
+
+The implementation is intentionally constrained to React CSF source files named
+`*.stories.tsx`, `*.stories.ts`, `*.stories.jsx`, `*.stories.js`, `*.stories.mjs`,
+or `*.stories.cjs`.
+
+It currently recognizes:
+
+- a CSF default export;
+- CSF3 named variable exports;
+- CSF2 named function exports, including static `.args` and `.storyName`
+  assignments;
+- JSON-static story `args` and static story names;
+- static `includeStories` and `excludeStories` arrays;
+- a local component import referenced by default meta `component`, including a
+  default-meta variable alias, or an explicit `--component-entry`; and
+- static local imports/re-exports, string-literal `import()` and `require()`
+  targets, and bare dependencies reachable from that component entry.
+
+Static literals include strings, numbers, booleans, null, literal arrays and
+objects, expression-free template literals, and simple unary literal values.
+Dynamic expressions are not evaluated. Dynamic args make that story
+non-portable and produce a warning; a missing default export or no named story
+exports is an error. Inspection reports non-portability; export and publish
+fail instead of emitting or uploading a partially portable artifact.
+
+The exported registry item contains the component entry and its transitive text
+files and runtime dependencies, plus story metadata, source provenance when
+available, and a stable
+SHA-256 digest. Review this derived output before publishing.
+
+## Static parsing and security
+
+Inspection parses the abstract syntax tree; it never imports or executes the
+story or component modules. In particular, it does not run decorators, loaders,
+play functions, render functions, hooks, environment reads, or build plugins.
+
+The bundler also:
+
+- confines the entry and local imports to the working/package roots, including
+  resolution through symbolic links;
+- rejects absolute local imports and unresolved local imports;
+- includes only supported text extensions;
+- refuses likely credential/key files, private-key content, high-confidence
+  provider token formats, and binary content;
+- limits a bundle to 100 files, 256 KiB per file, and 5 MiB total UTF-8 component source;
+- rejects case-colliding paths; and
+- normalizes line endings and sorts output for deterministic digests.
+
+These controls reduce exposure; they do not certify source as safe or suitable
+for publication. Static text can still contain proprietary code, tokens in
+unrecognized formats, personal information, or undesired files. Inspect the
+file list and artifact, use least-privilege credentials, and publish privately
+until review is complete.
+
+## Limitations
+
+Compify does not currently promise:
+
+- Vue, Svelte, Angular, Web Components, or other renderer conversion;
+- evaluation of variables, spreads, functions, computed keys, or imported data
+  to recover dynamic args/names;
+- semantic capture of decorators, loaders, play functions, parameters, global
+  configuration, styling/build aliases, or Storybook preview runtime state;
+- asset/binary bundling or arbitrary file types;
+- automatic conversion of a story render function into a reusable component;
+- perfect dependency discovery for runtime or dynamically loaded dependencies;
+- per-named-story export from a multi-story file; or
+- automatic synchronization when upstream source changes.
+
+An inspection with no error diagnostics means the supported static bundle can be
+produced. It does not mean the installed component will visually or behaviorally
+match every Storybook configuration. Test the resulting source in a consumer.
+
+## `@compify/storybook` addon
+
+The addon is a thin manager-only panel and toolbar indicator for explicit
+`parameters.compify` metadata. Build it from repository source:
+
+```bash
+cd packages/storybook
+bun install --frozen-lockfile
+bun run build
+```
+
+When the package is available in your Storybook environment, add it to
+`.storybook/main.ts`:
+
+```ts
+export default {
+  addons: ["@compify/storybook"],
+};
+```
+
+Provide author-owned metadata on a story:
+
+```ts
+import type { CompifyParameters } from "@compify/storybook/parameters";
+
+const compify = {
+  status: "portable",
+  component: "@acme/button",
+  registry: "https://registry.example.com/r/acme/button.json",
+  installCommand:
+    "bunx shadcn@latest add https://registry.example.com/r/acme/button.json",
+  previewUrl: "https://storybook.example.com/?path=/story/button--primary",
+  reasons: ["Reviewed static bundle"],
+} satisfies CompifyParameters;
+
+export const Primary = {
+  parameters: { compify },
+};
+```
+
+Supported statuses are `portable`, `partial`, `not-portable`, and `unknown`.
+The addon reads only this explicit metadata. It does **not** inspect source, read
+credentials or environment variables, make network requests, execute displayed
+commands, publish files, or create a local bridge. Only HTTP(S) preview URLs are
+clickable. Its status is an author assertion, not the result of CLI inspection.
+
+Use the CLI separately for static inspection, export, and authenticated publish.
+Publishing requires `COMPIFY_API_URL` or the global `--api-url` to target a
+self-hosted current-source deployment containing `POST /cli/publish-story`; the
+CLI's default API does not currently expose it. `public` items are indexed,
+`unlisted` items are direct-address only, and `private` items are owner-only.
+The addon and CLI do not currently synchronize metadata automatically.

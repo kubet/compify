@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { InputField } from '../Elements';
 import { ArrowRight } from 'lucide-react';
 import { subcribeToNewsletter } from '@/lib/api';
+import { baseUrl } from '@/constains';
 
 // Utility function for email validation
 export const isValidEmail = (email) => {
@@ -47,7 +48,7 @@ const Footer = () => {
                 }
             ]
         },
-        { title: 'Resources', items: [{ title: 'Blog', href: '/blog' }, { title: 'Docs', href: '/docs' }, { title: 'Registry', href: 'https://api.compify.app/r/registry.json' }] },
+        { title: 'Resources', items: [{ title: 'Blog', href: '/blog' }, { title: 'Docs', href: '/docs' }, { title: 'Registry', href: `${baseUrl}/r/registry.json` }] },
         { title: 'Legal', items: [{ title: 'Terms of Service', href: '/terms' }, { title: 'Privacy Policy', href: '/privacy' }] },
     ];
 

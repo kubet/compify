@@ -45,6 +45,26 @@ describe("ApiClient", () => {
     )
   })
 
+  it("publishes stories with the fixed bearer-token request contract", async () => {
+    mockedFetch.mockResolvedValue({ ok: true, json: async () => ({ id: "story-1" }) } as any)
+    const payload = {
+      schemaVersion: 1 as const,
+      name: "button", publishingName: "button", visibility: "private" as const,
+      language: "tsx" as const, entry: "Button.stories.tsx",
+      files: { "Button.stories.tsx": "export default {}\n" }, dependencies: {}, stories: [],
+      provenance: { storyPath: "Button.stories.tsx" }, digest: "abc",
+    }
+    await ApiClient.getInstance().publishStory(payload)
+    expect(mockedFetch).toHaveBeenCalledWith(
+      "https://api.compify.app/cli/publish-story",
+      {
+        method: "POST",
+        headers: { Authorization: "Bearer saved-token", "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      },
+    )
+  })
+
   it("validates an explicit login token without storing it first", async () => {
     mockedFetch.mockResolvedValue({ ok: true } as any)
     await ApiClient.getInstance().validateToken("new-token")
