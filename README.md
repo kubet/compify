@@ -8,12 +8,14 @@ Build, preview and share UI components. Live at [compify.app](https://compify.ap
 | --- | --- | --- |
 | `apps/web` | compify.app frontend | Next.js 16, React 19, Tailwind |
 | `apps/api` | REST API (auth, components, AI, billing) | NestJS 10, TypeORM, PostgreSQL, MinIO |
-| `packages/cli` | `compify` CLI (`compify add <id | @user/name>`) | Node, tsup |
+| `packages/cli` | `compify` CLI (`compify add <id | @user/name>`) | Bun, tsup |
 | `packages/compify-pack` | Vendored Sandpack fork used by the editor | React, rollup |
 | `packages/templates` | Project templates | — |
 
 ## Docs
 
+- [Documentation site](https://compify.app/docs) — Fumadocs guides with navigation and search
+- [OpenAPI JSON](https://api.compify.app/openapi.json) and [read-only API reference](https://api.compify.app/api/docs)
 - [Product direction](PRODUCT.md) — positioning, personas, roadmap
 - [CLI reference](docs/cli.md)
 - [shadcn registry interop](docs/registry.md) — `bunx shadcn add @compify/<user>/<name>`
@@ -24,7 +26,7 @@ Build, preview and share UI components. Live at [compify.app](https://compify.ap
 
 ## Development
 
-Each app is self-contained for now (no workspace hoisting yet). Bun 1.3.9 is the only supported package manager and JavaScript runtime; each package commits its own `bun.lock`.
+Each app is self-contained for now (no workspace hoisting yet). Bun 1.3.9 is the only supported package manager; each package commits its own `bun.lock`. The CLI runs on Bun. Next.js uses its supported Node runtime in the production web image while dependencies and scripts remain Bun-managed.
 
 ```bash
 # frontend — http://localhost:3000

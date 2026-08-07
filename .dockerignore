@@ -10,7 +10,6 @@
 **/coverage
 **/*.log
 .DS_Store
-docs
 deploy
 packages/cli
 packages/templates

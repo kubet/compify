@@ -6,6 +6,7 @@ FROM oven/bun:1.3.9-debian AS bun-runtime
 FROM node:22.15.0-bookworm-slim AS source
 COPY --from=bun-runtime /usr/local/bin/bun /usr/local/bin/bun
 WORKDIR /app
+COPY docs ./docs
 COPY apps/web/package.json apps/web/bun.lock ./apps/web/
 COPY apps/web/scripts ./apps/web/scripts
 # compify-pack is a local file dependency of the web application.

@@ -1,6 +1,8 @@
+import { ApiTags } from '@nestjs/swagger';
 import { Controller, Get, ServiceUnavailableException } from '@nestjs/common';
 import { AppService } from './app.service';
 
+@ApiTags('System')
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}

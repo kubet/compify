@@ -36,6 +36,7 @@ jobs:
             web:
               - 'apps/web/**'
               - 'packages/compify-pack/**'
+              - 'docs/**'
             api:
               - 'apps/api/**'
             cli:

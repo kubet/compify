@@ -1,4 +1,7 @@
-# compify CLI reference
+---
+title: CLI reference
+description: Install and use the Bun-powered Compify command-line interface.
+---
 
 The `compify` CLI pulls components you (or others) published on
 [compify.app](https://compify.app) into any project, tracks what's installed

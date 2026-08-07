@@ -1,0 +1,42 @@
+---
+title: API reference
+description: Discover Compify endpoints through its generated OpenAPI 3 document and read-only Swagger UI.
+---
+
+The API generates its contract directly from the NestJS controllers and DTOs.
+The document therefore stays aligned with the deployed API version.
+
+<Cards>
+  <Card title="OpenAPI JSON" href={`${process.env.NEXT_PUBLIC_API_URL || 'https://api.compify.app'}/openapi.json`} description="Machine-readable OpenAPI 3 contract on this API deployment." />
+  <Card title="Swagger reference" href={`${process.env.NEXT_PUBLIC_API_URL || 'https://api.compify.app'}/api/docs`} description="Browsable, read-only endpoint and schema reference." />
+</Cards>
+
+When the documentation site and API use different origins, open these endpoints
+on your configured `NEXT_PUBLIC_API_URL` instead:
+
+```text
+${NEXT_PUBLIC_API_URL}/openapi.json
+${NEXT_PUBLIC_API_URL}/api/docs
+```
+
+For the hosted service, use:
+
+- [https://api.compify.app/openapi.json](https://api.compify.app/openapi.json)
+- [https://api.compify.app/api/docs](https://api.compify.app/api/docs)
+
+## Authentication schemes
+
+| Scheme | Header | Used by |
+| --- | --- | --- |
+| Bearer JWT | `Authorization: Bearer <token>` | Authenticated user endpoints |
+| CLI token | `x-cli-token: <token>` | CLI registry operations |
+| Internal API key | `x-api-key: <token>` | Restricted server-to-server endpoints |
+
+The Swagger interface deliberately disables request submission. Use the JSON
+contract with your preferred OpenAPI client generator or testing tool.
+
+## Stability
+
+The current contract version is `1.0`. Treat undocumented fields as internal,
+handle standard HTTP errors, and pin generated clients to the OpenAPI document
+from the Compify version you deploy.

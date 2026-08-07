@@ -1,3 +1,4 @@
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import {
   Controller,
   Get,
@@ -15,13 +16,18 @@ import { InsertThemeDto } from 'src/models/theme/insert-theme.dto';
 import { GetUser } from 'src/common/get-user.decorator';
 import { User } from 'src/entities/user/user.entity';
 
+@ApiTags('Themes')
+@ApiBearerAuth('bearer')
 @Controller('theme')
 @UseGuards(JwtUserGuard)
 export class ThemeController {
   constructor(private readonly themeService: ThemeService) {}
 
   @Get(':id')
-  async getTheme(@Param('id') id: string, @GetUser() user: User): Promise<Theme> {
+  async getTheme(
+    @Param('id') id: string,
+    @GetUser() user: User,
+  ): Promise<Theme> {
     return this.themeService.findOne(id, user);
   }
 
@@ -29,7 +35,6 @@ export class ThemeController {
   async createOrUpdate(@Body() theme: InsertThemeDto, @GetUser() user: User) {
     return this.themeService.createOrUpdate(theme, user);
   }
-
 
   @Delete(':id')
   async deleteTheme(@Param('id') id: string, @GetUser() user: User) {

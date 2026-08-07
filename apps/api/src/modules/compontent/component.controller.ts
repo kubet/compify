@@ -1,3 +1,4 @@
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import {
   Controller,
   Get,
@@ -23,6 +24,8 @@ import { MinioClientService } from '../minio/minio.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import { ConstructImageService } from './construct-image.service';
+@ApiTags('Components')
+@ApiBearerAuth('bearer')
 @Controller('component')
 @UseGuards(JwtUserGuard)
 export class ComponentController {
@@ -70,7 +73,9 @@ export class ComponentController {
     // Add size limit check (2MB = 2 * 1024 * 1024 bytes)
     const maxSize = 2 * 1024 * 1024; // 2MB in bytes
     if (file.size > maxSize) {
-      throw new BadRequestException('File size exceeds the maximum limit of 2MB');
+      throw new BadRequestException(
+        'File size exceeds the maximum limit of 2MB',
+      );
     }
 
     const bucketName = 'images';
@@ -124,7 +129,7 @@ export class ComponentController {
     return this.componentService.findAllMy(page, term, filter, user);
   }
 
-  @Get('external')  
+  @Get('external')
   findAllExternal(@GetUser() user: User) {
     return this.componentService.findAllExternal(user);
   }
@@ -164,7 +169,11 @@ export class ComponentController {
   }
 
   @Post('gif/create')
-  async getAnimatedImg(@Body('captures') captures: string[], @Body('id') id: string, @GetUser() user: User) {
+  async getAnimatedImg(
+    @Body('captures') captures: string[],
+    @Body('id') id: string,
+    @GetUser() user: User,
+  ) {
     if (captures.length > 5 || captures.length === 0) {
       throw new BadRequestException('Captures array is required');
     }
@@ -172,15 +181,16 @@ export class ComponentController {
       throw new BadRequestException('Id is required');
     }
     await this.componentService.checkIfUserIsOwnerOrThrow403(id, user);
-    const base64 = await this.constructImageService.constructAnimatedImg(captures);
-    
+    const base64 =
+      await this.constructImageService.constructAnimatedImg(captures);
+
     const bucketName = 'images';
     const objectName = `${id}`;
 
     try {
       // Convert base64 to buffer
       const buffer = Buffer.from(base64.split(',')[1], 'base64');
-      
+
       await this.minioService.uploadFile(
         objectName,
         {

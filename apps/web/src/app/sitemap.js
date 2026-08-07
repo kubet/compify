@@ -1,4 +1,5 @@
 import { fetchAllComponentsForSitemap } from "@/lib/api";
+import { source } from "@/lib/docs-source";
 
 export default async function sitemap() {
     const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://compify.app').replace(/\/$/, '');
@@ -9,7 +10,11 @@ export default async function sitemap() {
             changeFrequency: 'daily',
             priority: 1.0
         },
-        { url: `${siteUrl}/docs`, changeFrequency: 'weekly', priority: 0.7 },
+        ...source.getPages().map((page) => ({
+            url: `${siteUrl}${page.url}`,
+            changeFrequency: 'weekly',
+            priority: page.slugs.length === 0 ? 0.8 : 0.65,
+        })),
         { url: `${siteUrl}/blog`, changeFrequency: 'weekly', priority: 0.6 },
         { url: `${siteUrl}/blog/shadcn-compatible-registry`, changeFrequency: 'monthly', priority: 0.5 },
         { url: `${siteUrl}/blog/publish-and-install`, changeFrequency: 'monthly', priority: 0.5 },

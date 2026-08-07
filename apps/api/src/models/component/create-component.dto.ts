@@ -14,55 +14,55 @@ import {
 export class CreateComponentDto {
   @IsOptional()
   @IsString()
-  id: string;
+  id?: string;
 
   @IsString()
   name: string;
 
   @IsOptional()
   @IsString()
-  description: string;
+  description?: string;
 
   @IsOptional()
   @IsString()
-  activeFile: string;
+  activeFile?: string;
 
   @IsOptional()
   @IsString()
-  previewFile: string;
+  previewFile?: string;
 
   @IsString()
   code: string;
 
   @IsOptional()
   @IsBoolean()
-  isShared: boolean;
+  isShared?: boolean;
 
   @IsOptional()
   @IsObject()
-  pageSettings: any;
+  pageSettings?: any;
 
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  usedUiFrameworks: string[];
+  usedUiFrameworks?: string[];
 
   @IsOptional()
   @IsObject()
-  usedDeps: any;
+  usedDeps?: any;
 
   @IsOptional()
   @IsString()
-  publishingName: string;
+  publishingName?: string;
 
   @IsOptional()
   @IsString()
-  visibility: ComponentVisibility;
+  visibility?: ComponentVisibility;
 
   @IsString()
   language: RuntimeLanguage;
 
   @IsOptional()
   @IsBoolean()
-  isSetup: boolean;
+  isSetup?: boolean;
 }

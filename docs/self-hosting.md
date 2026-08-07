@@ -1,4 +1,7 @@
-# Self-hosting Compify with Docker Compose
+---
+title: Self-hosting
+description: Run Compify with Docker Compose, PostgreSQL, MinIO, migrations, and production-safe configuration.
+---
 
 This deployment is intended for a reproducible local or single-server Compify installation. It builds the API and web applications from the checked-out source and runs them with PostgreSQL and MinIO. The Compose project also runs a one-shot initializer that creates the four object-storage buckets expected by the API.
 
@@ -24,9 +27,9 @@ docker compose ps
 
 Open:
 
-- Web UI: <http://localhost:3000>
-- API readiness check: <http://localhost:3009/ready>
-- MinIO console: <http://localhost:9001>
+- Web UI: [http://localhost:3000](http://localhost:3000)
+- API readiness check: [http://localhost:3009/ready](http://localhost:3009/ready)
+- MinIO console: [http://localhost:9001](http://localhost:9001)
 
 Follow startup logs with `docker compose logs -f api web`. `minio-init` is expected to exit successfully after creating `components`, `images`, `public`, and `projects`; it is not a long-running service.
 
@@ -105,6 +108,13 @@ For an Internet-facing host:
 6. Configure real email, anti-bot, OAuth, billing, and AI credentials only for features you intend to expose.
 
 Compose performs no TLS termination and is not a multi-host/high-availability orchestrator.
+
+## Documentation and API contract
+
+The web service publishes the searchable Fumadocs site at `/docs`. The API
+publishes its generated OpenAPI document at `/openapi.json` and a read-only
+Swagger reference at `/api/docs`. `BACKEND_URL` is recorded as the server URL in
+the generated contract.
 
 ## Operations
 

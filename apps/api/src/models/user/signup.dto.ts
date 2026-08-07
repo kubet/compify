@@ -10,11 +10,11 @@ import { Type } from 'class-transformer';
 export class SignUpDto {
   @IsOptional()
   @IsString()
-  firstName: string;
+  firstName?: string;
 
   @IsOptional()
   @IsString()
-  lastName: string;
+  lastName?: string;
 
   @IsString()
   email: string;
@@ -22,6 +22,7 @@ export class SignUpDto {
   @IsString()
   password: string;
 
+  @IsOptional()
   @IsString()
-  turnstileToken: string;
+  turnstileToken?: string;
 }

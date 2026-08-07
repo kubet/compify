@@ -42,7 +42,7 @@ function NavBar() {
 
   return (
     <div
-      className={`fixed top-0 left-0 w-full z-[9999] ${pathname === "/" ? "border-b border-white/5" : ""} bg-black backdrop-blur-sm ${isOpen ? "bg-opacity-80" : "bg-opacity-50"}`}
+      className={`site-navbar fixed top-0 left-0 w-full z-[9999] ${pathname === "/" ? "border-b border-white/5" : ""} bg-black backdrop-blur-sm ${isOpen ? "bg-opacity-80" : "bg-opacity-50"}`}
     >
       <div className="mx-auto max-w-7xl px-4">
         <nav className="flex justify-between items-center w-full py-4">

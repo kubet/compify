@@ -1,3 +1,4 @@
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import {
   Controller,
   Get,
@@ -18,6 +19,7 @@ import { GetUser } from 'src/common/get-user.decorator';
 import { User } from 'src/entities/user/user.entity';
 import { Request } from 'express';
 
+@ApiTags('Subscriptions')
 @Controller('subscription')
 export class SubscriptionController {
   constructor(
@@ -30,6 +32,7 @@ export class SubscriptionController {
     return await this.subscriptionService.getAllSubscriptions();
   }
 
+  @ApiBearerAuth('bearer')
   @UseGuards(JwtUserGuard)
   @Get('user/plans')
   async getUserSubscriptions(
@@ -48,6 +51,7 @@ export class SubscriptionController {
     return this.paymentService.stripeWebhook(rawBody, signature);
   }
 
+  @ApiBearerAuth('bearer')
   @UseGuards(JwtUserGuard)
   @Post('create-checkout-session')
   async createCheckoutSession(
@@ -58,12 +62,14 @@ export class SubscriptionController {
     return await this.paymentService.createCheckoutSession(body, user, req);
   }
 
+  @ApiBearerAuth('bearer')
   @UseGuards(JwtUserGuard)
   @Post('preview-upgrade')
   async previewUpgrade(@Body('planId') planId: string, @GetUser() user: User) {
     return await this.paymentService.previewUpgrade(planId, user);
   }
 
+  @ApiBearerAuth('bearer')
   @UseGuards(JwtUserGuard)
   @Post('upgrade')
   async upgradeSubscription(
@@ -73,6 +79,7 @@ export class SubscriptionController {
     return await this.paymentService.performUpgrade(planId, user);
   }
 
+  @ApiBearerAuth('bearer')
   @UseGuards(JwtUserGuard)
   @Post('cancel')
   async cancelSubscription(@GetUser() user: User) {

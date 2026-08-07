@@ -1,4 +1,7 @@
-# Open-source release readiness
+---
+title: Open-source readiness
+description: Maintainer checklist for the Compify open-source release.
+---
 
 _Last reviewed: 2026-08-07 against `main`._
 

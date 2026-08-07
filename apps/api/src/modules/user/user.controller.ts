@@ -1,3 +1,4 @@
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Body, Controller, Post, UseGuards, Get, Req } from '@nestjs/common';
 import { Serialize } from 'src/common/interceptors/serialize.interceptor';
 import { AuthCredentialsDto } from '../../models/user/auth-credentials.dto';
@@ -11,6 +12,7 @@ import { ChangePasswordDto } from 'src/models/user/change-password.dto';
 import { GetUser } from 'src/common/get-user.decorator';
 import { ChangeNameDto } from 'src/models/user/change-name.dto';
 
+@ApiTags('Users')
 @Controller('user')
 export class UserController {
   constructor(private userService: UserService) {}
@@ -24,24 +26,28 @@ export class UserController {
     return this.userService.sendRegisterToken(email);
   }
 
+  @ApiBearerAuth('bearer')
   @UseGuards(JwtUserGuard)
   @Post('/change-password')
   changePassword(@Body() b: ChangePasswordDto, @GetUser() user: User) {
     return this.userService.changePassword(b, user);
   }
 
+  @ApiBearerAuth('bearer')
   @UseGuards(JwtUserGuard)
   @Post('/change-name')
   changeName(@Body() b: ChangeNameDto, @GetUser() user: User) {
     return this.userService.changeName(b, user);
   }
 
+  @ApiBearerAuth('bearer')
   @UseGuards(JwtUserGuard)
   @Post('/change-email')
   changeSendEmail(@Body('email') email: string) {
     return this.userService.changeSendEmail(email);
   }
 
+  @ApiBearerAuth('bearer')
   @UseGuards(JwtUserGuard)
   @Post('/change-email/verify')
   changeVerifyEmail(
@@ -66,6 +72,7 @@ export class UserController {
   resendPasswordEmail(@Body('email') email: string) {
     return this.userService.resetPasswordUser(email);
   }
+  @ApiBearerAuth('bearer')
   @UseGuards(JwtUserGuard)
   @Post('delete/account')
   deleteAccount(@GetUser() user: User) {
@@ -86,6 +93,7 @@ export class UserController {
     return this.userService.signIn(signInAuth);
   }
 
+  @ApiBearerAuth('bearer')
   @UseGuards(JwtUserGuard)
   @Post('/refresh')
   refreshToken(@GetUser() user: User) {
@@ -93,36 +101,42 @@ export class UserController {
   }
 
   @Serialize(UserDto)
+  @ApiBearerAuth('bearer')
   @UseGuards(JwtUserGuard)
   @Get('/whoami')
   whoami(@GetUser() user: User) {
     return this.userService.whoami(user);
   }
 
+  @ApiBearerAuth('bearer')
   @UseGuards(JwtUserGuard)
   @Get('/subscription')
   getSubscription(@GetUser() user: User) {
     return this.userService.getSubscription(user);
   }
 
+  @ApiBearerAuth('bearer')
   @UseGuards(JwtUserGuard)
   @Post('/language/preference')
   setLanguagePreference(@Body() body: any, @GetUser() user: User) {
     return this.userService.setLanguagePreference(body, user);
   }
 
+  @ApiBearerAuth('bearer')
   @UseGuards(JwtUserGuard)
   @Post('/cli/token')
   generateCliToken(@GetUser() user: User) {
     return this.userService.generateCliToken(user);
   }
 
+  @ApiBearerAuth('bearer')
   @UseGuards(JwtUserGuard)
   @Post('/cli/token/revoke')
   revokeCliToken(@GetUser() user: User) {
     return this.userService.revokeCliToken(user);
   }
 
+  @ApiBearerAuth('bearer')
   @UseGuards(JwtUserGuard)
   @Get('/cli/token')
   getCliToken(@GetUser() user: User) {

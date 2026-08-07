@@ -34,3 +34,6 @@
 next-env.d.ts
 
 .npmrc
+
+# Generated from the pinned fumadocs-ui package during Bun install
+/public/fumadocs.css

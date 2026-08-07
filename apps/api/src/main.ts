@@ -3,6 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as express from 'express';
 import { json, urlencoded } from 'express';
+import { setupOpenApi } from './openapi';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -16,6 +17,8 @@ async function bootstrap() {
     allowedHeaders: ['Content-Type', 'Accept', 'Authorization'],
     credentials: true,
   });
+
+  setupOpenApi(app);
 
   app.useGlobalPipes(
     new ValidationPipe({

@@ -1,6 +1,8 @@
 import { cp, mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 
+// Bun links local directory dependencies. Materialize the tracked package build
+// for Next.js, then expose Fumadocs' precompiled CSS without Tailwind 3 reprocessing.
 const appRoot = path.resolve(import.meta.dir, "..");
 const source = path.resolve(appRoot, "../../packages/compify-pack");
 const destination = path.join(appRoot, "node_modules/compify-pack");
@@ -23,3 +25,11 @@ for (const filename of ["LICENSE", "README.md", "PROVENANCE.md"]) {
 }
 await rm(destination, { recursive: true, force: true });
 await rename(temporary, destination);
+
+const docsStylesSource = path.join(
+  appRoot,
+  "node_modules/fumadocs-ui/dist/style.css",
+);
+const docsStylesDestination = path.join(appRoot, "public/fumadocs.css");
+await mkdir(path.dirname(docsStylesDestination), { recursive: true });
+await cp(docsStylesSource, docsStylesDestination, { dereference: true });

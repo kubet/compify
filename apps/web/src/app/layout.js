@@ -46,7 +46,7 @@ export default function RootLayout({ children }) {
           <AxiosInterceptor />
           <ServiceWorkerRegistration />
           <NavBar />
-          <div className="w-full h-16"></div>
+          <div className="site-navbar-spacer w-full h-16"></div>
           {children}
         </UserProvider>
       </body>

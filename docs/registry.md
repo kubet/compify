@@ -1,4 +1,7 @@
-# Using compify as a shadcn registry
+---
+title: Registry
+description: Consume published Compify components through the shadcn-compatible registry.
+---
 
 Every public component on compify.app is served in
 [shadcn registry-item format](https://ui.shadcn.com/docs/registry), so you can

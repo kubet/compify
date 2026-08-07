@@ -1,3 +1,4 @@
+import { ApiTags } from '@nestjs/swagger';
 import {
   Body,
   Controller,
@@ -12,6 +13,7 @@ import {
 import { UserService } from './user.service';
 import { CreateNewsletterDto } from 'src/models/newsletter/create-newsletter.dto';
 
+@ApiTags('Newsletter')
 @Controller('newsletter')
 export class NewsletterController {
   constructor(private readonly newsletterService: UserService) {}

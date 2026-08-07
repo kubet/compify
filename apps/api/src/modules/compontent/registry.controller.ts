@@ -1,3 +1,4 @@
+import { ApiTags } from '@nestjs/swagger';
 import { Controller, Get, NotFoundException, Param } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -18,6 +19,7 @@ import { isSafeRegistryPath } from 'src/common/registry-path';
  * in components.json registries:
  *   bunx shadcn@latest add @compify/<user>/<name>
  */
+@ApiTags('Registry')
 @Controller('r')
 export class RegistryController {
   constructor(
@@ -28,7 +30,9 @@ export class RegistryController {
   ) {}
 
   private get frontendUrl(): string {
-    return (this.configService.get<string>('FRONTEND_URL') || 'https://compify.app').replace(/\/$/, '');
+    return (
+      this.configService.get<string>('FRONTEND_URL') || 'https://compify.app'
+    ).replace(/\/$/, '');
   }
 
   // Compify-internal files that make no sense inside a consumer project.
@@ -150,7 +154,9 @@ export class RegistryController {
           const ext = path.split('.').pop();
           const base = path.replace(/^\//, '').replace(/\.[^.]+$/, '');
           const generic = /^(App|Untitled\d*|Test\d*)$/i.test(base);
-          const fileName = generic ? `${itemName}.${ext}` : path.replace(/^\//, '');
+          const fileName = generic
+            ? `${itemName}.${ext}`
+            : path.replace(/^\//, '');
           return {
             path: `registry/${itemName}/${fileName}`,
             type: 'registry:component',

@@ -1,3 +1,4 @@
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import {
   Controller,
   Get,
@@ -15,6 +16,8 @@ import { GetUser } from 'src/common/get-user.decorator';
 import { JwtUserGuard } from 'src/common/guards/jwt-user.guard';
 import { SubscriptionThrottlerGuard } from 'src/common/guards/subscription-throttler.guard';
 
+@ApiTags('AI')
+@ApiBearerAuth('bearer')
 @UseGuards(JwtUserGuard)
 @Controller('ai')
 export class AiController {

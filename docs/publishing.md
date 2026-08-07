@@ -1,4 +1,7 @@
-# Publishing components
+---
+title: Publishing components
+description: Publish, version, share, and install Compify components.
+---
 
 ## From the editor
 

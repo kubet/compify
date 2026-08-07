@@ -1,3 +1,4 @@
+import { ApiSecurity, ApiTags } from '@nestjs/swagger';
 import {
   Body,
   Controller,
@@ -15,6 +16,7 @@ import { ConstructImageService } from './construct-image.service';
 import { MinioClientService } from '../minio/minio.service';
 import { ComponentService } from './component.service';
 
+@ApiTags('Public components')
 @Controller('c')
 export class PublicComponentController {
   constructor(
@@ -69,6 +71,7 @@ export class PublicComponentController {
     return await this.componentService.getPublicComponent(id);
   }
 
+  @ApiSecurity('internal-api-key')
   @Get('fetch/sitemap/all')
   async getAllComponentsForSitemap(@Headers() headers: Record<string, string>) {
     const apiKey = headers['x-api-key'];

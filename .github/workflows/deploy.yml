@@ -33,6 +33,7 @@ jobs:
             web:
               - 'apps/web/**'
               - 'packages/compify-pack/**'
+              - 'docs/**'
               - 'deploy/server/deploy-web.sh'
             api:
               - 'apps/api/**'

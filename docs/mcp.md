@@ -1,4 +1,7 @@
-# compify MCP server
+---
+title: MCP server
+description: Connect coding agents to the Compify registry through the Model Context Protocol.
+---
 
 `compify mcp` runs a [Model Context Protocol](https://modelcontextprotocol.io)
 server over stdio, giving coding agents direct access to the compify registry —

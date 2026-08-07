@@ -4,21 +4,21 @@ import { IsString } from 'class-validator';
 export class InsertThemeDto {
   @IsString()
   @IsOptional()
-  id: string;
+  id?: string;
 
   @IsString()
   @IsOptional()
-  name: string;
+  name?: string;
 
   @IsOptional()
-  groups: any;
+  groups?: any;
 
   @IsOptional()
-  factors: any;
+  factors?: any;
 
   @IsOptional()
-  values: any;
+  values?: any;
 
   @IsOptional()
-  componentId: string;
+  componentId?: string;
 }
