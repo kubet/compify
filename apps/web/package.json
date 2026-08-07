@@ -1,0 +1,71 @@
+{
+  "name": "@compify/web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "NODE_ENV=development next dev",
+    "scan": "next dev & bunx react-scan@latest localhost:3000",
+    "build": "NODE_ENV=production next build",
+    "start": "NODE_ENV=production next start",
+    "lint": "eslint . --max-warnings=65",
+    "postinstall": "bun run scripts/prepare-local-assets.ts"
+  },
+  "dependencies": {
+    "@monaco-editor/react": "^4.7.0",
+    "axios": "^1.19.0",
+    "color": "^4.2.3",
+    "compify-pack": "file:../../packages/compify-pack",
+    "framer-motion": "^12.43.0",
+    "fumadocs-core": "16.14.2",
+    "fumadocs-mdx": "15.2.2",
+    "fumadocs-ui": "16.14.2",
+    "geist": "^1.3.1",
+    "lucide-react": "^0.545.0",
+    "monacopilot": "^0.17.4",
+    "next": "16.3.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-intersection-observer": "^9.13.0",
+    "sharp": "^0.35.3"
+  },
+  "devDependencies": {
+    "@shikijs/monaco": "^1.22.0",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.0",
+    "postcss": "^8.5.26",
+    "shiki": "^1.22.0",
+    "tailwindcss": "^3.4.19",
+    "vite": "^8.2.1"
+  },
+  "license": "MIT",
+  "packageManager": "bun@1.3.9",
+  "engines": {
+    "bun": ">=1.3.9"
+  },
+  "overrides": {
+    "sigstore": "4.1.1",
+    "tar": "7.5.22",
+    "brace-expansion": "1.1.18",
+    "vite": "8.2.1",
+    "mdast-util-to-hast": "13.2.1",
+    "minimatch": "3.1.5",
+    "braces": "3.0.3",
+    "serialize-javascript": "7.0.7",
+    "flatted": "3.4.4",
+    "rollup": "4.62.4",
+    "esbuild": "0.28.1",
+    "yaml": "2.9.0",
+    "@tootallnate/once": "2.0.1",
+    "cross-spawn": "7.0.6",
+    "glob": "10.5.0",
+    "ip-address": "10.4.0",
+    "nanoid": "3.3.18",
+    "postcss": "8.5.26",
+    "@babel/runtime": "7.29.7",
+    "sharp": "0.35.3",
+    "@babel/core": "7.29.7",
+    "micromatch": "4.0.8",
+    "picomatch": "2.3.2",
+    "dompurify": "3.4.13"
+  }
+}

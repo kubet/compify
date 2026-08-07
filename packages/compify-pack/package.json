@@ -1,0 +1,137 @@
+{
+  "name": "compify-pack",
+  "version": "0.0.31",
+  "description": "",
+  "keywords": [],
+  "author": "Compify",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    "./unstyled": {
+      "types": "./dist/unstyled.d.ts",
+      "import": "./dist/unstyled/index.mjs",
+      "require": "./dist/unstyled/index.js"
+    },
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./dist/*",
+        "./*"
+      ]
+    }
+  },
+  "scripts": {
+    "clean": "rm -rf dist",
+    "prebuild": "bun run clean",
+    "test": "TZ=UTC TEST_ENV=true jest . --transformIgnorePatterns \"node_modules/(?!@codemirror)/\" --modulePathIgnorePatterns \"e2e\"",
+    "lint": "eslint '**/*.ts?(x)' --fix",
+    "build": "rollup -c",
+    "build:publish": "bun run build",
+    "dev": "storybook dev -p 6006 --quiet",
+    "typecheck": "tsc",
+    "format": "prettier --write '**/*.{ts,tsx,js,jsx}'",
+    "format:check": "prettier --check '**/*.{ts,tsx}'",
+    "prepare": "bun run build"
+  },
+  "files": [
+    "dist",
+    "package.json",
+    "README.md",
+    "LICENSE",
+    "PROVENANCE.md"
+  ],
+  "dependencies": {
+    "@codemirror/autocomplete": "^6.4.0",
+    "@codemirror/commands": "^6.1.3",
+    "@codemirror/lang-css": "^6.0.1",
+    "@codemirror/lang-html": "^6.4.0",
+    "@codemirror/lang-javascript": "^6.1.2",
+    "@codemirror/language": "^6.3.2",
+    "@codemirror/state": "^6.2.0",
+    "@codemirror/view": "^6.7.1",
+    "@codesandbox/sandpack-client": "^2.19.8",
+    "@lezer/highlight": "^1.1.3",
+    "@react-hook/intersection-observer": "^3.1.1",
+    "@rollup/plugin-commonjs": "^28.0.1",
+    "@rollup/plugin-node-resolve": "^13.3.0",
+    "@rollup/plugin-replace": "^6.0.1",
+    "@rollup/plugin-typescript": "^12.1.1",
+    "@stitches/core": "^1.2.6",
+    "anser": "^2.1.1",
+    "clean-set": "^1.1.2",
+    "dequal": "^2.0.2",
+    "escape-carriage": "^1.3.1",
+    "lz-string": "^1.4.4",
+    "react-devtools-inline": "4.4.0",
+    "react-is": "^17.0.2",
+    "rollup": "^2.79.1",
+    "tslib": "^2.8.1"
+  },
+  "devDependencies": {
+    "@babel/core": "7.28.5",
+    "@babel/preset-env": "7.28.5",
+    "@babel/preset-react": "7.28.5",
+    "@babel/preset-typescript": "7.28.5",
+    "@codemirror/lang-python": "^6.1.0",
+    "@codemirror/legacy-modes": "^6.3.1",
+    "@codesandbox/sandpack-themes": "^2.0.21",
+    "@storybook/react": "^7.5.1",
+    "@storybook/react-vite": "^7.5.1",
+    "@testing-library/react-hooks": "8.0.1",
+    "@types/fs-extra": "^5.0.4",
+    "@types/glob": "^5.0.35",
+    "@types/jest": "27.5.2",
+    "@types/lz-string": "^1.3.34",
+    "@types/node": "^9.4.6",
+    "@types/react": "^18.0.15",
+    "acorn-walk": "^8.2.0",
+    "astring": "^1.8.4",
+    "babel-jest": "27.5.1",
+    "jest": "27.5.1",
+    "jest-environment-jsdom": "27.5.1",
+    "react-dom17": "npm:react-dom@17.0.2",
+    "react-test-renderer": "17.0.2",
+    "react17": "npm:react@17.0.2",
+    "storybook": "^7.5.1",
+    "typescript": "^5.2.2",
+    "vite": "6.4.3"
+  },
+  "peerDependencies": {
+    "react": "17.0.2",
+    "react-dom": "17.0.2"
+  },
+  "license": "Apache-2.0",
+  "packageManager": "bun@1.3.9",
+  "engines": {
+    "bun": ">=1.3.9"
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "setupFiles": [
+      "<rootDir>/jest.setup.js"
+    ],
+    "maxWorkers": 2,
+    "moduleNameMapper": {
+      "^react$": "<rootDir>/node_modules/react17",
+      "^react/(.*)$": "<rootDir>/node_modules/react17/$1",
+      "^react-dom$": "<rootDir>/node_modules/react-dom17",
+      "^react-dom/(.*)$": "<rootDir>/node_modules/react-dom17/$1"
+    }
+  },
+  "overrides": {
+    "@babel/core": "7.29.7",
+    "@tootallnate/once": "2.0.1",
+    "braces": "3.0.3",
+    "esbuild": "0.25.12",
+    "micromatch": "4.0.8",
+    "tar": "7.5.22",
+    "vite": "6.4.3"
+  }
+}

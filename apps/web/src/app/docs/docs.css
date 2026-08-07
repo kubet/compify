@@ -1,0 +1,33 @@
+/* Keep Fumadocs self-contained and aligned with Compify's black/purple brand. */
+body:has(.docs-shell) .site-navbar,
+body:has(.docs-shell) .site-navbar-spacer {
+  display: none;
+}
+
+.docs-shell {
+  color-scheme: dark;
+  --color-fd-background: hsl(240 10% 3.9%);
+  --color-fd-foreground: hsl(0 0% 98%);
+  --color-fd-card: hsl(240 8% 7%);
+  --color-fd-card-foreground: hsl(0 0% 98%);
+  --color-fd-popover: hsl(240 8% 7%);
+  --color-fd-popover-foreground: hsl(0 0% 98%);
+  --color-fd-primary: hsl(276 100% 70%);
+  --color-fd-primary-foreground: hsl(240 10% 4%);
+  --color-fd-secondary: hsl(240 6% 12%);
+  --color-fd-secondary-foreground: hsl(0 0% 96%);
+  --color-fd-muted: hsl(240 6% 10%);
+  --color-fd-muted-foreground: hsl(240 5% 65%);
+  --color-fd-accent: hsl(276 40% 16%);
+  --color-fd-accent-foreground: hsl(276 100% 85%);
+  --color-fd-border: hsl(240 6% 16%);
+  --color-fd-ring: hsl(276 100% 70%);
+  min-height: 100dvh;
+  background: radial-gradient(circle at 50% -15%, hsl(276 80% 18% / .28), transparent 34%), #09090b;
+}
+
+.compify-docs-logo { font-size: 1.08rem; font-weight: 750; letter-spacing: -.025em; }
+.compify-docs-logo > span { color: #ec4899; text-shadow: 0 0 12px #ec489999; }
+.compify-docs-logo small { margin-left: .4rem; color: #a1a1aa; font-size: .72rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
+.docs-sidebar-cta { display: flex; align-items: center; gap: .5rem; border: 1px solid hsl(276 70% 40% / .35); border-radius: .6rem; padding: .6rem .7rem; color: #e9d5ff; background: hsl(276 50% 14% / .5); font-size: .8rem; font-weight: 600; transition: border-color .15s, background .15s; }
+.docs-sidebar-cta:hover { border-color: hsl(276 80% 60% / .7); background: hsl(276 50% 18% / .7); }

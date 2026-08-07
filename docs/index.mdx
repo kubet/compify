@@ -1,0 +1,39 @@
+---
+title: Compify documentation
+description: Build, publish, install, and self-host reusable interface components.
+---
+
+Compify combines a browser-based component editor, a shadcn-compatible registry,
+a Bun-powered CLI, and an MCP server for coding agents.
+
+<Cards>
+  <Card title="Get started" href="/docs/getting-started" description="Run Compify, configure its URLs, and publish your first component." />
+  <Card title="Install components" href="/docs/registry" description="Use the registry or CLI from an existing project." />
+  <Card title="Self-host" href="/docs/self-hosting" description="Deploy the complete PostgreSQL, MinIO, API, and web stack." />
+  <Card title="API reference" href="/docs/api-reference" description="Use the generated OpenAPI document and read-only Swagger reference." />
+</Cards>
+
+## The workflow
+
+<Steps>
+### Build
+
+Create or import a React component in the live editor. Compify supports multiple
+files, dependencies, themes, and sandboxed previews.
+
+### Publish
+
+Choose visibility and a stable `@owner/component` address. Public components
+receive a preview page and registry endpoint.
+
+### Install
+
+Pull the component with the Compify CLI, the shadcn CLI, or an MCP-enabled coding
+agent. Source files stay in your project and remain editable.
+</Steps>
+
+<Callout title="Self-host friendly">
+All browser-facing API, site, and editor-asset origins are configurable. The
+included Compose stack runs migrations and provisions the required object-storage
+buckets automatically.
+</Callout>

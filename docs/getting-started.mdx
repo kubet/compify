@@ -1,0 +1,54 @@
+---
+title: Getting started
+description: Choose a hosted or self-hosted setup and install your first component.
+---
+
+## Requirements
+
+- [Bun 1.3.9](https://bun.sh/) for repository and CLI workflows
+- Git
+- Docker with Compose for the recommended self-hosted deployment
+
+## Use the hosted service
+
+Open [the editor](https://compify.app/create), create a component, and publish it.
+Install the CLI with Bun:
+
+```bash
+bun add --global @compify/cli
+compify login
+compify add @owner/component
+```
+
+The CLI writes source files into the current project and records them in
+`components.json`. See the [CLI reference](/docs/cli) for non-interactive and
+machine-readable workflows.
+
+## Run a self-hosted stack
+
+```bash
+cp deploy/self-host.env.example .env
+# Replace every placeholder secret and set your public origins.
+docker compose up -d --build
+docker compose ps
+```
+
+The web application defaults to [http://localhost:3000](http://localhost:3000) and the API to
+[http://localhost:3009](http://localhost:3009). Confirm both deployment probes:
+
+```bash
+curl --fail http://localhost:3009/health
+curl --fail http://localhost:3009/ready
+```
+
+Continue with the [self-hosting guide](/docs/self-hosting) before exposing the
+stack to the internet.
+
+## Choose an installation path
+
+<Cards>
+  <Card title="Registry" href="/docs/registry">Best for shadcn-compatible projects.</Card>
+  <Card title="Compify CLI" href="/docs/cli">Best for updates, diffs, removal, and automation.</Card>
+  <Card title="MCP" href="/docs/mcp">Best for coding agents that need registry context.</Card>
+  <Card title="API" href="/docs/api-reference">Best for service integrations.</Card>
+</Cards>

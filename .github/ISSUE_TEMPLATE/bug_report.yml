@@ -1,0 +1,49 @@
+name: Bug report
+description: Report a reproducible problem in Compify
+title: "[Bug]: "
+labels: [bug, triage]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for helping improve Compify. Do not include secrets, access tokens, or private component source.
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Describe the observed and expected behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction
+      description: Provide minimal steps or a public reproduction.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+    validations:
+      required: true
+  - type: dropdown
+    id: deployment
+    attributes:
+      label: Deployment
+      options: [Hosted Compify, Self-hosted, Local development, CLI]
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, Bun version, browser, and relevant non-secret configuration.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Safety checks
+      options:
+        - label: I removed credentials, private URLs, and private source from this report.
+          required: true
+        - label: I searched existing issues first.
+          required: true

@@ -1,0 +1,18 @@
+{
+  "title": "Compify",
+  "pages": [
+    "index",
+    "---Start here---",
+    "getting-started",
+    "---Product guides---",
+    "publishing",
+    "registry",
+    "cli",
+    "mcp",
+    "---Self-hosting---",
+    "self-hosting",
+    "configuration",
+    "---Reference---",
+    "api-reference"
+  ]
+}

@@ -1,0 +1,51 @@
+---
+title: Configuration
+description: Configure public origins, secrets, storage, authentication, email, billing, and AI providers.
+---
+
+Compify reads configuration from environment variables. Start from
+`deploy/self-host.env.example`; never commit the populated file.
+
+## Required production settings
+
+| Variable                  | Purpose                                                                     |
+| ------------------------- | --------------------------------------------------------------------------- |
+| `FRONTEND_URL`            | Browser origin allowed by API CORS and used in redirects                    |
+| `BACKEND_URL`             | Public API origin and OpenAPI server URL                                    |
+| `NEXT_PUBLIC_API_URL`     | API origin compiled into the web application                                |
+| `NEXT_PUBLIC_SITE_URL`    | Canonical public web origin                                                 |
+| `NEXT_PUBLIC_CDN_URL`     | Origin that serves editor assets and public media                           |
+| `NEXT_PUBLIC_BUNDLER_URL` | Sandpack bundler that executes interactive previews                         |
+| `JWT_SECRET`              | User session signing secret; use a long random value                        |
+| `INTERNAL_API_TOKEN`      | Private web-to-API operations                                               |
+| `AUTH_COOKIE_SAME_SITE`   | Browser cookie policy; use `none` only for HTTPS cross-site web/API origins |
+| `POSTGRES_*`              | PostgreSQL database credentials                                             |
+| `MINIO_*`                 | S3-compatible object-storage credentials and ports                          |
+
+<Callout type="warn" title="Build-time browser variables">
+  `NEXT_PUBLIC_*` values are compiled into the web image. Rebuild the web
+  service after changing them.
+</Callout>
+
+## Optional integrations
+
+Google OAuth, Turnstile, Stripe, ZeptoMail, and every AI provider are optional.
+When an integration is absent, its dependent endpoint returns an explicit
+unavailable response rather than preventing the API from starting.
+
+Provider variables include `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`,
+`OPENROUTER_API_KEY`, `GOOGLE_AI_API_KEY`, and `GROQ_API_KEY`. Only configure
+providers whose data-handling terms are acceptable for your deployment.
+
+## Database lifecycle
+
+Production schema synchronization is disabled. The API container runs committed
+TypeORM migrations before starting. Back up PostgreSQL before upgrading and test
+restoration regularly.
+
+## Validation
+
+The API rejects missing core settings, malformed ports and URLs, invalid boolean
+flags, short JWT secrets, and partially configured integration groups during
+startup. Use `/ready` for orchestration readiness and `/health` only for process
+liveness.

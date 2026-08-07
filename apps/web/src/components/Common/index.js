@@ -1,0 +1,1 @@
+export { GradientSpot } from './GradientSpot';
