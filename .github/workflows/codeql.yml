@@ -27,3 +27,7 @@ jobs:
       - uses: github/codeql-action/analyze@5595ccaf912efad79be6eef63a5619ff05969be3 # v4
         with:
           category: /language:javascript-typescript
+          # Private repositories without GitHub Advanced Security can analyze
+          # locally but cannot upload SARIF. Upload begins automatically once
+          # code scanning is available (for example, after going public).
+          upload: ${{ github.event.repository.private && 'never' || 'always' }}
