@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { OpenAI } from 'openai';
 import Anthropic from '@anthropic-ai/sdk';
 import { Response } from 'express';
@@ -23,27 +23,41 @@ interface StreamProcessor {
 
 @Injectable()
 export class ProviderService {
-  private readonly openai: any; // Change to any to avoid type conflicts
-  private readonly anthropic: any;
-  private readonly openrouter: any;
+  private openai?: any;
+  private anthropic?: any;
+  private openrouter?: any;
 
-  constructor() {
-    this.openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
-    this.anthropic = new Anthropic({
-      apiKey: process.env.ANTHROPIC_API_KEY,
-    });
-    this.openrouter = new OpenAI({
+  private getOpenAI(): any {
+    const apiKey = process.env.OPENAI_API_KEY?.trim();
+    if (!apiKey) {
+      throw new ServiceUnavailableException('OpenAI is not configured');
+    }
+    return (this.openai ??= new OpenAI({ apiKey }));
+  }
+
+  private getAnthropic(): any {
+    const apiKey = process.env.ANTHROPIC_API_KEY?.trim();
+    if (!apiKey) {
+      throw new ServiceUnavailableException('Anthropic is not configured');
+    }
+    return (this.anthropic ??= new Anthropic({ apiKey }));
+  }
+
+  private getOpenRouter(): any {
+    const apiKey = process.env.OPENROUTER_API_KEY?.trim();
+    if (!apiKey) {
+      throw new ServiceUnavailableException('OpenRouter is not configured');
+    }
+    return (this.openrouter ??= new OpenAI({
       baseURL: 'https://openrouter.ai/api/v1',
-      apiKey: process.env.OPENROUTER_API_KEY,
-    });
+      apiKey,
+    }));
   }
 
   // Text generation methods with more permissive types
   async generateOpenAIText(params: GenerationParams): Promise<string> {
     try {
-      const response = (await this.openai.chat.completions.create({
+      const response = (await this.getOpenAI().chat.completions.create({
         model: params.model,
         messages: params.messages as any[],
         temperature: params.temperature ?? 0.5,
@@ -73,7 +87,7 @@ export class ProviderService {
             ...(params.messages as any[]),
           ]
         : (params.messages as any[]);
-      const response = (await this.openrouter.chat.completions.create({
+      const response = (await this.getOpenRouter().chat.completions.create({
         model: params.model,
         messages,
         temperature: params.temperature ?? 0.5,
@@ -99,7 +113,7 @@ export class ProviderService {
 
   async generateAnthropicText(params: GenerationParams): Promise<string> {
     try {
-      const response = (await this.anthropic.messages.create({
+      const response = (await this.getAnthropic().messages.create({
         model: params.model,
         messages: params.messages as any[],
         max_tokens: params.maxTokens ?? 4096,
@@ -185,7 +199,7 @@ export class ProviderService {
 
   // Stream generators with more permissive types
   async *createOpenAIStream(params: GenerationParams) {
-    const stream = (await this.openai.chat.completions.create({
+    const stream = (await this.getOpenAI().chat.completions.create({
       model: params.model,
       messages: params.messages as any[],
       temperature: params.temperature ?? 0.5,
@@ -199,7 +213,7 @@ export class ProviderService {
   }
 
   async *createOpenRouterStream(params: GenerationParams) {
-    const stream = (await this.openrouter.chat.completions.create({
+    const stream = (await this.getOpenRouter().chat.completions.create({
       model: params.model,
       messages: params.messages as any[],
       temperature: params.temperature ?? 0.5,
@@ -213,7 +227,7 @@ export class ProviderService {
   }
 
   async *createAnthropicStream(params: GenerationParams) {
-    const stream = (await this.anthropic.messages.stream({
+    const stream = (await this.getAnthropic().messages.stream({
       model: params.model,
       messages: params.messages as any[],
       max_tokens: params.maxTokens ?? 4096,
