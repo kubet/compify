@@ -1,4 +1,3 @@
-import keytar from 'keytar';
 import { getCredentialAccount } from './config';
 
 export class AuthManager {
@@ -19,19 +18,30 @@ export class AuthManager {
   }
 
   async setToken(token: string): Promise<void> {
-    await keytar.setPassword(this.service, this.account, token);
+    await Bun.secrets.set({
+      service: this.service,
+      name: this.account,
+      value: token,
+    });
   }
 
   async getToken(): Promise<string | null> {
-    return await keytar.getPassword(this.service, this.account);
+    if (process.env.COMPIFY_TOKEN) return process.env.COMPIFY_TOKEN;
+    return await Bun.secrets.get({
+      service: this.service,
+      name: this.account,
+    });
   }
 
   async deleteToken(): Promise<boolean> {
-    return await keytar.deletePassword(this.service, this.account);
+    return await Bun.secrets.delete({
+      service: this.service,
+      name: this.account,
+    });
   }
 
   async isAuthenticated(): Promise<boolean> {
     const token = await this.getToken();
     return token !== null;
   }
-} 
+}

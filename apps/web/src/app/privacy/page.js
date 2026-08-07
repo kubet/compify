@@ -70,7 +70,17 @@ function Privacy() {
             </p>
 
             <h3 className="text-2xl font-semibold mt-8 mb-4">
-                2.3 Google User Data
+                2.3 AI Processing
+            </h3>
+            <p className="text-lg leading-relaxed text-gray-200">
+                When you intentionally use an AI-assisted feature, the prompt and the component source, files, theme data, or image context needed to answer it may be sent to the configured AI provider. Depending on the feature and deployment configuration, that provider may be OpenAI, Anthropic, OpenRouter, Google, or Groq. Do not submit secrets or personal data in prompts or component files. Each provider processes data under its own privacy and retention terms.
+            </p>
+            <p className="text-lg leading-relaxed text-gray-200 mt-4">
+                On a self-hosted installation, the operator chooses which providers are configured and is responsible for its own privacy notice, retention settings, and subprocessors. AI features remain disabled when no provider credentials are configured.
+            </p>
+
+            <h3 className="text-2xl font-semibold mt-8 mb-4">
+                2.4 Google User Data
             </h3>
 
             <p className="text-lg leading-relaxed text-gray-200">

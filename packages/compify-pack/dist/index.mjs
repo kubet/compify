@@ -1,16 +1,17 @@
 "use client";
 
+import { __assign, __spreadArray, __rest, __awaiter, __generator } from 'tslib';
 import { jsxs, jsx, Fragment } from 'react/jsx-runtime';
 import * as React from 'react';
 import { createContext, useContext, useState, useId, useRef, useCallback, useEffect, createElement, forwardRef } from 'react';
 import { createStitches } from '@stitches/core';
 import { dequal } from 'dequal';
 import { normalizePath, addPackageJSONIfNeeded, loadSandpackClient, extractErrorDetails } from '@codesandbox/sandpack-client';
-import { closeBracketsKeymap, closeBrackets } from '@codemirror/autocomplete';
-import { defaultKeymap, historyKeymap, history, indentMore, indentLess, deleteGroupBackward } from '@codemirror/commands';
+import { closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete';
+import { history, defaultKeymap, historyKeymap, indentMore, indentLess, deleteGroupBackward } from '@codemirror/commands';
 import { HighlightStyle, syntaxHighlighting, bracketMatching } from '@codemirror/language';
 import { EditorState, StateEffect, EditorSelection, Annotation } from '@codemirror/state';
-import { EditorView, ViewPlugin, Decoration, keymap, highlightSpecialChars, highlightActiveLine, lineNumbers } from '@codemirror/view';
+import { EditorView, ViewPlugin, Decoration, highlightSpecialChars, keymap, highlightActiveLine, lineNumbers } from '@codemirror/view';
 import useIntersectionObserver from '@react-hook/intersection-observer';
 import { css as css$1 } from '@codemirror/lang-css';
 import { html } from '@codemirror/lang-html';
@@ -20,97 +21,6 @@ import Anser from 'anser';
 import { escapeCarriageReturn } from 'escape-carriage';
 import LZString from 'lz-string';
 import cleanSet from 'clean-set';
-
-/******************************************************************************
-Copyright (c) Microsoft Corporation.
-
-Permission to use, copy, modify, and/or distribute this software for any
-purpose with or without fee is hereby granted.
-
-THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
-REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
-AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
-INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
-LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
-OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
-PERFORMANCE OF THIS SOFTWARE.
-***************************************************************************** */
-
-var __assign = function() {
-    __assign = Object.assign || function __assign(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
-
-function __rest(s, e) {
-    var t = {};
-    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-        t[p] = s[p];
-    if (s != null && typeof Object.getOwnPropertySymbols === "function")
-        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-                t[p[i]] = s[p[i]];
-        }
-    return t;
-}
-
-function __awaiter(thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-}
-
-function __generator(thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
-    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (g && (g = 0, op[0] && (_ = 0)), _) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-}
-
-function __spreadArray(to, from, pack) {
-    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
-        if (ar || !(i in from)) {
-            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
-            ar[i] = from[i];
-        }
-    }
-    return to.concat(ar || Array.prototype.slice.call(from));
-}
-
-typeof SuppressedError === "function" ? SuppressedError : function (error, suppressed, message) {
-    var e = new Error(message);
-    return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
-};
 
 var SVG = function (props) { return (jsx("svg", __assign({ fill: "currentColor", height: "16", viewBox: "0 0 16 16", width: "16", xmlns: "http://www.w3.org/2000/svg" }, props))); };
 var SignInIcon = function () { return (jsxs(SVG, { viewBox: "0 0 48 48", children: [jsx("title", { children: "Sign in" }), jsx("path", { d: "M9 42q-1.2 0-2.1-.9Q6 40.2 6 39V9q0-1.2.9-2.1Q7.8 6 9 6h14.55v3H9v30h14.55v3Zm24.3-9.25-2.15-2.15 5.1-5.1h-17.5v-3h17.4l-5.1-5.1 2.15-2.15 8.8 8.8Z" })] })); };
@@ -2093,13 +2003,20 @@ var useClient = function (_a, filesState) {
 var useFiles = function (props) {
     var originalStateFromProps = getSandpackStateFromProps(props);
     var _a = useState(originalStateFromProps), state = _a[0], setState = _a[1];
-    var isMountedRef = useRef(false);
+    var previousInputsRef = useRef({
+        files: props.files,
+        customSetup: props.customSetup,
+        template: props.template,
+    });
     useEffect(function () {
-        if (isMountedRef.current) {
+        var nextInputs = {
+            files: props.files,
+            customSetup: props.customSetup,
+            template: props.template,
+        };
+        if (!dequal(previousInputsRef.current, nextInputs)) {
+            previousInputsRef.current = nextInputs;
             setState(getSandpackStateFromProps(props));
-        }
-        else {
-            isMountedRef.current = true;
         }
     }, [props.files, props.customSetup, props.template]);
     var updateFile = function (pathOrFiles, code, shouldUpdatePreview) {
@@ -2921,16 +2838,17 @@ var useSyntaxHighlight = function (_a) {
 };
 
 var CodeMirror = React.forwardRef(function (_a, ref) {
-    var _b = _a.code, code = _b === void 0 ? "" : _b, filePath = _a.filePath, fileType = _a.fileType, onCodeUpdate = _a.onCodeUpdate, _c = _a.showLineNumbers, showLineNumbers = _c === void 0 ? false : _c, _d = _a.showInlineErrors, showInlineErrors = _d === void 0 ? false : _d, _e = _a.wrapContent, wrapContent = _e === void 0 ? false : _e, _f = _a.editorState, editorState = _f === void 0 ? "pristine" : _f, _g = _a.readOnly, readOnly = _g === void 0 ? false : _g, _h = _a.showReadOnly, showReadOnly = _h === void 0 ? true : _h, decorators = _a.decorators, _j = _a.initMode, initMode = _j === void 0 ? "lazy" : _j, _k = _a.extensions, extensions = _k === void 0 ? [] : _k, _l = _a.extensionsKeymap, extensionsKeymap = _l === void 0 ? [] : _l, _m = _a.additionalLanguages, additionalLanguages = _m === void 0 ? [] : _m;
+    var _b;
+    var _c = _a.code, code = _c === void 0 ? "" : _c, filePath = _a.filePath, fileType = _a.fileType, onCodeUpdate = _a.onCodeUpdate, _d = _a.showLineNumbers, showLineNumbers = _d === void 0 ? false : _d, _e = _a.showInlineErrors, showInlineErrors = _e === void 0 ? false : _e, _f = _a.wrapContent, wrapContent = _f === void 0 ? false : _f, _g = _a.editorState, editorState = _g === void 0 ? "pristine" : _g, _h = _a.readOnly, readOnly = _h === void 0 ? false : _h, _j = _a.showReadOnly, showReadOnly = _j === void 0 ? true : _j, decorators = _a.decorators, _k = _a.initMode, initMode = _k === void 0 ? "lazy" : _k, _l = _a.extensions, extensions = _l === void 0 ? [] : _l, _m = _a.extensionsKeymap, extensionsKeymap = _m === void 0 ? [] : _m, _o = _a.additionalLanguages, additionalLanguages = _o === void 0 ? [] : _o;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     var wrapper = React.useRef(null);
     var combinedRef = useCombinedRefs(wrapper, ref);
     var cmView = React.useRef();
-    var _o = useSandpackTheme(), theme = _o.theme, themeId = _o.themeId;
-    var _p = React.useState(code), internalCode = _p[0], setInternalCode = _p[1];
-    var _q = React.useState(initMode === "immediate"), shouldInitEditor = _q[0], setShouldInitEditor = _q[1];
+    var _p = useSandpackTheme(), theme = _p.theme, themeId = _p.themeId;
+    var _q = React.useState(code), internalCode = _q[0], setInternalCode = _q[1];
+    var _r = React.useState(initMode === "immediate"), shouldInitEditor = _r[0], setShouldInitEditor = _r[1];
     var classNames = useClassNames();
-    var _r = useSandpack(), listen = _r.listen, autoReload = _r.sandpack.autoReload;
+    var _s = useSandpack(), listen = _s.listen, autoReload = _s.sandpack.autoReload;
     var prevExtension = React.useRef([]);
     var prevExtensionKeymap = React.useRef([]);
     var isIntersecting = useIntersectionObserver(wrapper, {
@@ -2961,7 +2879,7 @@ var CodeMirror = React.forwardRef(function (_a, ref) {
             ? decorators.sort(function (d1, d2) { return d1.line - d2.line; })
             : decorators;
     }, [decorators]);
-    var useStaticReadOnly = readOnly && (decorators === null || decorators === void 0 ? void 0 : decorators.length) === 0;
+    var useStaticReadOnly = readOnly && ((_b = decorators === null || decorators === void 0 ? void 0 : decorators.length) !== null && _b !== void 0 ? _b : 0) === 0;
     React.useEffect(function () {
         if (!wrapper.current || !shouldInitEditor || useStaticReadOnly) {
             return;
@@ -4822,7 +4740,7 @@ var SandpackTests = function (_a) {
                 }
                 if (data.event === "add_test") {
                     var _b = splitTail(currentDescribeBlocks), describePath = _b[0], currentDescribe = _b[1];
-                    var test = {
+                    var test_1 = {
                         status: "idle",
                         errors: [],
                         name: data.testName,
@@ -4830,7 +4748,7 @@ var SandpackTests = function (_a) {
                         path: data.path,
                     };
                     if (currentDescribe === undefined) {
-                        return setState(set(["specs", data.path, "tests", data.testName], test));
+                        return setState(set(["specs", data.path, "tests", data.testName], test_1));
                     }
                     else {
                         return setState(set(__spreadArray(__spreadArray([
@@ -4841,57 +4759,57 @@ var SandpackTests = function (_a) {
                             currentDescribe,
                             "tests",
                             data.testName,
-                        ], false), test));
+                        ], false), test_1));
                     }
                 }
                 if (data.event === "test_start") {
-                    var test = data.test;
-                    var _c = splitTail(test.blocks), describePath = _c[0], currentDescribe = _c[1];
+                    var test_2 = data.test;
+                    var _c = splitTail(test_2.blocks), describePath = _c[0], currentDescribe = _c[1];
                     var startedTest = {
                         status: "running",
-                        name: test.name,
-                        blocks: test.blocks,
-                        path: test.path,
+                        name: test_2.name,
+                        blocks: test_2.blocks,
+                        path: test_2.path,
                         errors: [],
                     };
                     if (currentDescribe === undefined) {
-                        return setState(set(["specs", test.path, "tests", test.name], startedTest));
+                        return setState(set(["specs", test_2.path, "tests", test_2.name], startedTest));
                     }
                     else {
                         return setState(set(__spreadArray(__spreadArray([
                             "specs",
-                            test.path,
+                            test_2.path,
                             "describes"
                         ], flatMap(describePath, function (name) { return [name, "describes"]; }), true), [
                             currentDescribe,
                             "tests",
-                            test.name,
+                            test_2.name,
                         ], false), startedTest));
                     }
                 }
                 if (data.event === "test_end") {
-                    var test = data.test;
-                    var _d = splitTail(test.blocks), describePath = _d[0], currentDescribe = _d[1];
+                    var test_3 = data.test;
+                    var _d = splitTail(test_3.blocks), describePath = _d[0], currentDescribe = _d[1];
                     var endedTest = {
-                        status: test.status,
-                        errors: test.errors,
-                        duration: test.duration,
-                        name: test.name,
-                        blocks: test.blocks,
-                        path: test.path,
+                        status: test_3.status,
+                        errors: test_3.errors,
+                        duration: test_3.duration,
+                        name: test_3.name,
+                        blocks: test_3.blocks,
+                        path: test_3.path,
                     };
                     if (currentDescribe === undefined) {
-                        return setState(set(["specs", test.path, "tests", test.name], endedTest));
+                        return setState(set(["specs", test_3.path, "tests", test_3.name], endedTest));
                     }
                     else {
                         return setState(set(__spreadArray(__spreadArray([
                             "specs",
-                            test.path,
+                            test_3.path,
                             "describes"
                         ], flatMap(describePath, function (name) { return [name, "describes"]; }), true), [
                             currentDescribe,
                             "tests",
-                            test.name,
+                            test_3.name,
                         ], false), endedTest));
                     }
                 }

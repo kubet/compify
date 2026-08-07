@@ -11,9 +11,9 @@ in `compify.json`, and keeps components up to date.
 ## Install
 
 ```bash
-npm install -g @compify/cli
+bun add --global @compify/cli
 # or from the monorepo:
-cd packages/cli && yarn && yarn build && npm link
+cd packages/cli && bun install --frozen-lockfile && bun run build && bun link
 ```
 
 ## Authenticate
@@ -23,8 +23,9 @@ compify login             # prompts for an API token
 compify login -t <token>  # non-interactive
 ```
 
-Generate a token on compify.app under **Profile → CLI token**. The token is
-stored in your OS keychain-backed config, never in the project.
+Generate a token on compify.app under **Profile → CLI token**. `login` validates
+the token before storing it in your OS keychain, never in the project. For
+headless CI/SSH sessions, set `COMPIFY_TOKEN` instead of using the keychain.
 
 ### Use a self-hosted server
 
@@ -75,7 +76,8 @@ The first `add` creates `compify.json` (component manifest + `componentPath`).
 
 ### `compify list`
 
-List components available to your account (yours + used).
+List components owned by your account. Use `--json` for machine-readable output
+or `--silent` to perform the request without human-readable output.
 
 ### `compify info`
 
@@ -117,5 +119,5 @@ compify migrate       # pull updates (with backups)
 ## Prefer shadcn tooling?
 
 Public compify components are also served as shadcn registry items — see
-[docs/registry.md](./registry.md). `npx shadcn add @compify/<user>/<name>`
+[docs/registry.md](./registry.md). `bunx shadcn add @compify/<user>/<name>`
 works without the compify CLI at all.

@@ -59,15 +59,15 @@ jobs:
         if: needs.changes.outputs.api == 'true' || inputs.target == 'api' || inputs.target == 'all'
         run: |
           ssh -i ~/.ssh/deploy_key -p "${{ secrets.DEPLOY_PORT }}" "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
-            "export NVM_DIR=\$HOME/.nvm && . \$NVM_DIR/nvm.sh && bash /root/compify/deploy/server/deploy-api.sh"
+            "export BUN_INSTALL=\$HOME/.bun && export PATH=\$BUN_INSTALL/bin:\$PATH && bash /root/compify/deploy/server/deploy-api.sh"
 
       - name: Deploy web
         if: needs.changes.outputs.web == 'true' || inputs.target == 'web' || inputs.target == 'all'
         run: |
           ssh -i ~/.ssh/deploy_key -p "${{ secrets.DEPLOY_PORT }}" "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
-            "export NVM_DIR=\$HOME/.nvm && . \$NVM_DIR/nvm.sh && bash /root/compify/deploy/server/deploy-web.sh"
+            "export BUN_INSTALL=\$HOME/.bun && export PATH=\$BUN_INSTALL/bin:\$PATH && bash /root/compify/deploy/server/deploy-web.sh"
 
       - name: Verify production
         run: |
           curl -sf -o /dev/null https://compify.app/ && echo "web OK"
-          curl -sf -o /dev/null https://api.compify.app/health && echo "api OK"
+          curl -sf -o /dev/null https://api.compify.app/ready && echo "api OK"

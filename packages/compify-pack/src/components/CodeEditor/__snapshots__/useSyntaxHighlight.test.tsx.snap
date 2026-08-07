@@ -731,12 +731,7 @@ Array [
   >
     new
   </span>,
-  " ",
-  <span
-    className="sp-syntax-plain"
-  >
-    Regex
-  </span>,
+  " Regex",
   <span
     className="sp-syntax-punctuation"
   >
@@ -1353,12 +1348,7 @@ Array [
   >
     :
   </span>,
-  " 10",
-  <span
-    className="sp-syntax-keyword"
-  >
-    px
-  </span>,
+  " 10px",
   <span
     className="sp-syntax-punctuation"
   >
@@ -1382,12 +1372,7 @@ Array [
   >
     @width
   </span>,
-  " + 10",
-  <span
-    className="sp-syntax-definition"
-  >
-    px
-  </span>,
+  " + 10px",
   <span
     className="sp-syntax-punctuation"
   >
@@ -1413,11 +1398,11 @@ Array [
   >
     :
   </span>,
-  " @",
+  " ",
   <span
-    className="sp-syntax-static"
+    className="sp-syntax-keyword"
   >
-    width
+    @width
   </span>,
   <span
     className="sp-syntax-punctuation"
@@ -1427,7 +1412,7 @@ Array [
   "
   ",
   <span
-    className="sp-syntax-property"
+    className="sp-syntax-definition"
   >
     height
   </span>,
@@ -1436,11 +1421,11 @@ Array [
   >
     :
   </span>,
-  " @",
+  " ",
   <span
-    className="sp-syntax-static"
+    className="sp-syntax-keyword"
   >
-    height
+    @height
   </span>,
   <span
     className="sp-syntax-punctuation"

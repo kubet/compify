@@ -1,3 +1,4 @@
+import { cdnUrl } from '@/constains';
 import React from 'react'
 import QuickStartCard from '@/components/Elements/QuickStartCard'
 import { CodeIcon, TrashIcon } from 'lucide-react'
@@ -77,7 +78,7 @@ function UILibStep({ runtime, handleUiLibSelect, setMainFont, setFonts, saveText
     React.useEffect(() => {
         const loadFonts = async () => {
             try {
-                const response = await fetch('https://cdn.compify.app/font-list.json')
+                const response = await fetch(`${cdnUrl}/font-list.json`)
                 const fonts = await response.json()
                 setOptions(fonts.map(font => ({ label: font, value: font })))
             } catch (error) {

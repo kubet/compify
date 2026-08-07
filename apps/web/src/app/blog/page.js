@@ -14,7 +14,7 @@ const posts = [
         title: 'Compify is now a shadcn-compatible registry',
         date: 'August 5, 2026',
         description:
-            'Every public component is installable with npx shadcn add — no compify account or CLI required.',
+            'Every public component is installable with bunx shadcn add — no compify account or CLI required.',
     },
     {
         slug: 'publish-and-install',

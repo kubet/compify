@@ -1,0 +1,137 @@
+name: compify
+
+services:
+  postgres:
+    image: postgres:16.8-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-compify}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-compify-dev-password}
+      POSTGRES_DB: ${POSTGRES_DB:-compify}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  minio:
+    image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-compify}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-compify-dev-password}
+    ports:
+      - "${MINIO_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  minio-init:
+    image: quay.io/minio/mc:RELEASE.2025-04-16T18-13-26Z
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-compify}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-compify-dev-password}
+    entrypoint:
+      - /bin/sh
+      - -ec
+      - |
+        mc alias set local http://minio:9000 "$${MINIO_ROOT_USER}" "$${MINIO_ROOT_PASSWORD}"
+        for bucket in components images public projects; do
+          mc mb --ignore-existing "local/$${bucket}"
+        done
+
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    environment:
+      NODE_ENV: production
+      STAGE: prod
+      PORT: 3009
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      BACKEND_URL: ${BACKEND_URL:-http://localhost:3009}
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USERNAME: ${POSTGRES_USER:-compify}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-compify-dev-password}
+      DB_DATABASE: ${POSTGRES_DB:-compify}
+      DB_SYNCHRONIZE: "false"
+      JWT_SECRET: ${JWT_SECRET:-local-development-jwt-secret-change-me}
+      INTERNAL_API_TOKEN: ${INTERNAL_API_TOKEN:-local-development-internal-token-change-me}
+      MINIO_ENDPOINT: minio
+      MINIO_PORT: 9000
+      MINIO_USE_SSL: "false"
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-compify}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-compify-dev-password}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      GOOGLE_AI_API_KEY: ${GOOGLE_AI_API_KEY:-}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      ZEPTOMAIL_API_URL: ${ZEPTOMAIL_API_URL:-}
+      ZEPTOMAIL_API_TOKEN: ${ZEPTOMAIL_API_TOKEN:-}
+      EMAIL_FROM_ADDRESS: ${EMAIL_FROM_ADDRESS:-}
+      EMAIL_FROM_NAME: ${EMAIL_FROM_NAME:-Compify}
+      CLOUDFLARE_TURNSTILE_KEY: ${CLOUDFLARE_TURNSTILE_KEY:-}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      FREE_PLAN_ID: ${FREE_PLAN_ID:-00000000-0000-4000-8000-000000000001}
+    ports:
+      - "${API_PORT:-3009}:3009"
+    healthcheck:
+      test: ["CMD", "bun", "-e", "fetch('http://localhost:3009/ready').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3009}
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+        NEXT_PUBLIC_CDN_URL: ${NEXT_PUBLIC_CDN_URL:-http://localhost:9000/public}
+        NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_TURNSTILE_SITE_KEY:-}
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      INTERNAL_API_TOKEN: ${INTERNAL_API_TOKEN:-local-development-internal-token-change-me}
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000').then(r=>{if(r.status>=500)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+volumes:
+  postgres-data:
+  minio-data:

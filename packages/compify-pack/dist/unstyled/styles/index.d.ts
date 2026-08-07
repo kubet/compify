@@ -89,5 +89,5 @@ export declare const standardizeTheme: (inputTheme?: SandpackThemeProp) => {
  */
 export declare const fakeCss: {
     (): string;
-    toString: any;
+    toString: /*elided*/ any;
 };

@@ -8,6 +8,7 @@ import { shortIdToUuid, uuidToShortId } from 'src/common/short-id';
 import { CliToken } from 'src/entities/cli/cli-tokens.entity';
 import { MinioClientService } from '../minio/minio.service';
 import { isSafeRegistryPath } from 'src/common/registry-path';
+import { createHash } from 'crypto';
 
 @Injectable()
 export class CliService {
@@ -20,13 +21,21 @@ export class CliService {
   ) {}
 
   async getUserByCliToken(cliToken: string) {
-    const cliTokenEntity = await this.cliTokenRepo.createQueryBuilder('cliToken')
-    .leftJoinAndSelect('cliToken.user', 'user')
-    .where('cliToken.token = :token', { token: cliToken })
-    .getOne();
+    if (!cliToken) throw new UnauthorizedException('Invalid CLI token');
+    const tokenHash = createHash('sha256').update(cliToken).digest('hex');
+    const cliTokenEntity = await this.cliTokenRepo
+      .createQueryBuilder('cliToken')
+      .addSelect('cliToken.token')
+      .leftJoinAndSelect('cliToken.user', 'user')
+      // Accept old plaintext rows once, then upgrade them below.
+      .where('cliToken.token IN (:...tokens)', { tokens: [tokenHash, cliToken] })
+      .getOne();
     if (!cliTokenEntity) {
       throw new UnauthorizedException('Invalid CLI token');
     }
+    cliTokenEntity.token = tokenHash;
+    cliTokenEntity.lastUsedAt = new Date();
+    await this.cliTokenRepo.save(cliTokenEntity);
     return cliTokenEntity.user;
   }
 

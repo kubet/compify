@@ -14,8 +14,10 @@ export class MinioClientService {
       'MINIO_ENDPOINT',
       'localhost',
     );
-    const port = this.configService.get<number>('MINIO_PORT', 9000);
-    const useSSL = this.configService.get<boolean>('MINIO_USE_SSL', false);
+    const port = Number(this.configService.get<string>('MINIO_PORT', '9000'));
+    const useSSL =
+      String(this.configService.get<string>('MINIO_USE_SSL', 'false')) ===
+      'true';
 
     this.minioClient = new Minio.Client({
       endPoint,
@@ -87,7 +89,7 @@ export class MinioClientService {
     try {
       // Get the object stats to retrieve the MIME type
       const stat = await this.minioClient.statObject(bucket, id);
-      if(!stat) {
+      if (!stat) {
         return null;
       }
       const mimetype =
@@ -133,6 +135,16 @@ export class MinioClientService {
         error.stack,
       );
       throw error;
+    }
+  }
+  async checkRequiredBuckets(): Promise<void> {
+    const required = ['components', 'images', 'public', 'projects'];
+    const present = await Promise.all(
+      required.map((bucket) => this.minioClient.bucketExists(bucket)),
+    );
+    const missing = required.filter((_, index) => !present[index]);
+    if (missing.length) {
+      throw new Error(`Missing MinIO buckets: ${missing.join(', ')}`);
     }
   }
 }

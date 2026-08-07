@@ -1,3 +1,4 @@
+import { cdnUrl } from '@/constains';
 import React, { useState } from "react";
 import { nextjsAdditionalFiles, nextjsMain } from "./Main/nextjs";
 import { reactMain } from "./Main/react";
@@ -257,7 +258,7 @@ export const fetchShadcnFiles = async () => {
       await navigator.serviceWorker.register('/service-worker.js');
     }
 
-    const response = await fetch('https://cdn.compify.app/sui-content');
+    const response = await fetch(`${cdnUrl}/sui-content`);
     if (!response.ok) {
       throw new Error(`Failed to fetch Shadcn files: ${response.status}`);
     }

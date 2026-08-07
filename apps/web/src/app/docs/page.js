@@ -113,7 +113,7 @@ free      installable by anyone, not featured in the gallery`}</Code>
                 ones as <code>@compify/&lt;user&gt;/&lt;name&gt;</code>. Three ways in:
             </P>
             <Code>{`# shadcn CLI — no compify account needed
-npx shadcn@latest add https://api.compify.app/r/morphing-switch.json
+bunx shadcn@latest add https://api.compify.app/r/morphing-switch.json
 
 # compify CLI — tracks installs, supports diff & migrate
 compify add @compify/morphing-switch
@@ -133,14 +133,14 @@ compify add @compify/morphing-switch
   }
 }`}</Code>
             <P>
-                Then <code>npx shadcn@latest add @compify/&lt;name&gt;</code> works, and the
+                Then <code>bunx shadcn@latest add @compify/&lt;name&gt;</code> works, and the
                 official shadcn MCP server can search and install compify components for your
                 agent. The public index lives at{' '}
                 <A href="https://api.compify.app/r/registry.json">/r/registry.json</A>.
             </P>
 
             <H2 id="cli">The compify CLI</H2>
-            <Code>{`npm install -g @compify/cli
+            <Code>{`bun add --global @compify/cli
 
 compify login              # paste an API token from your profile
 compify init               # create compify.json in a project
@@ -162,7 +162,7 @@ compify info --json        # machine-readable project state`}</Code>
                 (<code>search_components</code>, <code>get_component</code>,{' '}
                 <code>get_install_commands</code>), no auth needed for public components:
             </P>
-            <Code>{`claude mcp add compify -- npx -y @compify/cli mcp`}</Code>
+            <Code>{`claude mcp add compify -- bunx @compify/cli mcp`}</Code>
             <P>
                 A typical agent run: search → fetch the registry item → write the files → add the
                 dependencies. Four tool calls, no copy-paste. Agents that read the web can start
@@ -177,8 +177,8 @@ compify info --json        # machine-readable project state`}</Code>
             </P>
             <Code>{`git clone https://github.com/kubet/compify
 cd compify/packages/templates/dark-solar-saas
-npm install
-npm run dev`}</Code>
+bun install --frozen-lockfile
+bun run dev`}</Code>
             <P>
                 Browse them on the <A href="https://compify.app/templates">templates page</A>.
                 Contributions welcome — open a PR adding a folder under{' '}

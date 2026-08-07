@@ -363,6 +363,7 @@ const SettingsContent = () => {
     const [isToastVisible, setIsToastVisible] = useState(false);
     const [toastMessage, setToastMessage] = useState({ type: 'success', message: '' });
     const [cliToken, setCliToken] = useState('');
+    const [hasCliToken, setHasCliToken] = useState(false);
     const [isLoadingToken, setIsLoadingToken] = useState(false);
     const [showToken, setShowToken] = useState(false);
     const [firstName, setFirstName] = useState(user.firstName || '');
@@ -376,8 +377,8 @@ const SettingsContent = () => {
 
     const loadCliToken = async () => {
         const resp = await getCliToken();
-        if (resp.status === 200 && resp.data.token) {
-            setCliToken(resp.data.token);
+        if (resp.status === 200) {
+            setHasCliToken(Boolean(resp.data.exists));
         }
     };
 
@@ -386,6 +387,8 @@ const SettingsContent = () => {
         const resp = await generateCliToken();
         if (resp.status === 201 && resp.data.token) {
             setCliToken(resp.data.token);
+            setHasCliToken(true);
+            setShowToken(true);
             setIsToastVisible(true);
             setToastMessage({ type: 'success', message: 'CLI token generated successfully!' });
         } else {
@@ -400,6 +403,8 @@ const SettingsContent = () => {
         const resp = await revokeCliToken();
         if (resp.status === 201) {
             setCliToken('');
+            setHasCliToken(false);
+            setShowToken(false);
             setIsToastVisible(true);
             setToastMessage({ type: 'success', message: 'CLI token revoked successfully!' });
         } else {
@@ -505,53 +510,33 @@ const SettingsContent = () => {
 
                         {cliToken ? (
                             <div className="flex flex-col gap-4">
-                                <div className="relative">
-                                    <div className="bg-black/30 p-4 rounded-lg font-mono text-sm border border-white/5 backdrop-blur-sm">
-                                        <div className="flex items-center gap-2 text-gray-300">
-                                            <Key className="w-4 h-4 text-emerald-500/70" />
-                                            <span className="select-all">
-                                                {showToken ? cliToken : getHiddenToken(cliToken)}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                                        <motion.button
-                                            className="p-1.5 rounded-md hover:bg-white/5 transition-colors"
-                                            onClick={() => setShowToken(!showToken)}
-                                            style={{ transformOrigin: 'center' }}
-                                            whileHover={{ scale: 1.05 }}
-                                            whileTap={{ scale: 0.95 }}
-                                        >
-                                            {showToken ? (
-                                                <EyeOff className="w-4 h-4 text-gray-400" />
-                                            ) : (
-                                                <Eye className="w-4 h-4 text-gray-400" />
-                                            )}
-                                        </motion.button>
+                                <div className="bg-black/30 p-4 rounded-lg font-mono text-sm border border-white/5">
+                                    <div className="flex items-center gap-2 text-gray-300">
+                                        <Key className="w-4 h-4 text-emerald-500/70" />
+                                        <span className="select-all">{showToken ? cliToken : getHiddenToken(cliToken)}</span>
                                     </div>
                                 </div>
+                                <p className="text-amber-300/80 text-sm">Copy this token now. For security it will not be shown again.</p>
                                 <div className="flex justify-between gap-4">
-                                    <Button
-                                        text="Copy Token"
-                                        variant="full"
-                                        size="small"
-                                        Icon={Copy}
-                                        showIcon={true}
+                                    <Button text="Copy Token" variant="full" size="small" Icon={Copy} showIcon={true}
                                         onClick={() => {
                                             navigator.clipboard.writeText(cliToken);
                                             setIsToastVisible(true);
                                             setToastMessage({ type: 'success', message: 'Token copied to clipboard!' });
                                         }}
                                     />
-                                    <Button
-                                        text="Revoke Token"
-                                        variant="full"
-                                        size="small"
-                                        color="red"
-                                        showIcon={false}
-                                        onClick={handleRevokeToken}
-                                        disabled={isLoadingToken}
-                                    />
+                                    <Button text="Revoke Token" variant="full" size="small" color="red" showIcon={false}
+                                        onClick={handleRevokeToken} disabled={isLoadingToken} />
+                                </div>
+                            </div>
+                        ) : hasCliToken ? (
+                            <div className="flex flex-col gap-4">
+                                <p className="text-gray-300">A CLI token is configured. Its secret is stored hashed and cannot be displayed again.</p>
+                                <div className="flex justify-between gap-4">
+                                    <Button text={isLoadingToken ? 'Regenerating...' : 'Regenerate Token'} variant="full" size="small"
+                                        onClick={handleGenerateToken} disabled={isLoadingToken} />
+                                    <Button text="Revoke Token" variant="full" size="small" color="red" showIcon={false}
+                                        onClick={handleRevokeToken} disabled={isLoadingToken} />
                                 </div>
                             </div>
                         ) : (

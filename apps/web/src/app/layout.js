@@ -1,3 +1,4 @@
+import { cdnUrl } from '@/constains';
 import NavBar from "@/components/NavBar";
 import "./globals.css";
 import { UserProvider } from '@/auth/UseUser';
@@ -19,7 +20,7 @@ export const metadata = {
   openGraph: {
     type: 'website',
     siteName: 'Compify - Component Builder',
-    images: ['https://cdn.compify.app/default-og.webp'],
+    images: [`${cdnUrl}/default-og.webp`],
     locale: 'en_US',
     title: 'Compify - Build Beautiful UI Components | Modern Component Library',
     description: 'Build Faster Using Reusable Components. Preview, customize, and share high-quality UI across your projects.',

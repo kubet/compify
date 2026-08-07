@@ -6,10 +6,13 @@ import { ConfigService } from '@nestjs/config';
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   constructor(configService: ConfigService) {
+    // passport-google-oauth20 validates its options in the constructor. Use
+    // inert values so an intentionally disabled integration does not prevent boot.
     super({
-      clientID: configService.get('GOOGLE_CLIENT_ID'),
-      clientSecret: configService.get('GOOGLE_CLIENT_SECRET'),
-      callbackURL: `${configService.get('BACKEND_URL')}/auth/google/callback`,
+      clientID: configService.get<string>('GOOGLE_CLIENT_ID') || 'google-oauth-disabled',
+      clientSecret:
+        configService.get<string>('GOOGLE_CLIENT_SECRET') || 'google-oauth-disabled',
+      callbackURL: `${configService.get<string>('BACKEND_URL')}/auth/google/callback`,
       scope: ['email', 'profile'],
     });
   }

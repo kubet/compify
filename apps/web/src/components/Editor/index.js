@@ -1,3 +1,4 @@
+import { cdnUrl } from '@/constains';
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import Chip from '../Elements/Chip';
 import { Smartphone, Maximize2, Code, FileJson2, Settings, Plus, RotateCw, SquareTerminal, Terminal } from 'lucide-react';
@@ -327,8 +328,8 @@ const Editor = ({
         const externalResources = {
             'tailwind': ["https://cdn.tailwindcss.com"],
             'tailwind-ts': ["https://cdn.tailwindcss.com"],
-            'tailwind-v4': ["https://cdn.compify.app/tailwindv4.js"],
-            'tailwind-ts-v4': ["https://cdn.compify.app/tailwindv4.js"],
+            'tailwind-v4': [`${cdnUrl}/tailwindv4.js`],
+            'tailwind-ts-v4': [`${cdnUrl}/tailwindv4.js`],
             'bootstrap': [
                 "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css",
                 "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
@@ -614,7 +615,7 @@ const Editor = ({
                     options={{
                         bundlerURL: "https://bundler.compify.app",
                         externalResources: [
-                            "https://cdn.compify.app/capture.js",
+                            `${cdnUrl}/capture.js`,
                             'https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js',
                             ...getExternalResources()
                         ]

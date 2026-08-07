@@ -189,13 +189,6 @@ const generateThemeSection = (themeKeys: string[], uiLibs: string[]): string => 
     .filter(lib => uiLibMap[lib])
     .map(lib => uiLibMap[lib])
     .join('\n');
-  console.log(uiLibs, uiLibMap[uiLibs[0]])
-  console.log( `
-    <theme>
-    <available_tokens>${themeKeys.join(', ')}</available_tokens>
-    ${relevantLibs}
-    </theme>`);
-
   return `
 <theme>
 <available_tokens>${themeKeys.join(', ')}</available_tokens>
@@ -208,12 +201,6 @@ const generateComponentSection = (themeKeys: string[], uiLibs: string[]): string
     .filter(lib => generationUiLibMap[lib])
     .map(lib => generationUiLibMap[lib])
     .join('\n');
-
-  console.log( `
-    <component>
-    <available_tokens>${themeKeys.join(', ')}</available_tokens>
-    ${relevantLibs}
-    </component>`);
 
   return `
 <component>

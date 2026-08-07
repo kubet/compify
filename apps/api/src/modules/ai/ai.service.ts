@@ -30,7 +30,7 @@ interface AnthropicContent {
 
 @Injectable()
 export class AiService {
-  private copilot: Copilot;
+  private copilot?: Copilot;
   private functionMap: Record<
     string,
     (b: any, res: Response, model?: string) => Promise<void>
@@ -42,31 +42,39 @@ export class AiService {
     @InjectRepository(Component)
     private componentRepository: Repository<Component>,
   ) {
-    // Inline completions run through OpenRouter on the same cheap model as
-    // everything else (monacopilot custom-model API).
-    this.copilot = new Copilot(process.env.OPENROUTER_API_KEY!, {
-      model: {
-        config: (apiKey: string, prompt: any) => ({
-          endpoint: 'https://openrouter.ai/api/v1/chat/completions',
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: {
-            model: 'z-ai/glm-5.2',
-            messages: [
-              { role: 'system', content: prompt.system ?? prompt.context ?? '' },
-              { role: 'user', content: prompt.user ?? prompt.instruction ?? '' },
-            ],
-            temperature: 0.2,
-            max_tokens: 256,
-          },
-        }),
-        transformResponse: (response: any) => ({
-          text: response?.choices?.[0]?.message?.content ?? '',
-        }),
-      } as any,
-    } as any);
+    // Inline completions run through OpenRouter when it is configured.
+    const openRouterApiKey = process.env.OPENROUTER_API_KEY;
+    if (openRouterApiKey) {
+      this.copilot = new Copilot(openRouterApiKey, {
+        model: {
+          config: (apiKey: string, prompt: any) => ({
+            endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+            headers: {
+              Authorization: `Bearer ${apiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: {
+              model: 'z-ai/glm-5.2',
+              messages: [
+                {
+                  role: 'system',
+                  content: prompt.system ?? prompt.context ?? '',
+                },
+                {
+                  role: 'user',
+                  content: prompt.user ?? prompt.instruction ?? '',
+                },
+              ],
+              temperature: 0.2,
+              max_tokens: 256,
+            },
+          }),
+          transformResponse: (response: any) => ({
+            text: response?.choices?.[0]?.message?.content ?? '',
+          }),
+        } as any,
+      } as any);
+    }
 
     this.functionMap = {
       generateAnthropic: this.generateAnthropic.bind(this),
@@ -102,14 +110,15 @@ export class AiService {
 
   private selectBestModel(b: any): string[] {
     const keywords = this.findKeywords(b.prompt);
-    const hasImages = b.images && Array.isArray(b.images) && b.images.length > 0;
+    const hasImages =
+      b.images && Array.isArray(b.images) && b.images.length > 0;
 
     // Calculate scores for each model with sophisticated weighting
     const modelScores = Object.entries(modelKeywordMap)
       .filter(([_, config]) => !hasImages || config.imageSupport) // Pre-filter for image support
       .map(([modelName, config]) => {
         let score = 0;
-        
+
         // Advanced keyword scoring with context awareness
         keywords.forEach((keyword) => {
           if (config.keywords.includes(keyword)) {
@@ -124,9 +133,9 @@ export class AiService {
         const capabilityScore = this.calculateCapabilityScore(config, {
           hasImages,
           promptLength: b.prompt?.length || 0,
-          codeLength: b.initialCode?.length || 0
+          codeLength: b.initialCode?.length || 0,
         });
-        
+
         score = score * 0.7 + capabilityScore * 0.3; // Weighted combination
 
         return { modelName, score, capabilities: capabilityScore };
@@ -135,18 +144,21 @@ export class AiService {
     // Return sorted models with minimum score threshold
     return modelScores
       .sort((a, b) => b.score - a.score)
-      .map(model => model.modelName);
+      .map((model) => model.modelName);
   }
 
-  private calculateCapabilityScore(config: ModelConfig, params: {
-    hasImages: boolean,
-    promptLength: number,
-    codeLength: number
-  }): number {
+  private calculateCapabilityScore(
+    config: ModelConfig,
+    params: {
+      hasImages: boolean;
+      promptLength: number;
+      codeLength: number;
+    },
+  ): number {
     let score = 0;
 
     // Token efficiency score (normalized between 0 and 1)
-    const tokenEfficiency = 1 / (1 + Math.exp(-10000/config.oneCreditTokens));
+    const tokenEfficiency = 1 / (1 + Math.exp(-10000 / config.oneCreditTokens));
     score += tokenEfficiency * 0.4;
 
     // Context length optimization
@@ -165,7 +177,7 @@ export class AiService {
   async freeAiModalResponse(b: any, res: Response, user: User) {
     try {
       await this.limiterService.freeAiCreditUsage(user);
-      
+
       const messages = [
         {
           role: 'system',
@@ -173,57 +185,62 @@ export class AiService {
             language: b?.language || 'typescript',
             themeKeys: [],
             usedUiFrameworks: b?.usedUiFrameworks || [],
-          })
+          }),
         },
         {
           role: 'user',
-          content: b.prompt
-        }
+          content: b.prompt,
+        },
       ];
 
       // Add initial code if present
       if (b?.initialCode) {
         messages.push({
           role: 'user',
-          content: `\CODE: ${b.initialCode}`
+          content: `\CODE: ${b.initialCode}`,
         });
       }
-      if(b?.images && Array.isArray(b.images) && b.images.length > 0) {
+      if (b?.images && Array.isArray(b.images) && b.images.length > 0) {
         messages.push({
           role: 'user',
           content: [
             { type: 'text', text: 'Here are the relevant images:' },
-            ...b.images.map(image => ({
+            ...b.images.map((image) => ({
               type: 'image_url',
-              image_url: { url: image }
-            }))
-          ]
+              image_url: { url: image },
+            })),
+          ],
         });
       }
 
-      const hasImages = b?.images && Array.isArray(b.images) && b.images.length > 0;
-      const streamGenerator = await this.providerService.createOpenRouterStream({
-        messages,
-        model: hasImages ? 'z-ai/glm-4.6v' : 'z-ai/glm-5.2',
-        maxTokens: 8192,
-        temperature: 0.3
-      });
+      const hasImages =
+        b?.images && Array.isArray(b.images) && b.images.length > 0;
+      const streamGenerator = await this.providerService.createOpenRouterStream(
+        {
+          messages,
+          model: hasImages ? 'z-ai/glm-4.6v' : 'z-ai/glm-5.2',
+          maxTokens: 8192,
+          temperature: 0.3,
+        },
+      );
 
       await this.providerService.streamResponse(
         res,
         streamGenerator,
-        this.providerService.defaultLineProcessor()
+        this.providerService.defaultLineProcessor(),
       );
     } catch (error) {
       console.error('Free AI response error:', error);
-      res.write(`data: ${JSON.stringify({ error: error.message || 'An error occurred' })}\n\n`);
+      res.write(
+        `data: ${JSON.stringify({ error: error.message || 'An error occurred' })}\n\n`,
+      );
       res.end();
     }
   }
 
   async getBestModel(b: any, res: Response, user: User) {
     try {
-      if(user?.availableAiCredits === 0) {
+      if (user?.availableAiCredits === 0) {
         console.log('No credits left, using free ai modal');
         await this.freeAiModalResponse(b, res, user);
         return;
@@ -237,31 +254,46 @@ export class AiService {
       try {
         const selectedModel = modelKeywordMap[primaryModel];
         if (selectedModel) {
-          const estimatedTokens = this.calculateEstimatedTokens(b, selectedModel);
+          const estimatedTokens = this.calculateEstimatedTokens(
+            b,
+            selectedModel,
+          );
           const requiredCredits = Math.ceil(
             estimatedTokens / selectedModel.oneCreditTokens,
           );
 
           await this.limiterService.aiCreditUsage(user, requiredCredits);
           const modelFunction = this.functionMap[selectedModel.functionName];
-          return await modelFunction(b, res, selectedModel.defaultParams?.model);
+          return await modelFunction(
+            b,
+            res,
+            selectedModel.defaultParams?.model,
+          );
         }
       } catch (primaryError) {
         console.error(`Primary model ${primaryModel} failed:`, primaryError);
-        
+
         // Try backup model if available
         if (backupModel) {
           try {
             const backupModelConfig = modelKeywordMap[backupModel];
             if (backupModelConfig) {
-              const estimatedTokens = this.calculateEstimatedTokens(b, backupModelConfig);
+              const estimatedTokens = this.calculateEstimatedTokens(
+                b,
+                backupModelConfig,
+              );
               const requiredCredits = Math.ceil(
                 estimatedTokens / backupModelConfig.oneCreditTokens,
               );
 
               await this.limiterService.aiCreditUsage(user, requiredCredits);
-              const modelFunction = this.functionMap[backupModelConfig.functionName];
-              return await modelFunction(b, res, backupModelConfig.defaultParams?.model);
+              const modelFunction =
+                this.functionMap[backupModelConfig.functionName];
+              return await modelFunction(
+                b,
+                res,
+                backupModelConfig.defaultParams?.model,
+              );
             }
           } catch (backupError) {
             console.error(`Backup model ${backupModel} failed:`, backupError);
@@ -369,7 +401,6 @@ export class AiService {
     const estimatedTokens = Math.ceil(JSON.stringify(b.files).length * 0.4);
     const requiredCredits = Math.ceil(estimatedTokens / 4096);
     await this.limiterService.aiCreditUsage(user, requiredCredits);
-    console.log('remapFiles', remapFilesPrompt({ uiFrameworks, themeKeys }));
     const response = await this.providerService.generateOpenRouterText({
       systemPrompt: remapFilesPrompt({ uiFrameworks, themeKeys }),
       messages: [
@@ -392,7 +423,6 @@ export class AiService {
       }
 
       const jsonString = response.slice(jsonStart, jsonEnd);
-      console.log('jsonString', jsonString);
       return JSON.parse(jsonString);
     } catch (error) {
       console.error('Error:', error);
@@ -425,7 +455,6 @@ export class AiService {
       }
 
       const jsonString = response.slice(jsonStart, jsonEnd);
-      console.log('jsonString', jsonString);
       return JSON.parse(jsonString);
     } catch (error) {
       console.error('Error:', error);
@@ -434,7 +463,15 @@ export class AiService {
   }
 
   async completion(b: any, res: Response, user: User) {
-    const { completion, error, raw } = await this.copilot.complete({
+    if (!this.copilot) {
+      res.status(503).json({
+        completion: null,
+        error: 'AI completion is not configured on this server',
+      });
+      return;
+    }
+
+    const { completion, error } = await this.copilot.complete({
       body: b,
     });
 
@@ -460,8 +497,10 @@ export class AiService {
     const requiredCredits = 1;
     await this.limiterService.aiCreditUsage(user, requiredCredits);
 
-    const isEmptyObject = obj => obj && Object.keys(obj).length === 0;
-    const tokens = isEmptyObject(b?.currentTokens) ? getStarterTokens(b?.usedUiFrameworks) : b?.currentTokens;
+    const isEmptyObject = (obj) => obj && Object.keys(obj).length === 0;
+    const tokens = isEmptyObject(b?.currentTokens)
+      ? getStarterTokens(b?.usedUiFrameworks)
+      : b?.currentTokens;
     const messages = [
       {
         role: 'user',
@@ -624,13 +663,7 @@ export class AiService {
   }
 
   async generate4oMini(b: any, res: Response) {
-    await this.generateOpenRouter(
-      b,
-      res,
-      'openai/gpt-4o-mini',
-      18192,
-      0.75,
-    );
+    await this.generateOpenRouter(b, res, 'openai/gpt-4o-mini', 18192, 0.75);
   }
 
   // async generateDouble4oMini(b: any, res: Response) {

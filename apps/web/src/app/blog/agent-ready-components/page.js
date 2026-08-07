@@ -50,7 +50,7 @@ export default function Post() {
                 (search, fetch, install commands), stdio transport, no auth needed for public
                 components:
             </P>
-            <Code>claude mcp add compify -- npx -y @compify/cli mcp</Code>
+            <Code>claude mcp add compify -- bunx @compify/cli mcp</Code>
 
             <H2>The test that counts</H2>
             <P>

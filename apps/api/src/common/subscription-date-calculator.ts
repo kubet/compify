@@ -31,14 +31,6 @@ export class SubscriptionDateCalculator {
       normalizedStart,
       normalizedToday,
     );
-    console.log({
-      normalizedStart: normalizedStart.toISOString(),
-      normalizedToday: normalizedToday.toISOString(),
-      normalizedLastReset: normalizedLastReset?.toISOString(),
-      targetResetDate: targetResetDate.toISOString(),
-      isSameDayResult: isSameDay(normalizedToday, targetResetDate),
-      isBeforeResult: isBefore(normalizedLastReset, normalizedToday),
-    });
     // If there's no last reset date, just check if today is the target reset date
     if (!normalizedLastReset) {
       return isSameDay(normalizedToday, targetResetDate);

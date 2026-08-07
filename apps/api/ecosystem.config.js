@@ -3,6 +3,7 @@ module.exports = {
     apps: [{
         name: 'compify-back',
         script: 'dist/main.js',
+        interpreter: 'bun',
         watch: false,
         exec_mode: 'cluster',
         instances: 2,

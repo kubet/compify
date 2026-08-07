@@ -7,7 +7,7 @@ import { GradientSpot } from '@/components/Common';
 import { getAllPlans } from '@/lib/api';
 import TextSwitcher from '@/components/Elements/TextSwitcher';
 import { Volume2, VolumeX } from 'lucide-react';
-import { baseUrl } from '@/constains';
+import { baseUrl, cdnUrl } from '@/constains';
 import CouponCard from './CouponCard';
 import ProductCard from '@/components/Product/Card';
 import PublicCard from '@/components/Product/PublicCard';
@@ -122,7 +122,7 @@ const VideoPlayer = React.memo(() => {
                 <video
                     ref={videoRef}
                     className="w-full h-full object-cover rounded-2xl"
-                    src="https://cdn.compify.app/demo-thing.mp4"
+                    src={`${cdnUrl}/demo-thing.mp4`}
                     autoPlay
                     loop
                     muted={isMuted}

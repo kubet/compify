@@ -1,5 +1,6 @@
 import type { SandpackBundlerFiles } from "@codesandbox/sandpack-client";
 import { normalizePath } from "@codesandbox/sandpack-client";
+import { dequal as deepEqual } from "dequal";
 import { useEffect, useState, useRef } from "react";
 
 import type {
@@ -56,12 +57,21 @@ export const useFiles: UseFiles = (props) => {
 
   const [state, setState] = useState<FilesState>(originalStateFromProps);
 
-  const isMountedRef = useRef(false);
+  const previousInputsRef = useRef({
+    files: props.files,
+    customSetup: props.customSetup,
+    template: props.template,
+  });
   useEffect(() => {
-    if (isMountedRef.current) {
+    const nextInputs = {
+      files: props.files,
+      customSetup: props.customSetup,
+      template: props.template,
+    };
+
+    if (!deepEqual(previousInputsRef.current, nextInputs)) {
+      previousInputsRef.current = nextInputs;
       setState(getSandpackStateFromProps(props));
-    } else {
-      isMountedRef.current = true;
     }
   }, [props.files, props.customSetup, props.template]);
 

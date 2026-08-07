@@ -118,8 +118,25 @@ export const add = new Command()
       const apiClient = ApiClient.getInstance()
 
       if (!components.length) {
-        logger.error("Please specify component name(s) to add")
-        process.exit(1)
+        if (opts.yes) {
+          throw new Error("Please specify component name(s) when using --yes")
+        }
+        const available = await apiClient.getComponents()
+        const { selected } = await prompts({
+          type: "multiselect",
+          name: "selected",
+          message: "Select components to install",
+          choices: available.map((component) => ({
+            title: `${component.name} (${component.language})`,
+            value: component.id,
+          })),
+          hint: "- Space to select, Return to submit",
+        })
+        components = selected || []
+        if (!components.length) {
+          logger.info("No components selected.")
+          return
+        }
       }
 
       // Load or initialize config

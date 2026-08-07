@@ -1,0 +1,17 @@
+**/node_modules
+**/.next
+**/dist
+!packages/compify-pack/dist
+.git
+.github
+**/.gitignore
+**/.env
+**/.env.*
+**/coverage
+**/*.log
+.DS_Store
+docs
+deploy
+packages/cli
+packages/templates
+apps/api

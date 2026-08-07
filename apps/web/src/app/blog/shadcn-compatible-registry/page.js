@@ -3,7 +3,7 @@ import { BlogShell, PostHeader, P, H2, Code, A } from '../BlogShell';
 export const metadata = {
     title: 'Compify is now a shadcn-compatible registry',
     description:
-        'Every public compify component is installable with npx shadcn add — no compify account or CLI required.',
+        'Every public compify component is installable with bunx shadcn add — no compify account or CLI required.',
     alternates: { canonical: 'https://compify.app/blog/shadcn-compatible-registry' },
 };
 
@@ -18,7 +18,7 @@ export default function Post() {
                 means you can install any of them with tooling you already have, without a compify
                 account:
             </P>
-            <Code>npx shadcn@latest add https://api.compify.app/r/glass-3d-text.json</Code>
+            <Code>bunx shadcn@latest add https://api.compify.app/r/glass-3d-text.json</Code>
             <P>
                 Or configure the namespace once in your project&apos;s <code>components.json</code>:
             </P>
@@ -28,7 +28,7 @@ export default function Post() {
   }
 }`}</Code>
             <P>and install by name from then on:</P>
-            <Code>npx shadcn@latest add @compify/morphing-switch</Code>
+            <Code>bunx shadcn@latest add @compify/morphing-switch</Code>
 
             <H2>What you get</H2>
             <P>

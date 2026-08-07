@@ -32,7 +32,7 @@ describe("FileTabs", () => {
     const buttons = component.findAll((el) =>
       el.props.className?.includes("sp-tab-button")
     );
-    const buttonsTex = buttons.map((item) => item.props.children[0]);
+    const buttonsTex = buttons.map((item) => item.props.children);
 
     expect(buttonsTex).toEqual(["foo/App.js", "App.js", "baz/App.js"]);
   });
@@ -61,7 +61,7 @@ describe("FileTabs", () => {
     const buttons = component.findAll((el) =>
       el.props.className?.includes("sp-tab-button")
     );
-    const buttonsTex = buttons.map((item) => item.props.children[0]);
+    const buttonsTex = buttons.map((item) => item.props.children);
 
     expect(buttonsTex).toEqual(["baz/App.js", "App.js"]);
   });

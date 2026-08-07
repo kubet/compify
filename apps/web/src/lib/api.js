@@ -798,8 +798,8 @@ export async function getTopComponentsServerless() {
         };
         const response = await axios(options);
         return handleSuccess(response);
-    } catch (error) {
-        console.error("Error fetching top components:", error);
-        return { status: 500, data: [] };
+    } catch {
+        // The API may be unavailable during an image build. ISR will retry.
+        return { status: 503, data: [] };
     }
 }

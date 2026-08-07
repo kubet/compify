@@ -37,7 +37,7 @@ The registry protocol is the distribution: we adopt it rather than invent one.
 ## How people use it (personas)
 
 1. **Solo dev**: curates their own library across client projects.
-   `npx shadcn add @compify/me/pricing-card` in every new repo.
+   `bunx shadcn add @compify/me/pricing-card` in every new repo.
 2. **Agent-driven dev**: adds the compify registry to `components.json` once;
    from then on their agent installs house components by name.
 3. **Team (later)**: shared org namespace `@acme/*`, private registry with

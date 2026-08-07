@@ -34,14 +34,14 @@ rollback() {
 }
 
 log "Installing dependencies..."
-yarn install --frozen-lockfile
+bun install --frozen-lockfile
 
 log "Building..."
-yarn build || rollback
+bun run build || rollback
 
 # pm2 reload keeps the process's original cwd/script path, so if the app was
 # registered from a different checkout it must be re-registered, not reloaded.
-CURRENT_CWD=$(pm2 jlist 2>/dev/null | node -e "
+CURRENT_CWD=$(pm2 jlist 2>/dev/null | bun -e "
   const list = JSON.parse(require('fs').readFileSync(0, 'utf8') || '[]');
   const app = list.find((p) => p.name === '$APP_NAME');
   console.log(app ? app.pm2_env.pm_cwd || '' : '');
@@ -49,7 +49,7 @@ CURRENT_CWD=$(pm2 jlist 2>/dev/null | node -e "
 
 if [ "$CURRENT_CWD" = "$APP_DIR" ]; then
     log "Reloading $APP_NAME..."
-    pm2 reload ecosystem.config.js --wait-ready
+    pm2 reload ecosystem.config.js
 else
     log "Registering $APP_NAME from $APP_DIR (was: '${CURRENT_CWD:-none}')..."
     pm2 delete "$APP_NAME" >/dev/null 2>&1 || true

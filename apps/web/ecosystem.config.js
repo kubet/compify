@@ -2,6 +2,7 @@ module.exports = {
     apps: [{
         name: 'compify-front',
         script: 'node_modules/next/dist/bin/next',
+        interpreter: 'bun',
         args: 'start',
         watch: false,
         exec_mode: 'cluster',
@@ -11,8 +12,6 @@ module.exports = {
             PORT: process.env.PORT || 3000,
             NODE_ENV: 'production'
         },
-        kill_timeout: 15000,
-        wait_ready: true,
-        listen_timeout: 10000
+        kill_timeout: 15000
     }]
 }

@@ -102,7 +102,7 @@ export const migrate = new Command()
               localContent = await fs.readFile(flatPath, 'utf8')
             }
 
-            if (localContent && localPath && localContent !== registryContent) {
+            if (localContent === null || !localPath || localContent !== registryContent) {
               hasChanges = true
               break
             }

@@ -122,7 +122,14 @@ async function diffComponent(componentId: string, componentName: string, compone
         actualPath = flatPath
       }
 
-      if (localContent && actualPath) {
+      if (localContent === null) {
+        actualPath = existsSync(folderDir) ? folderPath : flatPath
+        changes.push({
+          filePath: path.relative(componentDir, actualPath),
+          patch: diffLines(registryContent, ""),
+          missing: true,
+        })
+      } else if (actualPath) {
         const patch = diffLines(registryContent, localContent)
         if (patch.some(part => part.added || part.removed)) {
           changes.push({
@@ -135,8 +142,7 @@ async function diffComponent(componentId: string, componentName: string, compone
 
     return changes
   } catch (error) {
-    logger.error(`Failed to diff ${componentName}:`, error instanceof Error ? error.message : "Unknown error")
-    return []
+    throw new Error(`Failed to diff ${componentName}: ${error instanceof Error ? error.message : "Unknown error"}`)
   }
 }
 

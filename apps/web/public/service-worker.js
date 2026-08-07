@@ -1,10 +1,11 @@
+const CDN_URL = new URL(self.location.href).searchParams.get('cdn') || 'https://cdn.compify.app';
 const CACHE_CONFIG = {
     'shadcn': {
-        url: 'https://cdn.compify.app/sui-content',
+        url: `${CDN_URL}/sui-content`,
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     },
     'fonts': {
-        url: 'https://cdn.compify.app/font-list.json',
+        url: `${CDN_URL}/font-list.json`,
         maxAge: 24 * 60 * 60 * 1000, // 1 day
     }
 };

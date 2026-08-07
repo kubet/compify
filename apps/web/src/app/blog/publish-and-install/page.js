@@ -36,7 +36,7 @@ export default function Post() {
             <H2>3. Install it in any project</H2>
             <P>Three ways, pick whatever fits the project:</P>
             <Code>{`# shadcn CLI — no compify account needed
-npx shadcn@latest add https://api.compify.app/r/you/component-name.json
+bunx shadcn@latest add https://api.compify.app/r/you/component-name.json
 
 # compify CLI — tracks installs in compify.json, supports diff/migrate
 compify add @you/component-name

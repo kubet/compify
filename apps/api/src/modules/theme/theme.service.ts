@@ -54,14 +54,12 @@ export class ThemeService {
 
     // Check if id is already a UUID
     const themeId = id.includes('-') ? id : shortIdToUuid(id);
-    console.log(themeId);
     const theme = await this.themeRepository.createQueryBuilder('theme')
       .leftJoinAndSelect('theme.component', 'component')
       .leftJoinAndSelect('component.user', 'user')
       .where('theme.id = :id', { id: themeId })
       .andWhere('user.id = :userId', { userId: user.id })
       .getOne();
-    console.log(theme?.component?.user?.id, user?.id);
     if (theme?.component?.user?.id !== user?.id) {
       throw new BadRequestException('You are not allowed to modify this theme');
     }
@@ -100,7 +98,6 @@ export class ThemeService {
     theme.groups = themeData?.groups;
     theme.factors = themeData?.factors;
     theme.values = themeData?.values;
-    console.log(theme);
     const savedTheme = await this.themeRepository.save(theme);
 
     return {

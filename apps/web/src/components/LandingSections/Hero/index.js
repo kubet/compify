@@ -133,7 +133,7 @@ function Hero() {
                     <motion.div variants={fadeIn} className="mb-10">
                         <code className="inline-block max-w-full overflow-x-auto rounded-xl border border-white/10 bg-white/[0.04] px-5 py-3.5 font-mono text-sm md:text-base text-gray-300">
                             <span className="select-none text-gray-600">$ </span>
-                            npx shadcn@latest add <span className="text-purple-300">@compify/glass-3d-text</span>
+                            bunx shadcn@latest add <span className="text-purple-300">@compify/glass-3d-text</span>
                         </code>
                     </motion.div>
                     <motion.div className="space-x-4 flex items-center justify-start" variants={fadeIn}>

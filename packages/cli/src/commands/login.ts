@@ -2,6 +2,7 @@ import { Command } from "commander"
 import prompts from "prompts"
 import { AuthManager } from "@/src/utils/auth-manager"
 import { logger } from "@/src/utils/logger"
+import { ApiClient } from "@/src/utils/api-client"
 
 export const login = new Command()
   .name("login")
@@ -47,7 +48,8 @@ export const login = new Command()
         token = response.token;
       }
 
-      // Store the token
+      // Validate before storing so a typo never looks like a successful login.
+      await ApiClient.getInstance().validateToken(token);
       await authManager.setToken(token);
       logger.success("Successfully logged in to Compify!");
 

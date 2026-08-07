@@ -19,7 +19,7 @@
 | Live preview page | `compify.app/view/@user/name` |
 | Detail page | `compify.app/c/<id>` |
 | compify CLI | `compify add @user/name` |
-| shadcn CLI / MCP / v0 | `npx shadcn add @compify/user/name` (see [registry.md](./registry.md)) |
+| shadcn CLI / MCP / v0 | `bunx shadcn add @compify/user/name` (see [registry.md](./registry.md)) |
 
 Preview and social (OG) images are generated automatically.
 

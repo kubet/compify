@@ -1,3 +1,4 @@
+import { cdnUrl } from '@/constains';
 import LoaderCircle from "@/components/Common/LoaderCircle";
 import { InputField, Slider } from "@/components/Elements";
 import TextArea from "@/components/Elements/TextArea";
@@ -313,7 +314,7 @@ const BotInput = ({
 
     const getFontData = async (optionFonts) => {
         try {
-            const response = await fetch('https://cdn.compify.app/font-list.json')
+            const response = await fetch(`${cdnUrl}/font-list.json`)
             const fonts = await response.json()
             return fonts.filter(font => optionFonts.includes(font.n))
         } catch (error) {

@@ -62,6 +62,27 @@ export class ApiClient {
   async getComponents(): Promise<ComponentResponse[]> {
     const headers = await this.getHeaders();
     const response = await fetch(`${getBaseUrl()}/get-all`, { headers });
-    return await response.json() as ComponentResponse[];
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error('Authentication required. Please login first.');
+      }
+      throw new Error(`Failed to fetch components: ${response.status} ${response.statusText}`);
+    }
+    const body = await response.json();
+    if (!Array.isArray(body)) {
+      throw new Error('Registry returned an invalid component list');
+    }
+    return body as ComponentResponse[];
+  }
+
+  async validateToken(token: string): Promise<void> {
+    const response = await fetch(`${getBaseUrl()}/get-all`, {
+      headers: { 'x-cli-token': token },
+    });
+    if (!response.ok) {
+      throw new Error(response.status === 401
+        ? 'Invalid CLI token'
+        : `Could not validate token: ${response.status} ${response.statusText}`);
+    }
   }
 } 

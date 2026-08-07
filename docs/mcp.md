@@ -9,7 +9,7 @@ no shadcn setup required, no authentication needed for public components.
 **Claude Code:**
 
 ```bash
-claude mcp add compify -- npx -y @compify/cli mcp
+claude mcp add compify -- bunx @compify/cli mcp
 ```
 
 **Cursor / Windsurf / other MCP clients** — add to your MCP config:
@@ -18,7 +18,7 @@ claude mcp add compify -- npx -y @compify/cli mcp
 {
   "mcpServers": {
     "compify": {
-      "command": "npx",
+      "command": "bunx",
       "args": ["-y", "@compify/cli", "mcp"]
     }
   }
@@ -34,7 +34,7 @@ claude mcp add compify -- npx -y @compify/cli mcp
 | --- | --- |
 | `search_components` | Search public components by name/title/description; returns addresses + preview URLs |
 | `get_component` | Full source files + npm dependencies for a component (shadcn registry-item format) — the agent writes the files and installs the deps |
-| `get_install_commands` | Ready-to-run `npx shadcn add …` / `compify add …` commands |
+| `get_install_commands` | Ready-to-run `bunx shadcn add …` / `compify add …` commands |
 
 ## Typical agent flow
 

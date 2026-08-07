@@ -28,9 +28,9 @@ function PublishCreateModal({ publishModalOpen,
     const [isLoading, setIsLoading] = useState(false);
     const [packageManager, setPackageManager] = useState(() => {
         try {
-            return localStorage.getItem('preferred_package_manager') || 'npm';
+            return localStorage.getItem('preferred_package_manager') || 'bun';
         } catch {
-            return 'npm';
+            return 'bun';
         }
     });
     const [isCopied, setIsCopied] = useState(false);
@@ -102,7 +102,7 @@ function PublishCreateModal({ publishModalOpen,
             ${fileTextContent}`;
         }
         // Return all commands for easy copying
-        const installCmd = `${packageManager} ${packageManager === 'npm' ? 'install -g' : packageManager === 'yarn' ? 'global add' : 'add -g'} @compify/cli`;
+        const installCmd = `bun add --global @compify/cli`;
         return showFullSteps ? `${installCmd}\ncompify login\ncompify add ${publishingDomain ? `@${user.username}/${publishingDomain}` : componentId}` : `compify add ${publishingDomain ? `@${user.username}/${publishingDomain}` : componentId}`;
     }
 
@@ -456,7 +456,7 @@ function PublishCreateModal({ publishModalOpen,
                                 <h6 className="text-sm font-medium text-gray-400">Installation</h6>
                                 {installationType === 'command' && (showFullSteps ? (
                                     <div className="inline-flex bg-black/30 backdrop-blur-sm rounded-lg p-0.5 border border-white/5">
-                                        {['npm', 'yarn', 'pnpm', 'bun'].map((pm) => (
+                                        {['bun'].map((pm) => (
                                             <button
                                                 key={pm}
                                                 onClick={() => setPackageManager(pm)}
@@ -522,7 +522,7 @@ function PublishCreateModal({ publishModalOpen,
                                                         <div className="flex items-center gap-2">
                                                             <div className="w-5 h-5 flex items-center justify-center rounded-full bg-purple-500/10 text-purple-300 text-xs font-medium">1</div>
                                                             <code className="font-mono text-sm text-gray-300 flex-1">
-                                                                {`${packageManager} ${packageManager === 'npm' ? 'install -g' : packageManager === 'yarn' ? 'global add' : 'add -g'} @compify/cli`}
+                                                                {`bun add --global @compify/cli`}
                                                             </code>
                                                         </div>
                                                         <div className="flex items-center gap-2">

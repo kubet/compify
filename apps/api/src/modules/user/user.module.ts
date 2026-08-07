@@ -8,7 +8,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { User } from 'src/entities/user/user.entity';
 import { Token } from 'src/entities/user/token.entity';
 import { JwtStrategy } from 'src/common/jwt.strategy';
-import { MailerModule } from '@nestjs-modules/mailer';
 import { SubscriptionPlan } from 'src/entities/subscription/subscription-plan.entity';
 import { Subscription } from 'src/entities/subscription/subscription.entity';
 import { SubscriptionController } from './subscription.controller';
@@ -27,6 +26,7 @@ import { UserUsedComponents } from 'src/entities/user/user-used-components.entit
 import { Upvote } from 'src/entities/project/upvote.entity';
 import { Theme } from 'src/entities/project/theme.entity';
 import { Report } from 'src/entities/common/report.entity';
+import { GoogleOAuthGuard } from 'src/common/guards/google-oauth.guard';
 
 @Global()
 @Module({
@@ -36,12 +36,12 @@ import { Report } from 'src/entities/common/report.entity';
     MinioModule,
     PassportModule.register({ session: false }),
     JwtModule.registerAsync({
-      useFactory: async () => {
-        return {
-          secret: process.env.JWT_SECRET,
-          signOptions: { expiresIn: '30d' },
-        };
-      },
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.getOrThrow<string>('JWT_SECRET'),
+        signOptions: { expiresIn: '30d' },
+      }),
     }),
     TypeOrmModule.forFeature([
       User,
@@ -56,25 +56,7 @@ import { Report } from 'src/entities/common/report.entity';
       Upvote,
       Report,
       UserUsedComponents,
-
     ]),
-    MailerModule.forRootAsync({
-      imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
-        transport: {
-          host: configService.get('EMAIL_HOST'),
-          port: configService.get('EMAIL_PORT'),
-          auth: {
-            user: configService.get('EMAIL_USERNAME'),
-            pass: configService.get('EMAIL_PASSWORD'),
-          },
-        },
-        defaults: {
-          from: configService.get('EMAIL_FROM', 'No Reply'),
-        },
-      }),
-      inject: [ConfigService],
-    }),
   ],
   providers: [
     UserService,
@@ -82,6 +64,7 @@ import { Report } from 'src/entities/common/report.entity';
     JwtStrategy,
     EmailService,
     GoogleStrategy,
+    GoogleOAuthGuard,
     PaymentService,
     UsageResetService,
   ],

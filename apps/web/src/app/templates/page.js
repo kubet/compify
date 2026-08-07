@@ -1,4 +1,5 @@
 'use client'
+import { cdnUrl } from '@/constains';
 import React from 'react'
 import { Button } from '@/components/Elements'
 import CardWrapper from '@/components/Elements/CardWrapper'
@@ -88,7 +89,7 @@ function TemplatesPage() {
             "id": 1,
             "name": "Dark Solar",
             "description": "A sleek, performance-optimized NextJS template with dark mode aesthetics and clean energy vibes. Features Notion-powered blog, fluid animations, and enterprise-ready architecture.",
-            "imageUrl": "https://cdn.compify.app/templates/dark-saas-demo.gif",
+            "imageUrl": `${cdnUrl}/templates/dark-saas-demo.gif`,
             "githubUrl": "https://github.com/kubet/compify/tree/main/packages/templates/dark-solar-saas",
             "demoUrl": "https://compify.app",
             "tags": ["NextJS 15", "TailwindCSS 4", "TypeScript", "Framer Motion", "Notion Blog API"]

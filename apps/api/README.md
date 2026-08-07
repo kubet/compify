@@ -6,9 +6,9 @@ storage and billing. NestJS 10 + TypeORM (PostgreSQL) + MinIO.
 ## Run
 
 ```bash
-yarn
+bun install --frozen-lockfile
 cp .env.example .env.stage.local   # fill in DB/MinIO/JWT at minimum
-yarn start:dev                     # http://localhost:3091
+bun run start:dev                     # http://localhost:3009
 ```
 
 `STAGE` selects the env file (`.env.stage.<STAGE>`); the dev script sets
@@ -16,7 +16,8 @@ yarn start:dev                     # http://localhost:3091
 
 ## Notable routes
 
-- `GET /health` — health check used by deploys
+- `GET /health` — process liveness
+- `GET /ready` — deployment readiness (PostgreSQL + required MinIO buckets)
 - `GET /c/info/:id`, `/c/image/:id`, `/c/og-image/:id`, `/c/top-components` — public component data (short ids)
 - `/user/*` — auth, registration, profile
 - `/component/*` — authenticated component CRUD

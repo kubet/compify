@@ -15,7 +15,7 @@ import { Repository } from 'typeorm';
 import { AuthCredentialsDto } from '../../models/user/auth-credentials.dto';
 import { SignUpDto } from '../../models/user/signup.dto';
 import { VerifyAccountDto } from 'src/models/user/verify-account.dto';
-import {  User } from 'src/entities/user/user.entity';
+import { User } from 'src/entities/user/user.entity';
 import { ChangePasswordDto } from 'src/models/user/change-password.dto';
 import { Token, TokenType } from 'src/entities/user/token.entity';
 import { JwtPayload } from 'src/common/jwt-payload.interface';
@@ -45,7 +45,10 @@ import { Report } from 'src/entities/common/report.entity';
 import { UserUsedComponents } from 'src/entities/user/user-used-components.entity';
 import { In } from 'typeorm';
 import { Response } from 'express';
-import { generateEmailTemplate, generatePasswordResetTemplate } from 'src/common/email-templates';
+import {
+  generateEmailTemplate,
+  generatePasswordResetTemplate,
+} from 'src/common/email-templates';
 
 @Injectable()
 export class UserService {
@@ -81,15 +84,18 @@ export class UserService {
 
   private initializeBlockedDomains(): void {
     try {
-      const domainsFile = readFileSync(join(process.cwd(), 'blocked_domains.txt'), 'utf8');
+      const domainsFile = readFileSync(
+        join(process.cwd(), 'blocked_domains.txt'),
+        'utf8',
+      );
       this.blockedDomains = new Set(
         domainsFile
           .split('\n')
-          .map(domain => domain.trim().toLowerCase())
-          .filter(Boolean)
+          .map((domain) => domain.trim().toLowerCase())
+          .filter(Boolean),
       );
-    } catch (error) {
-      console.error('Failed to load blocked domains:', error);
+    } catch {
+      // Optional for self-hosts; an absent list disables domain blocking.
       this.blockedDomains = new Set();
     }
   }
@@ -110,7 +116,15 @@ export class UserService {
       await this.checkIfUsernameIsAvailable(b.username);
       user.username = b.username;
     }
-    return await this.userRepo.save(user);
+    const saved = await this.userRepo.save(user);
+    return {
+      id: saved.id,
+      email: saved.email,
+      firstName: saved.firstName,
+      lastName: saved.lastName,
+      username: saved.username,
+      valid: saved.valid,
+    };
   }
 
   async refreshToken(user: User) {
@@ -121,36 +135,42 @@ export class UserService {
     return { accessToken };
   }
 
+  private hashCliToken(token: string): string {
+    return crypto.createHash('sha256').update(token).digest('hex');
+  }
+
   async generateCliToken(user: User) {
     const newToken = `cli_${crypto.randomBytes(32).toString('hex')}`;
-    const existingToken = await this.getCliToken(user);
-  
+    const storedToken = this.hashCliToken(newToken);
+    const existingToken = await this.cliTokenRepo.findOneBy({
+      user: { id: user.id },
+    });
+
     if (existingToken) {
-      existingToken.token = newToken;
+      existingToken.token = storedToken;
       existingToken.lastUsedAt = new Date();
       await this.cliTokenRepo.save(existingToken);
-      return newToken;
+    } else {
+      await this.cliTokenRepo.save({
+        user: { id: user.id },
+        token: storedToken,
+        createdAt: new Date(),
+        lastUsedAt: new Date(),
+      });
     }
 
-    await this.cliTokenRepo.save({
-      user: { id: user.id },
-      token: newToken,
-      createdAt: new Date(),
-      lastUsedAt: new Date()
-    });
-  
-    return {token: newToken};
+    // This is the only response that exposes the bearer token.
+    return { token: newToken };
   }
-  
+
   async getCliToken(user: User) {
-    return await this.cliTokenRepo.findOneBy({ 
-      user: { id: user.id } 
-    });
+    const token = await this.cliTokenRepo.findOneBy({ user: { id: user.id } });
+    return { exists: Boolean(token), lastUsedAt: token?.lastUsedAt || null };
   }
-  
+
   async revokeCliToken(user: User) {
-    await this.cliTokenRepo.delete({ 
-      user: { id: user.id } 
+    await this.cliTokenRepo.delete({
+      user: { id: user.id },
     });
   }
 
@@ -204,7 +224,6 @@ export class UserService {
       .orderBy('subscription.createdAt', 'DESC')
       .getRawOne();
 
-    console.log(activeSubscription, 'activeSubscription');
     let filteredItems = items.filter((item) => item.price > 0);
 
     if (activeSubscription) {
@@ -267,8 +286,18 @@ export class UserService {
 
   async setLanguagePreference(body: any, user: User) {
     const { languages } = body;
-    const validLanguages = ['react', 'react-ts', 'vue', 'vue-ts', 'nextjs', 'nextjs-ts', 'react-native', 'react-native-ts', 'static'];
-    
+    const validLanguages = [
+      'react',
+      'react-ts',
+      'vue',
+      'vue-ts',
+      'nextjs',
+      'nextjs-ts',
+      'react-native',
+      'react-native-ts',
+      'static',
+    ];
+
     // Ensure languages is an array
     if (!Array.isArray(languages)) {
       throw new BadRequestException('Languages must be an array');
@@ -277,7 +306,9 @@ export class UserService {
     // Validate each language in the array
     for (const language of languages) {
       if (!validLanguages.includes(language)) {
-        throw new BadRequestException(`Invalid language preference: ${language}`);
+        throw new BadRequestException(
+          `Invalid language preference: ${language}`,
+        );
       }
     }
 
@@ -326,14 +357,10 @@ export class UserService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
-    console.log(signUpDto);
-
     try {
       return await this.userRepo.save(userFound);
     } catch (error) {
-      throw new InternalServerErrorException(
-        'Error saving user data.',
-      );
+      throw new InternalServerErrorException('Error saving user data.');
     }
   }
   async changeInfo(
@@ -342,8 +369,15 @@ export class UserService {
     password: string,
     user: User,
   ) {
-    const userf = await this.userRepo.findOneBy({ email: user.email });
-    const isMatch = await bcrypt.compare(password, user.password);
+    const userf = await this.userRepo
+      .createQueryBuilder('user')
+      .addSelect('user.password')
+      .where('user.email = :email', { email: user.email })
+      .getOne();
+    if (!userf?.password) {
+      throw new ForbiddenException('Current password is incorrect');
+    }
+    const isMatch = await bcrypt.compare(password, userf.password);
     if (!isMatch) {
       throw new ForbiddenException('Current password is incorrect');
     }
@@ -352,8 +386,15 @@ export class UserService {
   }
 
   async changePassword(b: ChangePasswordDto, user: User) {
-    const userf = await this.userRepo.findOneBy({ email: user.email });
+    const userf = await this.userRepo
+      .createQueryBuilder('user')
+      .addSelect('user.password')
+      .where('user.email = :email', { email: user.email })
+      .getOne();
 
+    if (!userf?.password) {
+      throw new ForbiddenException('Current password is incorrect');
+    }
     const isMatch = await bcrypt.compare(b.currentPassword, userf.password);
     if (!isMatch) {
       throw new ForbiddenException('Current password is incorrect');
@@ -374,7 +415,6 @@ export class UserService {
     return bcrypt.hash(password, salt);
   }
   async changeVerifyEmail(email: string, token: string, user: User) {
-    console.log(email, token, user);
     const latestToken = await this.tokenRepo
       .createQueryBuilder('token')
       .where('token.email = :email AND token.token = :token', { email, token })
@@ -393,10 +433,7 @@ export class UserService {
       if (error.code === '23505') {
         throw new ConflictException('Email already in use.');
       } else {
-        console.log(error);
-        throw new InternalServerErrorException(
-          'Error saving user data.',
-        );
+        throw new InternalServerErrorException('Error saving user data.');
       }
     }
   }
@@ -423,6 +460,7 @@ export class UserService {
   }
 
   async verifyCloudflareToken(token: string, req: Request) {
+    if (!process.env.CLOUDFLARE_TURNSTILE_KEY) return { success: true, disabled: true };
     const clientIp = this.getClientIp(req);
     const response = await fetch(
       `https://challenges.cloudflare.com/turnstile/v0/siteverify`,
@@ -450,8 +488,22 @@ export class UserService {
 
   // Handles that would collide with official/system namespaces or routes.
   private static readonly RESERVED_USERNAMES = [
-    'compify', 'admin', 'api', 'www', 'registry', 'docs', 'blog', 'support',
-    'help', 'team', 'official', 'system', 'root', 'cdn', 'assets', 'static',
+    'compify',
+    'admin',
+    'api',
+    'www',
+    'registry',
+    'docs',
+    'blog',
+    'support',
+    'help',
+    'team',
+    'official',
+    'system',
+    'root',
+    'cdn',
+    'assets',
+    'static',
   ];
 
   async checkIfUsernameIsAvailable(username: string) {
@@ -467,13 +519,19 @@ export class UserService {
 
   async signUp(signUpDto: SignUpDto, req: Request): Promise<any> {
     if (this.isBlockedDomain(signUpDto.email)) {
-      throw new BadRequestException('Temporary email providers are not allowed');
+      throw new BadRequestException(
+        'Temporary email providers are not allowed',
+      );
     }
     await this.verifyCloudflareToken(signUpDto.turnstileToken, req);
 
-    await this.createUser(signUpDto);
-
-    await this.sendRegisterEmail(signUpDto.email, signUpDto.firstName);
+    const emailEnabled = this.emailService.isConfigured();
+    const user = await this.createUser(signUpDto, !emailEnabled);
+    if (emailEnabled) {
+      await this.sendRegisterEmail(signUpDto.email, signUpDto.firstName);
+    } else {
+      await this.createFreeSubscription(user);
+    }
     return 'ok';
   }
   async resendRegisterEmail(email: string) {
@@ -498,9 +556,13 @@ export class UserService {
       endDate: null,
     });
     await this.userRepo.update(
-      {  id: user.id },
-      { availableFreeAiCredits: 100, availableCredits: 25, availableAiCredits: 50 }
-    )
+      { id: user.id },
+      {
+        availableFreeAiCredits: 100,
+        availableCredits: 25,
+        availableAiCredits: 50,
+      },
+    );
   }
   async sendRegisterEmail(email: string, name?: string) {
     email = email?.toLowerCase();
@@ -539,64 +601,68 @@ export class UserService {
         email,
         name,
         'Email verification',
-        generateEmailTemplate({ name, email, token, frontendUrl: process.env.FRONTEND_URL }),
+        generateEmailTemplate({
+          name,
+          email,
+          token,
+          frontendUrl: process.env.FRONTEND_URL,
+        }),
       );
       return { message: 'Email sent' };
     }
   }
+  private hashResetToken(token: string): string {
+    return crypto.createHash('sha256').update(token).digest('hex');
+  }
+
   async resetPassword(token: string, password: string, email: string) {
     email = email?.trim().toLowerCase();
-    const latestToken = await this.tokenRepo
-      .createQueryBuilder('token')
-      .where('token.token = :token', { token: token })
-      .andWhere('token.email = :email', { email })
-      .andWhere('token.type = :type', { type: TokenType.RESET_PASSWORD })
-      .orderBy('token.date', 'DESC')
-      .groupBy('token.id')
-      .getOne();
+    if (!email || !token || !password) {
+      throw new BadRequestException('Email, token and password are required');
+    }
 
-    if (!latestToken?.id) {
-      throw new InternalServerErrorException(
-        'Invalid link please try resetting password again.',
-      );
-    }
-    const tokenDate = new Date(latestToken.date);
-    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
-    
-    if (tokenDate < oneHourAgo) {
-      throw new InternalServerErrorException('Token expired');
-    }
-    
-    const user = await this.userRepo.findOneBy({ email });
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-    user.password = await this.hashPassword(password, await bcrypt.genSalt());
-    try {
-      await this.userRepo.save(user);
-      //delete token
-      await this.tokenRepo.delete({
-        email: email,
-        token: token,
-        type: TokenType.RESET_PASSWORD,
-      });
-      const plan = await this.getUserSubscriptionPlan(user);
-      const accessToken = await this.getAccessToken({
-        id: user.id,
-        plan,
-      });
-      return { accessToken };
-    } catch (error) {
-      if (error.code === '23505') {
-        throw new ConflictException('Email address already exists.');
-      } else {
-        console.log(error);
-        throw new InternalServerErrorException(
-          'An error occurred while creating the user.',
+    const hashedPassword = await this.hashPassword(
+      password,
+      await bcrypt.genSalt(),
+    );
+    const tokenHash = this.hashResetToken(token);
+    const cutoff = new Date(Date.now() - 60 * 60 * 1000);
+
+    // Consuming the token and updating the password in one transaction makes
+    // concurrent/replayed reset requests safe: exactly one delete can win.
+    const user = await this.userRepo.manager.transaction(async (manager) => {
+      const consumed = await manager
+        .createQueryBuilder()
+        .delete()
+        .from(Token)
+        .where('email = :email', { email })
+        // Accept pre-deployment plaintext tokens during the short transition.
+        .andWhere('token IN (:...tokens)', { tokens: [tokenHash, token] })
+        .andWhere('type = :type', { type: TokenType.RESET_PASSWORD })
+        .andWhere('date >= :cutoff', { cutoff })
+        .returning('id')
+        .execute();
+
+      if (consumed.affected !== 1) {
+        throw new BadRequestException(
+          'Invalid or expired password reset link.',
         );
       }
-    }
+
+      const userRepo = manager.getRepository(User);
+      const found = await userRepo.findOneBy({ email });
+      if (!found) {
+        throw new NotFoundException('User not found');
+      }
+      await userRepo.update({ id: found.id }, { password: hashedPassword });
+      return found;
+    });
+
+    const plan = await this.getUserSubscriptionPlan(user);
+    const accessToken = await this.getAccessToken({ id: user.id, plan });
+    return { accessToken };
   }
+
   async resetPasswordUser(email: string) {
     if (!email) {
       throw new BadRequestException('Email is required');
@@ -634,7 +700,7 @@ export class UserService {
     if (componentIds.length > 0) {
       // Delete files first
       await this.deleteUserComponentFiles(componentIds);
-      
+
       // Delete themes for these components
       await this.themeRepo.delete({ component: { id: In(componentIds) } });
     }
@@ -653,81 +719,73 @@ export class UserService {
   }
 
   async validatePasswordResetToken(b: VerifyAccountDto) {
+    const email = b?.email?.trim().toLowerCase();
+    const token = b?.token;
+    if (!email || !token) {
+      throw new BadRequestException('Email and token are required');
+    }
+
+    const tokenHash = this.hashResetToken(token);
     const latestToken = await this.tokenRepo
       .createQueryBuilder('token')
-      .where('token.email = :email AND token.token = :token', {
-        email: b?.email,
-        token: b?.token,
-      })
+      .where('token.email = :email', { email })
+      .andWhere('token.token IN (:...tokens)', { tokens: [tokenHash, token] })
       .andWhere('token.type = :type', { type: TokenType.RESET_PASSWORD })
-      .orderBy('token.date', 'DESC')
-      .groupBy('token.id')
+      .andWhere('token.date >= :cutoff', {
+        cutoff: new Date(Date.now() - 60 * 60 * 1000),
+      })
       .getOne();
 
-    if (!latestToken.id) {
-      throw new InternalServerErrorException('Token not found');
+    if (!latestToken?.id) {
+      throw new BadRequestException('Invalid or expired password reset link.');
     }
-    const user = await this.userRepo.findOneBy({ email: b?.email });
-    user.valid = true;
-    try {
-      await this.createFreeSubscription(user);
-      return await this.userRepo.save(user);
-    } catch (error) {
-      if (error.code === '23505') {
-        throw new ConflictException('Email already in use.');
-      } else {
-        console.log(error);
-        throw new InternalServerErrorException(
-          'An error occurred while creating the user.',
-        );
-      }
-    }
+    return { valid: true };
   }
+
   async sendResetPassword(email: string) {
-    email = email?.toLowerCase();
+    email = email?.trim().toLowerCase();
 
     const latestToken = await this.tokenRepo
       .createQueryBuilder('token')
-      .where('token.email = :email', { email: email })
+      .where('token.email = :email', { email })
       .andWhere('token.type = :type', { type: TokenType.RESET_PASSWORD })
       .orderBy('token.date', 'DESC')
-      .groupBy('token.id')
       .getOne();
 
     if (
       latestToken &&
-      (new Date().getTime() - new Date(latestToken.date).getTime()) / 60000 < 3
+      (Date.now() - new Date(latestToken.date).getTime()) / 60000 < 3
     ) {
       throw new InternalServerErrorException(
         'You can request only once in 3 minutes',
       );
-    } else {
-      if (latestToken) {
-        await this.tokenRepo.delete({
-          email: email,
-          token: latestToken.token,
-          type: TokenType.RESET_PASSWORD,
-        });
-      }
-      const token = (Math.floor(Math.random() * 9000000) + 1000000).toString();
-
-      await this.tokenRepo.save({
-        email: email,
-        token: token,
-        type: TokenType.RESET_PASSWORD,
-      });
-
-      this.emailService.sendEmail(
-        email,
-        '',
-        'Password reset',
-        generatePasswordResetTemplate({
-          email,
-          token,
-          frontendUrl: process.env.FRONTEND_URL
-        })      );
-      return { message: 'Email sent' };
     }
+
+    // Invalidate every previous reset link, and never persist the bearer
+    // token itself. The existing token column can hold the SHA-256 digest, so
+    // this hardening does not require a schema migration.
+    await this.tokenRepo.delete({
+      email,
+      type: TokenType.RESET_PASSWORD,
+    });
+    const token = crypto.randomBytes(32).toString('hex');
+    await this.tokenRepo.save({
+      email,
+      token: this.hashResetToken(token),
+      type: TokenType.RESET_PASSWORD,
+    });
+
+    await this.emailService.sendEmail(
+      email,
+      '',
+      'Password reset',
+      generatePasswordResetTemplate({
+        email,
+        token,
+        frontendUrl: process.env.FRONTEND_URL,
+      }),
+    );
+    return { message: 'Email sent' };
   }
 
   async verifyEmail(b: VerifyAccountDto) {
@@ -748,7 +806,7 @@ export class UserService {
     }
     const tokenDate = new Date(latestToken.date);
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    
+
     if (tokenDate < oneDayAgo) {
       throw new InternalServerErrorException('Token expired');
     }
@@ -772,7 +830,6 @@ export class UserService {
       if (error.code === '23505') {
         throw new ConflictException('Email already in use.');
       } else {
-        console.log(error);
         throw new InternalServerErrorException(
           'An error occurred while creating the user.',
         );
@@ -813,7 +870,7 @@ export class UserService {
     return `user${Date.now()}${Math.floor(Math.random() * 1000)}`;
   }
 
-  async createUser(signUpDto: SignUpDto): Promise<void> {
+  async createUser(signUpDto: SignUpDto, verified = false): Promise<User> {
     if (!signUpDto.email) {
       throw new BadRequestException('Email is required');
     }
@@ -826,14 +883,14 @@ export class UserService {
     user.lastName = signUpDto?.lastName;
     user.password = hashedPassword;
     user.username = await this.generateUniqueUsername(user.email);
+    user.valid = verified;
 
     try {
-      await this.userRepo.save(user);
+      return await this.userRepo.save(user);
     } catch (error) {
       if (error.code === '23505') {
         throw new ConflictException('Email already in use.');
       } else {
-        console.log(error);
         throw new InternalServerErrorException(
           'An error occurred while creating the user.',
         );
@@ -844,7 +901,11 @@ export class UserService {
   async validateUserPassword(authCredentialsDto: AuthCredentialsDto) {
     const { email, password } = authCredentialsDto;
 
-    const user = await this.userRepo.findOneBy({ email });
+    const user = await this.userRepo
+      .createQueryBuilder('user')
+      .addSelect('user.password')
+      .where('user.email = :email', { email })
+      .getOne();
     if (!user) {
       throw new NotFoundException('Wrong credentials try again!');
     }
@@ -887,7 +948,11 @@ export class UserService {
   }
 
   async confirmPassword(user: User, password: string) {
-    const userData = await this.userRepo.findOneBy({ email: user.email });
+    const userData = await this.userRepo
+      .createQueryBuilder('user')
+      .addSelect('user.password')
+      .where('user.email = :email', { email: user.email })
+      .getOne();
     if (
       userData &&
       (await user.validatePassword(password, userData.password))
@@ -949,7 +1014,6 @@ export class UserService {
         if (error.code === '23505') {
           throw new ConflictException('Email address already exists.');
         } else {
-          console.log(error);
           throw new InternalServerErrorException(
             'An error occurred while creating the user.',
           );

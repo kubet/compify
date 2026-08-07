@@ -10,7 +10,7 @@ export class CliToken {
   @JoinColumn()
   user: User;
 
-  @Column()
+  @Column({ select: false })
   token: string;
 
   @CreateDateColumn({ type: 'timestamp' })

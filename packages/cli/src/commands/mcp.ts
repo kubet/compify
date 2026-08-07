@@ -98,7 +98,7 @@ export async function startMcpServer() {
       return textResult(
         [
           `# shadcn (no compify account needed):`,
-          `npx shadcn@latest add ${getApiUrl()}/r/${clean}.json`,
+          `bunx shadcn@latest add ${getApiUrl()}/r/${clean}.json`,
           ``,
           `# compify CLI (tracks the component in compify.json):`,
           `compify add @${clean}`,

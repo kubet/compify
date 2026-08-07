@@ -26,6 +26,7 @@ jobs:
       web: ${{ steps.filter.outputs.web }}
       api: ${{ steps.filter.outputs.api }}
       cli: ${{ steps.filter.outputs.cli }}
+      pack: ${{ steps.filter.outputs.pack }}
     steps:
       - uses: actions/checkout@v5
       - uses: dorny/paths-filter@v3
@@ -39,6 +40,8 @@ jobs:
               - 'apps/api/**'
             cli:
               - 'packages/cli/**'
+            pack:
+              - 'packages/compify-pack/**'
 
   web:
     needs: changes
@@ -49,31 +52,65 @@ jobs:
         working-directory: apps/web
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - uses: oven-sh/setup-bun@v2
         with:
-          node-version: 22
-          cache: yarn
-          cache-dependency-path: apps/web/yarn.lock
-      - run: yarn install --frozen-lockfile
-      - run: yarn build
+          bun-version: 1.3.9
+      - run: bun install --frozen-lockfile
+      - run: bun run build
+
+  compify-pack:
+    needs: changes
+    if: needs.changes.outputs.pack == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/compify-pack
+    steps:
+      - uses: actions/checkout@v5
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.9
+      - run: bun install --frozen-lockfile
+      - run: bun run build
+      - run: bun run test
 
   api:
     needs: changes
     if: needs.changes.outputs.api == 'true'
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16.8-alpine
+        env:
+          POSTGRES_USER: compify
+          POSTGRES_PASSWORD: compify-test
+          POSTGRES_DB: compify
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U compify -d compify"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     defaults:
       run:
         working-directory: apps/api
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - uses: oven-sh/setup-bun@v2
         with:
-          node-version: 22
-          cache: yarn
-          cache-dependency-path: apps/api/yarn.lock
-      - run: yarn install --frozen-lockfile
-      - run: yarn build
-      - run: yarn test --runInBand
+          bun-version: 1.3.9
+      - run: bun install --frozen-lockfile
+      - run: bun run build
+      - run: bun run test --runInBand
+      - name: Verify migrations up and down
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_USERNAME: compify
+          DB_PASSWORD: compify-test
+          DB_DATABASE: compify
+        run: bun run migration:run && bun run migration:revert
 
   cli:
     needs: changes
@@ -84,9 +121,16 @@ jobs:
         working-directory: packages/cli
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - uses: oven-sh/setup-bun@v2
         with:
-          node-version: 22
-      - run: yarn install --frozen-lockfile
-      - run: yarn build
-      - run: yarn test
+          bun-version: 1.3.9
+      - run: bun install --frozen-lockfile
+      - run: bun run build
+      - run: bun run test
+
+  self-host-config:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Validate Docker Compose configuration
+        run: docker compose config --quiet

@@ -4,6 +4,7 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var tslib = require('tslib');
 var jsxRuntime = require('react/jsx-runtime');
 var React = require('react');
 var core = require('@stitches/core');
@@ -50,98 +51,7 @@ var Anser__default = /*#__PURE__*/_interopDefault(Anser);
 var LZString__default = /*#__PURE__*/_interopDefault(LZString);
 var cleanSet__default = /*#__PURE__*/_interopDefault(cleanSet);
 
-/******************************************************************************
-Copyright (c) Microsoft Corporation.
-
-Permission to use, copy, modify, and/or distribute this software for any
-purpose with or without fee is hereby granted.
-
-THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
-REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
-AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
-INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
-LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
-OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
-PERFORMANCE OF THIS SOFTWARE.
-***************************************************************************** */
-
-var __assign = function() {
-    __assign = Object.assign || function __assign(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
-
-function __rest(s, e) {
-    var t = {};
-    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-        t[p] = s[p];
-    if (s != null && typeof Object.getOwnPropertySymbols === "function")
-        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-                t[p[i]] = s[p[i]];
-        }
-    return t;
-}
-
-function __awaiter(thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-}
-
-function __generator(thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
-    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (g && (g = 0, op[0] && (_ = 0)), _) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-}
-
-function __spreadArray(to, from, pack) {
-    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
-        if (ar || !(i in from)) {
-            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
-            ar[i] = from[i];
-        }
-    }
-    return to.concat(ar || Array.prototype.slice.call(from));
-}
-
-typeof SuppressedError === "function" ? SuppressedError : function (error, suppressed, message) {
-    var e = new Error(message);
-    return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
-};
-
-var SVG = function (props) { return (jsxRuntime.jsx("svg", __assign({ fill: "currentColor", height: "16", viewBox: "0 0 16 16", width: "16", xmlns: "http://www.w3.org/2000/svg" }, props))); };
+var SVG = function (props) { return (jsxRuntime.jsx("svg", tslib.__assign({ fill: "currentColor", height: "16", viewBox: "0 0 16 16", width: "16", xmlns: "http://www.w3.org/2000/svg" }, props))); };
 var SignInIcon = function () { return (jsxRuntime.jsxs(SVG, { viewBox: "0 0 48 48", children: [jsxRuntime.jsx("title", { children: "Sign in" }), jsxRuntime.jsx("path", { d: "M9 42q-1.2 0-2.1-.9Q6 40.2 6 39V9q0-1.2.9-2.1Q7.8 6 9 6h14.55v3H9v30h14.55v3Zm24.3-9.25-2.15-2.15 5.1-5.1h-17.5v-3h17.4l-5.1-5.1 2.15-2.15 8.8 8.8Z" })] })); };
 var SignOutIcon = function () { return (jsxRuntime.jsxs(SVG, { viewBox: "0 0 48 48", children: [jsxRuntime.jsx("title", { children: "Sign out" }), jsxRuntime.jsx("path", { d: "M9 42q-1.2 0-2.1-.9Q6 40.2 6 39V9q0-1.2.9-2.1Q7.8 6 9 6h14.55v3H9v30h14.55v3Zm24.3-9.25-2.15-2.15 5.1-5.1h-17.5v-3h17.4l-5.1-5.1 2.15-2.15 8.8 8.8Z" })] })); };
 var RestartIcon = function () { return (jsxRuntime.jsxs(SVG, { fill: "none", stroke: "currentColor", children: [jsxRuntime.jsx("title", { children: "Restart script" }), jsxRuntime.jsx("path", { d: "M8 2C4.68629 2 2 4.68629 2 8C2 10.0946 3.07333 11.9385 4.7 13.0118", strokeLinecap: "round" }), jsxRuntime.jsx("path", { d: "M14.0005 7.9998C14.0005 5.82095 12.8391 3.91335 11.1016 2.8623", strokeLinecap: "round" }), jsxRuntime.jsx("path", { d: "M14.0003 2.3335H11.167C10.8908 2.3335 10.667 2.55735 10.667 2.8335V5.66683", strokeLinecap: "round" }), jsxRuntime.jsx("path", { d: "M1.99967 13.6665L4.83301 13.6665C5.10915 13.6665 5.33301 13.4426 5.33301 13.1665L5.33301 10.3332", strokeLinecap: "round" }), jsxRuntime.jsx("path", { d: "M10 10L12 12L10 14", strokeLinecap: "round", strokeLinejoin: "round" }), jsxRuntime.jsx("path", { d: "M14.667 14L12.667 14", strokeLinecap: "round", strokeLinejoin: "round" })] })); };
@@ -336,7 +246,7 @@ var createTheme = (_a$8 = core.createStitches({
 var defaultVariables = {
     space: new Array(11).fill(" ").reduce(function (acc, _, index) {
         var _a;
-        return __assign(__assign({}, acc), (_a = {}, _a[index + 1] = "".concat((index + 1) * 4, "px"), _a));
+        return tslib.__assign(tslib.__assign({}, acc), (_a = {}, _a[index + 1] = "".concat((index + 1) * 4, "px"), _a));
     }, {}),
     border: { radius: "4px" },
     layout: { height: "300px", headerHeight: "40px" },
@@ -363,12 +273,12 @@ var standardizeStitchesTheme = function (theme) {
             newValues = Object.entries(tokenValue).reduce(function (valueAcc, _a) {
                 var _b;
                 var styleProp = _a[0], styleValue = _a[1];
-                return __assign(__assign({}, valueAcc), (_b = {}, _b["".concat(styleProp, "-").concat(tokenName)] = styleValue, _b));
+                return tslib.__assign(tslib.__assign({}, valueAcc), (_b = {}, _b["".concat(styleProp, "-").concat(tokenName)] = styleValue, _b));
             }, {});
         }
-        return __assign(__assign({}, tokenAcc), newValues);
+        return tslib.__assign(tslib.__assign({}, tokenAcc), newValues);
     }, {});
-    return __assign(__assign({}, defaultVariables), { colors: theme.colors, font: theme.font, syntax: syntax });
+    return tslib.__assign(tslib.__assign({}, defaultVariables), { colors: theme.colors, font: theme.font, syntax: syntax });
 };
 /**
  * @category Theme
@@ -402,9 +312,9 @@ var standardizeTheme = function (inputTheme) {
      * error, warning and success colors have different values between dark and light
      */
     var baseTheme = mode === "dark" ? defaultDark : defaultLight;
-    var colorsByMode = __assign(__assign({}, baseTheme.colors), ((_c = inputTheme === null || inputTheme === void 0 ? void 0 : inputTheme.colors) !== null && _c !== void 0 ? _c : {}));
-    var syntaxByMode = __assign(__assign({}, baseTheme.syntax), ((_d = inputTheme === null || inputTheme === void 0 ? void 0 : inputTheme.syntax) !== null && _d !== void 0 ? _d : {}));
-    var fontByMode = __assign(__assign({}, baseTheme.font), ((_e = inputTheme === null || inputTheme === void 0 ? void 0 : inputTheme.font) !== null && _e !== void 0 ? _e : {}));
+    var colorsByMode = tslib.__assign(tslib.__assign({}, baseTheme.colors), ((_c = inputTheme === null || inputTheme === void 0 ? void 0 : inputTheme.colors) !== null && _c !== void 0 ? _c : {}));
+    var syntaxByMode = tslib.__assign(tslib.__assign({}, baseTheme.syntax), ((_d = inputTheme === null || inputTheme === void 0 ? void 0 : inputTheme.syntax) !== null && _d !== void 0 ? _d : {}));
+    var fontByMode = tslib.__assign(tslib.__assign({}, baseTheme.font), ((_e = inputTheme === null || inputTheme === void 0 ? void 0 : inputTheme.font) !== null && _e !== void 0 ? _e : {}));
     var theme = {
         colors: colorsByMode,
         syntax: syntaxByMode,
@@ -456,7 +366,7 @@ var useClassNames = function () {
     allClassNames) {
         if (allClassNames === void 0) { allClassNames = []; }
         var custom = "".concat(THEME_PREFIX, "-").concat(customClassName);
-        return joinClassNames.apply(void 0, __spreadArray(__spreadArray([], allClassNames, false), [custom, contextClassNames[custom]], false));
+        return joinClassNames.apply(void 0, tslib.__spreadArray(tslib.__spreadArray([], allClassNames, false), [custom, contextClassNames[custom]], false));
     };
 };
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -499,7 +409,7 @@ var SandpackThemeContext = React__namespace.createContext({
  * @category Theme
  */
 var SandpackThemeProvider = function (_a) {
-    var themeFromProps = _a.theme, children = _a.children, className = _a.className, props = __rest(_a, ["theme", "children", "className"]);
+    var themeFromProps = _a.theme, children = _a.children, className = _a.className, props = tslib.__rest(_a, ["theme", "children", "className"]);
     var _b = React__namespace.useState(themeFromProps), prefferedTheme = _b[0], setPreferredTheme = _b[1];
     var _c = standardizeTheme(prefferedTheme), theme = _c.theme, id = _c.id, mode = _c.mode;
     var classNames = useClassNames();
@@ -524,7 +434,7 @@ var SandpackThemeProvider = function (_a) {
                 .removeEventListener("change", colorSchemeChange);
         };
     }, [themeFromProps]);
-    return (jsxRuntime.jsx(SandpackThemeContext.Provider, { value: { theme: theme, id: id, mode: mode }, children: jsxRuntime.jsx("div", __assign({ className: classNames("wrapper", [
+    return (jsxRuntime.jsx(SandpackThemeContext.Provider, { value: { theme: theme, id: id, mode: mode }, children: jsxRuntime.jsx("div", tslib.__assign({ className: classNames("wrapper", [
                 themeClassName,
                 wrapperClassName$2({ variant: mode }),
                 className,
@@ -571,7 +481,7 @@ var ASTRO_TEMPLATE = {
 };
 
 var NEXTJS_TEMPLATE = {
-    files: __assign(__assign({}, commonFiles), { "/pages/_app.js": {
+    files: tslib.__assign(tslib.__assign({}, commonFiles), { "/pages/_app.js": {
             code: "import '../styles.css'\n\nexport default function MyApp({ Component, pageProps }) {\n  return <Component {...pageProps} />\n}",
         }, "/pages/index.js": {
             code: "export default function Home({ data }) {\n  return (\n    <div>\n      <h1>Hello {data}</h1>\n    </div>\n  );\n}\n  \nexport function getServerSideProps() {\n  return {\n    props: { data: \"world\" },\n  }\n}\n",
@@ -618,7 +528,7 @@ var NODE_TEMPLATE = {
 };
 
 var VITE_TEMPLATE = {
-    files: __assign(__assign({}, commonFiles), { "/index.js": {
+    files: tslib.__assign(tslib.__assign({}, commonFiles), { "/index.js": {
             code: "import \"./styles.css\";\n\ndocument.getElementById(\"app\").innerHTML = `\n<h1>Hello world</h1>\n`;\n",
         }, "/index.html": {
             code: "<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"UTF-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <title>Vite App</title>\n  </head>\n  <body>\n    <div id=\"app\"></div>\n    <script type=\"module\" src=\"/index.js\"></script>\n  </body>\n</html>\n",
@@ -640,7 +550,7 @@ var VITE_TEMPLATE = {
 };
 
 var VITE_PREACT_TEMPLATE = {
-    files: __assign(__assign({}, commonFiles), { "/App.jsx": {
+    files: tslib.__assign(tslib.__assign({}, commonFiles), { "/App.jsx": {
             code: "export default function App() {\n  const data = \"world\"\n\n  return <h1>Hello {data}</h1>\n}\n",
         }, "/index.jsx": {
             code: "import { render } from \"preact\";\nimport \"./styles.css\";\n\nimport App from \"./App\";\n\nconst root = document.getElementById(\"root\");\nrender(<App />, root);\n",
@@ -670,7 +580,7 @@ var VITE_PREACT_TEMPLATE = {
 };
 
 var VITE_PREACT_TS_TEMPLATE = {
-    files: __assign(__assign({}, commonFiles), { "/App.tsx": {
+    files: tslib.__assign(tslib.__assign({}, commonFiles), { "/App.tsx": {
             code: "export default function App() {\n  const data: string = \"world\"\n\n  return <h1>Hello {data}</h1>\n}\n",
         }, "/index.tsx": {
             code: "import { render } from \"preact\";\nimport \"./styles.css\";\n\nimport App from \"./App\";\n\nconst root = document.getElementById(\"root\") as HTMLElement;\nrender(<App />, root);\n",
@@ -736,7 +646,7 @@ var VITE_PREACT_TS_TEMPLATE = {
 };
 
 var VITE_REACT_TEMPLATE = {
-    files: __assign(__assign({}, commonFiles), { "/App.jsx": {
+    files: tslib.__assign(tslib.__assign({}, commonFiles), { "/App.jsx": {
             code: "export default function App() {\n  const data = \"world\"\n\n  return <h1>Hello {data}</h1>\n}\n",
         }, "/index.jsx": {
             code: "import { StrictMode } from \"react\";\nimport { createRoot } from \"react-dom/client\";\nimport \"./styles.css\";\n\nimport App from \"./App\";\n\nconst root = createRoot(document.getElementById(\"root\"));\nroot.render(\n  <StrictMode>\n    <App />\n  </StrictMode>\n);",
@@ -767,7 +677,7 @@ var VITE_REACT_TEMPLATE = {
 };
 
 var VITE_REACT_TS_TEMPLATE = {
-    files: __assign(__assign({}, commonFiles), { "/App.tsx": {
+    files: tslib.__assign(tslib.__assign({}, commonFiles), { "/App.tsx": {
             code: "export default function App() {\n  const data: string = \"world\"\n\n  return <h1>Hello {data}</h1>\n}\n",
         }, "/index.tsx": {
             code: "import { StrictMode } from \"react\";\nimport { createRoot } from \"react-dom/client\";\nimport \"./styles.css\";\n\nimport App from \"./App\";\nimport React from \"react\";\n\nconst root = createRoot(document.getElementById(\"root\") as HTMLElement);\nroot.render(\n  <StrictMode>\n    <App />\n  </StrictMode>\n);\n",
@@ -1099,7 +1009,7 @@ var ANGULAR_TEMPLATE = {
 };
 
 var REACT_TEMPLATE = {
-    files: __assign(__assign({}, commonFiles), { "/App.js": {
+    files: tslib.__assign(tslib.__assign({}, commonFiles), { "/App.js": {
             code: "export default function App() {\n  return <h1>Hello world</h1>\n}\n",
         }, "/index.js": {
             code: "import React, { StrictMode } from \"react\";\nimport { createRoot } from \"react-dom/client\";\nimport \"./styles.css\";\n\nimport App from \"./App\";\n\nconst root = createRoot(document.getElementById(\"root\"));\nroot.render(\n  <StrictMode>\n    <App />\n  </StrictMode>\n);",
@@ -1120,7 +1030,7 @@ var REACT_TEMPLATE = {
 };
 
 var REACT_TYPESCRIPT_TEMPLATE = {
-    files: __assign(__assign({}, commonFiles), { "tsconfig.json": {
+    files: tslib.__assign(tslib.__assign({}, commonFiles), { "tsconfig.json": {
             code: "{\n  \"include\": [\n    \"./**/*\"\n  ],\n  \"compilerOptions\": {\n    \"strict\": true,\n    \"esModuleInterop\": true,\n    \"lib\": [ \"dom\", \"es2015\" ],\n    \"jsx\": \"react-jsx\"\n  }\n}",
         }, "/App.tsx": {
             code: "export default function App(): JSX.Element {\n  return <h1>Hello world</h1>\n}\n",
@@ -1148,7 +1058,7 @@ var REACT_TYPESCRIPT_TEMPLATE = {
 };
 
 var SOLID_TEMPLATE = {
-    files: __assign(__assign({}, commonFiles), { "/App.tsx": {
+    files: tslib.__assign(tslib.__assign({}, commonFiles), { "/App.tsx": {
             code: "import { Component } from \"solid-js\";\n\nconst App: Component = () => {\n  return <h1>Hello world</h1>\n};\n\nexport default App;",
         }, "/index.tsx": {
             code: "import { render } from \"solid-js/web\";\nimport App from \"./App\";\n\nimport \"./styles.css\";\n\nrender(() => <App />, document.getElementById(\"app\"));",
@@ -1167,7 +1077,7 @@ var SOLID_TEMPLATE = {
 };
 
 var SVELTE_TEMPLATE = {
-    files: __assign(__assign({}, commonFiles), { "/App.svelte": {
+    files: tslib.__assign(tslib.__assign({}, commonFiles), { "/App.svelte": {
             code: "<style>\n  h1 {\n    font-size: 1.5rem;\n  }\n</style>\n\n<script>\n  let name = 'world';\n</script>\n\n<main>\n  <h1>Hello {name}</h1>\n</main>",
         }, "/index.js": {
             code: "import App from \"./App.svelte\";\nimport \"./styles.css\";\n\nconst app = new App({\n  target: document.body\n});\n\nexport default app;\n      ",
@@ -1210,7 +1120,7 @@ var TEST_TYPESCRIPT_TEMPLATE = {
 };
 
 var VANILLA_TEMPLATE = {
-    files: __assign(__assign({}, commonFiles), { "/index.js": {
+    files: tslib.__assign(tslib.__assign({}, commonFiles), { "/index.js": {
             code: "import \"./styles.css\";\n\ndocument.getElementById(\"app\").innerHTML = `\n<h1>Hello world</h1>\n`;\n",
         }, "/index.html": {
             code: "<!DOCTYPE html>\n<html>\n\n<head>\n  <title>Parcel Sandbox</title>\n  <meta charset=\"UTF-8\" />\n</head>\n\n<body>\n  <div id=\"app\"></div>\n\n  <script src=\"index.js\">\n  </script>\n</body>\n\n</html>",
@@ -1225,7 +1135,7 @@ var VANILLA_TEMPLATE = {
 };
 
 var VANILLA_TYPESCRIPT_TEMPLATE = {
-    files: __assign(__assign({}, commonFiles), { "tsconfig.json": {
+    files: tslib.__assign(tslib.__assign({}, commonFiles), { "tsconfig.json": {
             code: "{\n  \"compilerOptions\": {\n    \"strict\": true,\n    \"module\": \"commonjs\",\n    \"jsx\": \"preserve\",\n    \"esModuleInterop\": true,\n    \"sourceMap\": true,\n    \"allowJs\": true,\n    \"lib\": [\n      \"es6\",\n      \"dom\"\n    ],\n    \"rootDir\": \"src\",\n    \"moduleResolution\": \"node\"\n  }\n}",
         }, "/index.ts": {
             code: "import \"./styles.css\";\n\ndocument.getElementById(\"app\").innerHTML = `\n<h1>Hello world</h1>\n`;\n",
@@ -1354,7 +1264,7 @@ var VUE_TS_TEMPLATE = {
 };
 
 var STATIC_TEMPLATE = {
-    files: __assign(__assign({}, commonFiles), { "/index.html": {
+    files: tslib.__assign(tslib.__assign({}, commonFiles), { "/index.html": {
             code: "<!DOCTYPE html>\n<html>\n\n<head>\n  <title>Parcel Sandbox</title>\n  <meta charset=\"UTF-8\" />\n  <link rel=\"stylesheet\" href=\"/styles.css\" />\n</head>\n\n<body>\n  <h1>Hello world</h1>\n</body>\n\n</html>",
         }, "/package.json": {
             code: JSON.stringify({
@@ -1506,13 +1416,13 @@ var combineTemplateFilesToSetup = function (_a) {
         // If not input, default to vanilla
         if (!customSetup) {
             var defaultTemplate = SANDBOX_TEMPLATES.vanilla;
-            return __assign(__assign({}, defaultTemplate), { files: __assign(__assign({}, defaultTemplate.files), convertedFilesToBundlerFiles(files)) });
+            return tslib.__assign(tslib.__assign({}, defaultTemplate), { files: tslib.__assign(tslib.__assign({}, defaultTemplate.files), convertedFilesToBundlerFiles(files)) });
         }
         if (!files || Object.keys(files).length === 0) {
             throw new Error("[sandpack-react]: without a template, you must pass at least one file");
         }
         // If not template specified, use the setup entirely
-        return __assign(__assign({}, customSetup), { files: convertedFilesToBundlerFiles(files) });
+        return tslib.__assign(tslib.__assign({}, customSetup), { files: convertedFilesToBundlerFiles(files) });
     }
     var baseTemplate = SANDBOX_TEMPLATES[template];
     if (!baseTemplate) {
@@ -1528,13 +1438,13 @@ var combineTemplateFilesToSetup = function (_a) {
          * The input setup might have files in the simple form Record<string, string>
          * so we convert them to the sandbox template format
          */
-        files: convertedFilesToBundlerFiles(__assign(__assign({}, baseTemplate.files), files)),
+        files: convertedFilesToBundlerFiles(tslib.__assign(tslib.__assign({}, baseTemplate.files), files)),
         /**
          * Merge template dependencies and user custom dependencies.
          * As a rule, the custom dependencies must overwrite the template ones.
          */
-        dependencies: __assign(__assign({}, baseTemplate.dependencies), customSetup === null || customSetup === void 0 ? void 0 : customSetup.dependencies),
-        devDependencies: __assign(__assign({}, baseTemplate.devDependencies), customSetup === null || customSetup === void 0 ? void 0 : customSetup.devDependencies),
+        dependencies: tslib.__assign(tslib.__assign({}, baseTemplate.dependencies), customSetup === null || customSetup === void 0 ? void 0 : customSetup.dependencies),
+        devDependencies: tslib.__assign(tslib.__assign({}, baseTemplate.devDependencies), customSetup === null || customSetup === void 0 ? void 0 : customSetup.devDependencies),
         entry: sandpackClient.normalizePath(customSetup === null || customSetup === void 0 ? void 0 : customSetup.entry),
         main: baseTemplate.main,
         environment: (customSetup === null || customSetup === void 0 ? void 0 : customSetup.environment) || baseTemplate.environment,
@@ -1570,7 +1480,7 @@ var useAppState = function (props, files) {
         ? "pristine"
         : "dirty";
     if (editorState !== state.editorState) {
-        setState(function (prev) { return (__assign(__assign({}, prev), { editorState: editorState })); });
+        setState(function (prev) { return (tslib.__assign(tslib.__assign({}, prev), { editorState: editorState })); });
     }
     return state;
 };
@@ -1595,9 +1505,9 @@ var useAsyncSandpackId = function (files) {
     if (typeof React.useId === 'function') {
         /* eslint-disable-next-line react-hooks/rules-of-hooks */
         var reactDomId_1 = React.useId();
-        return function () { return __awaiter(void 0, void 0, void 0, function () {
+        return function () { return tslib.__awaiter(void 0, void 0, void 0, function () {
             var allCode, sha;
-            return __generator(this, function (_a) {
+            return tslib.__generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         allCode = Object.entries(files)
@@ -1624,9 +1534,9 @@ function ensureLength(str, length) {
     }
 }
 function generateShortId(input) {
-    return __awaiter(this, void 0, void 0, function () {
+    return tslib.__awaiter(this, void 0, void 0, function () {
         var encoder, data, hashBuffer, hashArray, characters, result, i, dataIndex, randomIndex;
-        return __generator(this, function (_a) {
+        return tslib.__generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     encoder = new TextEncoder();
@@ -1681,11 +1591,11 @@ var useClient = function (_a, filesState) {
     /**
      * Callbacks
      */
-    var createClient = React.useCallback(function (iframe, clientId, clientPropsOverride) { return __awaiter(void 0, void 0, void 0, function () {
+    var createClient = React.useCallback(function (iframe, clientId, clientPropsOverride) { return tslib.__awaiter(void 0, void 0, void 0, function () {
         var timeOut, shouldSetTimeout, getStableServiceWorkerId, client, _a, _b, globalListeners;
         var _c;
         var _d, _e, _f;
-        return __generator(this, function (_g) {
+        return tslib.__generator(this, function (_g) {
             switch (_g.label) {
                 case 0:
                     // Clean up any existing clients that
@@ -1703,12 +1613,12 @@ var useClient = function (_a, filesState) {
                     if (shouldSetTimeout) {
                         timeoutHook.current = setTimeout(function () {
                             unregisterAllClients();
-                            setState(function (prev) { return (__assign(__assign({}, prev), { status: 'timeout' })); });
+                            setState(function (prev) { return (tslib.__assign(tslib.__assign({}, prev), { status: 'timeout' })); });
                         }, timeOut);
                     }
-                    getStableServiceWorkerId = function () { return __awaiter(void 0, void 0, void 0, function () {
+                    getStableServiceWorkerId = function () { return tslib.__awaiter(void 0, void 0, void 0, function () {
                         var key, fixedId;
-                        return __generator(this, function (_a) {
+                        return tslib.__generator(this, function (_a) {
                             switch (_a.label) {
                                 case 0:
                                     if (!(options === null || options === void 0 ? void 0 : options.experimental_enableStableServiceWorkerId)) return [3 /*break*/, 3];
@@ -1794,12 +1704,12 @@ var useClient = function (_a, filesState) {
             unsubscribe.current = undefined;
         }
     }, []);
-    var runSandpack = React.useCallback(function () { return __awaiter(void 0, void 0, void 0, function () {
-        return __generator(this, function (_a) {
+    var runSandpack = React.useCallback(function () { return tslib.__awaiter(void 0, void 0, void 0, function () {
+        return tslib.__generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, Promise.all(Object.entries(registeredIframes.current).map(function (_a) { return __awaiter(void 0, [_a], void 0, function (_b) {
+                case 0: return [4 /*yield*/, Promise.all(Object.entries(registeredIframes.current).map(function (_a) { return tslib.__awaiter(void 0, [_a], void 0, function (_b) {
                         var clientId = _b[0], _c = _b[1], iframe = _c.iframe, _d = _c.clientPropsOverride, clientPropsOverride = _d === void 0 ? {} : _d;
-                        return __generator(this, function (_e) {
+                        return tslib.__generator(this, function (_e) {
                             switch (_e.label) {
                                 case 0: return [4 /*yield*/, createClient(iframe, clientId, clientPropsOverride)];
                                 case 1:
@@ -1810,7 +1720,7 @@ var useClient = function (_a, filesState) {
                     }); }))];
                 case 1:
                     _a.sent();
-                    setState(function (prev) { return (__assign(__assign({}, prev), { error: null, status: 'running' })); });
+                    setState(function (prev) { return (tslib.__assign(tslib.__assign({}, prev), { error: null, status: 'running' })); });
                     return [2 /*return*/];
             }
         });
@@ -1867,8 +1777,8 @@ var useClient = function (_a, filesState) {
         state.initMode,
         unregisterAllClients,
     ]);
-    var registerBundler = React.useCallback(function (iframe, clientId, clientPropsOverride) { return __awaiter(void 0, void 0, void 0, function () {
-        return __generator(this, function (_a) {
+    var registerBundler = React.useCallback(function (iframe, clientId, clientPropsOverride) { return tslib.__awaiter(void 0, void 0, void 0, function () {
+        return tslib.__generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     // Store the iframe info so it can be
@@ -1909,36 +1819,36 @@ var useClient = function (_a, filesState) {
         });
         // Keep running if it still have clients
         var status = Object.keys(clients.current).length > 0 ? 'running' : 'idle';
-        setState(function (prev) { return (__assign(__assign({}, prev), { status: status })); });
+        setState(function (prev) { return (tslib.__assign(tslib.__assign({}, prev), { status: status })); });
     };
     var handleMessage = function (msg) {
         if (msg.type === 'start') {
-            setState(function (prev) { return (__assign(__assign({}, prev), { error: null })); });
+            setState(function (prev) { return (tslib.__assign(tslib.__assign({}, prev), { error: null })); });
         }
         else if (msg.type === 'state') {
-            setState(function (prev) { return (__assign(__assign({}, prev), { bundlerState: msg.state })); });
+            setState(function (prev) { return (tslib.__assign(tslib.__assign({}, prev), { bundlerState: msg.state })); });
         }
         else if ((msg.type === 'done' && !msg.compilatonError) ||
             msg.type === 'connected') {
             if (timeoutHook.current) {
                 clearTimeout(timeoutHook.current);
             }
-            setState(function (prev) { return (__assign(__assign({}, prev), { error: null })); });
+            setState(function (prev) { return (tslib.__assign(tslib.__assign({}, prev), { error: null })); });
         }
         else if (msg.type === 'action' && msg.action === 'show-error') {
             if (timeoutHook.current) {
                 clearTimeout(timeoutHook.current);
             }
-            setState(function (prev) { return (__assign(__assign({}, prev), { error: sandpackClient.extractErrorDetails(msg) })); });
+            setState(function (prev) { return (tslib.__assign(tslib.__assign({}, prev), { error: sandpackClient.extractErrorDetails(msg) })); });
         }
         else if (msg.type === 'action' &&
             msg.action === 'notification' &&
             msg.notificationType === 'error') {
-            setState(function (prev) { return (__assign(__assign({}, prev), { error: { message: msg.title } })); });
+            setState(function (prev) { return (tslib.__assign(tslib.__assign({}, prev), { error: { message: msg.title } })); });
         }
     };
     var registerReactDevTools = function (value) {
-        setState(function (prev) { return (__assign(__assign({}, prev), { reactDevTools: value })); });
+        setState(function (prev) { return (tslib.__assign(tslib.__assign({}, prev), { reactDevTools: value })); });
     };
     var recompileMode = (_c = options === null || options === void 0 ? void 0 : options.recompileMode) !== null && _c !== void 0 ? _c : 'delayed';
     var recompileDelay = (_d = options === null || options === void 0 ? void 0 : options.recompileDelay) !== null && _d !== void 0 ? _d : 200;
@@ -2081,7 +1991,7 @@ var useClient = function (_a, filesState) {
     ]);
     React.useEffect(function watchInitMode() {
         if (initModeFromProps !== state.initMode) {
-            setState(function (prev) { return (__assign(__assign({}, prev), { initMode: initModeFromProps })); });
+            setState(function (prev) { return (tslib.__assign(tslib.__assign({}, prev), { initMode: initModeFromProps })); });
             initializeSandpackIframe();
         }
     }, [initModeFromProps, initializeSandpackIframe, state.initMode]);
@@ -2122,13 +2032,20 @@ var useClient = function (_a, filesState) {
 var useFiles = function (props) {
     var originalStateFromProps = getSandpackStateFromProps(props);
     var _a = React.useState(originalStateFromProps), state = _a[0], setState = _a[1];
-    var isMountedRef = React.useRef(false);
+    var previousInputsRef = React.useRef({
+        files: props.files,
+        customSetup: props.customSetup,
+        template: props.template,
+    });
     React.useEffect(function () {
-        if (isMountedRef.current) {
+        var nextInputs = {
+            files: props.files,
+            customSetup: props.customSetup,
+            template: props.template,
+        };
+        if (!dequal.dequal(previousInputsRef.current, nextInputs)) {
+            previousInputsRef.current = nextInputs;
             setState(getSandpackStateFromProps(props));
-        }
-        else {
-            isMountedRef.current = true;
         }
     }, [props.files, props.customSetup, props.template]);
     var updateFile = function (pathOrFiles, code, shouldUpdatePreview) {
@@ -2137,36 +2054,36 @@ var useFiles = function (props) {
             var _a;
             var files = prev.files;
             if (typeof pathOrFiles === "string" && typeof code === "string") {
-                files = __assign(__assign({}, files), (_a = {}, _a[pathOrFiles] = __assign(__assign({}, files[pathOrFiles]), { code: code }), _a));
+                files = tslib.__assign(tslib.__assign({}, files), (_a = {}, _a[pathOrFiles] = tslib.__assign(tslib.__assign({}, files[pathOrFiles]), { code: code }), _a));
             }
             else if (typeof pathOrFiles === "object") {
-                files = __assign(__assign({}, files), convertedFilesToBundlerFiles(pathOrFiles));
+                files = tslib.__assign(tslib.__assign({}, files), convertedFilesToBundlerFiles(pathOrFiles));
             }
-            return __assign(__assign({}, prev), { files: sandpackClient.normalizePath(files), shouldUpdatePreview: shouldUpdatePreview });
+            return tslib.__assign(tslib.__assign({}, prev), { files: sandpackClient.normalizePath(files), shouldUpdatePreview: shouldUpdatePreview });
         });
     };
     var operations = {
         openFile: function (path) {
             setState(function (_a) {
-                var visibleFiles = _a.visibleFiles, rest = __rest(_a, ["visibleFiles"]);
+                var visibleFiles = _a.visibleFiles, rest = tslib.__rest(_a, ["visibleFiles"]);
                 var newPaths = visibleFiles.includes(path)
                     ? visibleFiles
-                    : __spreadArray(__spreadArray([], visibleFiles, true), [path], false);
-                return __assign(__assign({}, rest), { activeFile: path, visibleFiles: newPaths });
+                    : tslib.__spreadArray(tslib.__spreadArray([], visibleFiles, true), [path], false);
+                return tslib.__assign(tslib.__assign({}, rest), { activeFile: path, visibleFiles: newPaths });
             });
         },
         resetFile: function (path) {
             setState(function (prevState) {
                 var _a;
-                return (__assign(__assign({}, prevState), { files: __assign(__assign({}, prevState.files), (_a = {}, _a[path] = originalStateFromProps.files[path], _a)) }));
+                return (tslib.__assign(tslib.__assign({}, prevState), { files: tslib.__assign(tslib.__assign({}, prevState.files), (_a = {}, _a[path] = originalStateFromProps.files[path], _a)) }));
             });
         },
         resetAllFiles: function () {
-            setState(function (prev) { return (__assign(__assign({}, prev), { files: originalStateFromProps.files })); });
+            setState(function (prev) { return (tslib.__assign(tslib.__assign({}, prev), { files: originalStateFromProps.files })); });
         },
         setActiveFile: function (activeFile) {
             if (state.files[activeFile]) {
-                setState(function (prev) { return (__assign(__assign({}, prev), { activeFile: activeFile })); });
+                setState(function (prev) { return (tslib.__assign(tslib.__assign({}, prev), { activeFile: activeFile })); });
             }
         },
         updateCurrentFile: function (code, shouldUpdatePreview) {
@@ -2180,10 +2097,10 @@ var useFiles = function (props) {
                 return;
             }
             setState(function (_a) {
-                var visibleFiles = _a.visibleFiles, activeFile = _a.activeFile, prev = __rest(_a, ["visibleFiles", "activeFile"]);
+                var visibleFiles = _a.visibleFiles, activeFile = _a.activeFile, prev = tslib.__rest(_a, ["visibleFiles", "activeFile"]);
                 var indexOfRemovedPath = visibleFiles.indexOf(path);
                 var newPaths = visibleFiles.filter(function (openPath) { return openPath !== path; });
-                return __assign(__assign({}, prev), { activeFile: path === activeFile
+                return tslib.__assign(tslib.__assign({}, prev), { activeFile: path === activeFile
                         ? indexOfRemovedPath === 0
                             ? visibleFiles[1]
                             : visibleFiles[indexOfRemovedPath - 1]
@@ -2193,23 +2110,23 @@ var useFiles = function (props) {
         deleteFile: function (path, shouldUpdatePreview) {
             if (shouldUpdatePreview === void 0) { shouldUpdatePreview = true; }
             setState(function (_a) {
-                var visibleFiles = _a.visibleFiles, files = _a.files, activeFile = _a.activeFile, rest = __rest(_a, ["visibleFiles", "files", "activeFile"]);
-                var newFiles = __assign({}, files);
+                var visibleFiles = _a.visibleFiles, files = _a.files, activeFile = _a.activeFile, rest = tslib.__rest(_a, ["visibleFiles", "files", "activeFile"]);
+                var newFiles = tslib.__assign({}, files);
                 delete newFiles[path];
                 var remainingVisibleFiles = visibleFiles.filter(function (openPath) { return openPath !== path; });
                 var deletedLastVisibleFile = remainingVisibleFiles.length === 0;
                 if (deletedLastVisibleFile) {
                     var nextFile = Object.keys(files)[Object.keys(files).length - 1];
-                    return __assign(__assign({}, rest), { visibleFiles: [nextFile], activeFile: nextFile, files: newFiles, shouldUpdatePreview: shouldUpdatePreview });
+                    return tslib.__assign(tslib.__assign({}, rest), { visibleFiles: [nextFile], activeFile: nextFile, files: newFiles, shouldUpdatePreview: shouldUpdatePreview });
                 }
-                return __assign(__assign({}, rest), { visibleFiles: remainingVisibleFiles, activeFile: path === activeFile
+                return tslib.__assign(tslib.__assign({}, rest), { visibleFiles: remainingVisibleFiles, activeFile: path === activeFile
                         ? remainingVisibleFiles[remainingVisibleFiles.length - 1]
                         : activeFile, files: newFiles, shouldUpdatePreview: shouldUpdatePreview });
             });
         },
     };
     return [
-        __assign(__assign({}, state), { visibleFilesFromProps: originalStateFromProps.visibleFiles }),
+        tslib.__assign(tslib.__assign({}, state), { visibleFilesFromProps: originalStateFromProps.visibleFiles }),
         operations,
     ];
 };
@@ -2219,13 +2136,13 @@ var SandpackProvider = function (props) {
     var _a, _b, _c;
     var children = props.children, options = props.options, style = props.style, className = props.className, theme = props.theme;
     var _d = useFiles(props), fileState = _d[0], fileOperations = _d[1];
-    var _e = useClient(props, fileState), clientState = _e[0], _f = _e[1], dispatchMessage = _f.dispatchMessage, addListener = _f.addListener, clientOperations = __rest(_f, ["dispatchMessage", "addListener"]);
+    var _e = useClient(props, fileState), clientState = _e[0], _f = _e[1], dispatchMessage = _f.dispatchMessage, addListener = _f.addListener, clientOperations = tslib.__rest(_f, ["dispatchMessage", "addListener"]);
     var appState = useAppState(props, fileState.files);
     React__namespace.useRef([]);
     React__namespace.useEffect(function () {
         clientOperations.initializeSandpackIframe();
     }, []);
-    return (jsxRuntime.jsx(Sandpack$1.Provider, { value: __assign(__assign(__assign(__assign(__assign(__assign({}, fileState), clientState), appState), fileOperations), clientOperations), { autoReload: (_b = (_a = props.options) === null || _a === void 0 ? void 0 : _a.autoReload) !== null && _b !== void 0 ? _b : true, teamId: props === null || props === void 0 ? void 0 : props.teamId, exportOptions: (_c = props === null || props === void 0 ? void 0 : props.customSetup) === null || _c === void 0 ? void 0 : _c.exportOptions, listen: addListener, dispatch: dispatchMessage }), children: jsxRuntime.jsx(ClassNamesProvider, { classes: options === null || options === void 0 ? void 0 : options.classes, children: jsxRuntime.jsx(SandpackThemeProvider, { className: className, style: style, theme: theme, children: children }) }) }));
+    return (jsxRuntime.jsx(Sandpack$1.Provider, { value: tslib.__assign(tslib.__assign(tslib.__assign(tslib.__assign(tslib.__assign(tslib.__assign({}, fileState), clientState), appState), fileOperations), clientOperations), { autoReload: (_b = (_a = props.options) === null || _a === void 0 ? void 0 : _a.autoReload) !== null && _b !== void 0 ? _b : true, teamId: props === null || props === void 0 ? void 0 : props.teamId, exportOptions: (_c = props === null || props === void 0 ? void 0 : props.customSetup) === null || _c === void 0 ? void 0 : _c.exportOptions, listen: addListener, dispatch: dispatchMessage }), children: jsxRuntime.jsx(ClassNamesProvider, { classes: options === null || options === void 0 ? void 0 : options.classes, children: jsxRuntime.jsx(SandpackThemeProvider, { className: className, style: style, theme: theme, children: children }) }) }));
 };
 /**
  * @category Provider
@@ -2240,9 +2157,9 @@ function useSandpack() {
     if (sandpack === null) {
         throw new Error("[sandpack-react]: \"useSandpack\" must be wrapped by a \"SandpackProvider\"");
     }
-    var dispatch = sandpack.dispatch, listen = sandpack.listen, rest = __rest(sandpack, ["dispatch", "listen"]);
+    var dispatch = sandpack.dispatch, listen = sandpack.listen, rest = tslib.__rest(sandpack, ["dispatch", "listen"]);
     return {
-        sandpack: __assign({}, rest),
+        sandpack: tslib.__assign({}, rest),
         dispatch: dispatch,
         listen: listen,
     };
@@ -2443,7 +2360,7 @@ var tabButton = css((_a$6 = {
  * FileTabs is a list of all open files, the active file, and its state.
  */
 var FileTabs = function (_a) {
-    var closableTabs = _a.closableTabs, className = _a.className, activeFileUniqueId = _a.activeFileUniqueId, props = __rest(_a, ["closableTabs", "className", "activeFileUniqueId"]);
+    var closableTabs = _a.closableTabs, className = _a.className, activeFileUniqueId = _a.activeFileUniqueId, props = tslib.__rest(_a, ["closableTabs", "className", "activeFileUniqueId"]);
     var sandpack = useSandpack().sandpack;
     var classNames = useClassNames();
     var activeFile = sandpack.activeFile, visibleFiles = sandpack.visibleFiles, setActiveFile = sandpack.setActiveFile;
@@ -2507,7 +2424,7 @@ var FileTabs = function (_a) {
             }
         }
     };
-    return (jsxRuntime.jsx("div", __assign({ className: classNames("tabs", [tabsClassName, className]), translate: "no" }, props, { children: jsxRuntime.jsx("div", { "aria-label": "Select active file", className: classNames("tabs-scrollable-container", [
+    return (jsxRuntime.jsx("div", tslib.__assign({ className: classNames("tabs", [tabsClassName, className]), translate: "no" }, props, { children: jsxRuntime.jsx("div", { "aria-label": "Select active file", className: classNames("tabs-scrollable-container", [
                 tabsScrollableClassName,
             ]), role: "tablist", children: visibleFiles.map(function (filePath, index) { return (jsxRuntime.jsxs("div", { "aria-controls": "".concat(filePath, "-").concat(activeFileUniqueId, "-tab-panel"), "aria-selected": filePath === activeFile, className: classNames("tab-container", [tabContainer]), onKeyDown: function (e) { return onKeyDown({ e: e, index: index }); }, onMouseEnter: function () { return setIsHoveredIndex(index); }, onMouseLeave: function () { return setIsHoveredIndex(null); }, role: "tab", children: [jsxRuntime.jsx("button", { className: classNames("tab-button", [buttonClassName, tabButton]), "data-active": filePath === activeFile, id: "".concat(filePath, "-").concat(activeFileUniqueId, "-tab"), onClick: function () { return setActiveFile(filePath); }, tabIndex: filePath === activeFile ? 0 : -1, title: filePath, type: "button", children: getTriggerText(filePath) }), closableTabs && visibleFiles.length > 1 && (jsxRuntime.jsx("span", { className: classNames("close-button", [closeButtonClassName]), onClick: function (ev) {
                             ev.stopPropagation();
@@ -2538,9 +2455,9 @@ var runButtonClassName = css({
     paddingRight: "$space$3",
 });
 var RunButton$1 = function (_a) {
-    _a.className; var onClick = _a.onClick, props = __rest(_a, ["className", "onClick"]);
+    _a.className; var onClick = _a.onClick, props = tslib.__rest(_a, ["className", "onClick"]);
     var sandpack = useSandpack().sandpack;
-    return (jsxRuntime.jsxs(RoundedButton, __assign({ className: runButtonClassName.toString(), onClick: function (event) {
+    return (jsxRuntime.jsxs(RoundedButton, tslib.__assign({ className: runButtonClassName.toString(), onClick: function (event) {
             sandpack.runSandpack();
             onClick === null || onClick === void 0 ? void 0 : onClick(event);
         } }, props, { children: [jsxRuntime.jsx(RunIcon, {}), jsxRuntime.jsx("span", { children: "Run" })] })));
@@ -2560,9 +2477,9 @@ var stackClassName = css((_a$5 = {
     },
     _a$5));
 var SandpackStack = function (_a) {
-    var className = _a.className, props = __rest(_a, ["className"]);
+    var className = _a.className, props = tslib.__rest(_a, ["className"]);
     var classNames = useClassNames();
-    return (jsxRuntime.jsx("div", __assign({ className: classNames("stack", [stackClassName, className]) }, props)));
+    return (jsxRuntime.jsx("div", tslib.__assign({ className: classNames("stack", [stackClassName, className]) }, props)));
 };
 
 /**
@@ -2659,7 +2576,7 @@ var styleTokens = function () {
     ];
     return syntaxHighLightTokens.reduce(function (acc, token) {
         var _a;
-        return __assign(__assign({}, acc), (_a = {}, _a[".".concat(classNameToken(token))] = {
+        return tslib.__assign(tslib.__assign({}, acc), (_a = {}, _a[".".concat(classNameToken(token))] = {
             color: "$syntax$color$".concat(token),
             fontStyle: "$syntax$fontStyle$".concat(token),
         }, _a));
@@ -2950,16 +2867,17 @@ var useSyntaxHighlight = function (_a) {
 };
 
 var CodeMirror = React__namespace.forwardRef(function (_a, ref) {
-    var _b = _a.code, code = _b === void 0 ? "" : _b, filePath = _a.filePath, fileType = _a.fileType, onCodeUpdate = _a.onCodeUpdate, _c = _a.showLineNumbers, showLineNumbers = _c === void 0 ? false : _c, _d = _a.showInlineErrors, showInlineErrors = _d === void 0 ? false : _d, _e = _a.wrapContent, wrapContent = _e === void 0 ? false : _e, _f = _a.editorState, editorState = _f === void 0 ? "pristine" : _f, _g = _a.readOnly, readOnly = _g === void 0 ? false : _g, _h = _a.showReadOnly, showReadOnly = _h === void 0 ? true : _h, decorators = _a.decorators, _j = _a.initMode, initMode = _j === void 0 ? "lazy" : _j, _k = _a.extensions, extensions = _k === void 0 ? [] : _k, _l = _a.extensionsKeymap, extensionsKeymap = _l === void 0 ? [] : _l, _m = _a.additionalLanguages, additionalLanguages = _m === void 0 ? [] : _m;
+    var _b;
+    var _c = _a.code, code = _c === void 0 ? "" : _c, filePath = _a.filePath, fileType = _a.fileType, onCodeUpdate = _a.onCodeUpdate, _d = _a.showLineNumbers, showLineNumbers = _d === void 0 ? false : _d, _e = _a.showInlineErrors, showInlineErrors = _e === void 0 ? false : _e, _f = _a.wrapContent, wrapContent = _f === void 0 ? false : _f, _g = _a.editorState, editorState = _g === void 0 ? "pristine" : _g, _h = _a.readOnly, readOnly = _h === void 0 ? false : _h, _j = _a.showReadOnly, showReadOnly = _j === void 0 ? true : _j, decorators = _a.decorators, _k = _a.initMode, initMode = _k === void 0 ? "lazy" : _k, _l = _a.extensions, extensions = _l === void 0 ? [] : _l, _m = _a.extensionsKeymap, extensionsKeymap = _m === void 0 ? [] : _m, _o = _a.additionalLanguages, additionalLanguages = _o === void 0 ? [] : _o;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     var wrapper = React__namespace.useRef(null);
     var combinedRef = useCombinedRefs(wrapper, ref);
     var cmView = React__namespace.useRef();
-    var _o = useSandpackTheme(), theme = _o.theme, themeId = _o.themeId;
-    var _p = React__namespace.useState(code), internalCode = _p[0], setInternalCode = _p[1];
-    var _q = React__namespace.useState(initMode === "immediate"), shouldInitEditor = _q[0], setShouldInitEditor = _q[1];
+    var _p = useSandpackTheme(), theme = _p.theme, themeId = _p.themeId;
+    var _q = React__namespace.useState(code), internalCode = _q[0], setInternalCode = _q[1];
+    var _r = React__namespace.useState(initMode === "immediate"), shouldInitEditor = _r[0], setShouldInitEditor = _r[1];
     var classNames = useClassNames();
-    var _r = useSandpack(), listen = _r.listen, autoReload = _r.sandpack.autoReload;
+    var _s = useSandpack(), listen = _s.listen, autoReload = _s.sandpack.autoReload;
     var prevExtension = React__namespace.useRef([]);
     var prevExtensionKeymap = React__namespace.useRef([]);
     var isIntersecting = useIntersectionObserver__default["default"](wrapper, {
@@ -2990,7 +2908,7 @@ var CodeMirror = React__namespace.forwardRef(function (_a, ref) {
             ? decorators.sort(function (d1, d2) { return d1.line - d2.line; })
             : decorators;
     }, [decorators]);
-    var useStaticReadOnly = readOnly && (decorators === null || decorators === void 0 ? void 0 : decorators.length) === 0;
+    var useStaticReadOnly = readOnly && ((_b = decorators === null || decorators === void 0 ? void 0 : decorators.length) !== null && _b !== void 0 ? _b : 0) === 0;
     React__namespace.useEffect(function () {
         if (!wrapper.current || !shouldInitEditor || useStaticReadOnly) {
             return;
@@ -3062,12 +2980,12 @@ var CodeMirror = React__namespace.forwardRef(function (_a, ref) {
                     run: commands.deleteGroupBackward,
                 },
             ];
-            var extensionList = __spreadArray(__spreadArray([
+            var extensionList = tslib.__spreadArray(tslib.__spreadArray([
                 view.highlightSpecialChars(),
                 commands.history(),
                 autocomplete.closeBrackets()
             ], extensions, true), [
-                view.keymap.of(__spreadArray(__spreadArray(__spreadArray(__spreadArray(__spreadArray([], autocomplete.closeBracketsKeymap, true), commands.defaultKeymap, true), commands.historyKeymap, true), customCommandsKeymap, true), extensionsKeymap, true)),
+                view.keymap.of(tslib.__spreadArray(tslib.__spreadArray(tslib.__spreadArray(tslib.__spreadArray(tslib.__spreadArray([], autocomplete.closeBracketsKeymap, true), commands.defaultKeymap, true), commands.historyKeymap, true), customCommandsKeymap, true), extensionsKeymap, true)),
                 langSupport,
                 getEditorTheme(),
                 language.syntaxHighlighting(highlightTheme),
@@ -3124,7 +3042,7 @@ var CodeMirror = React__namespace.forwardRef(function (_a, ref) {
                 effects: state.StateEffect.appendConfig.of(extensions),
             });
             view$1.dispatch({
-                effects: state.StateEffect.appendConfig.of(view.keymap.of(__spreadArray([], extensionsKeymap, true))),
+                effects: state.StateEffect.appendConfig.of(view.keymap.of(tslib.__spreadArray([], extensionsKeymap, true))),
             });
             prevExtension.current = extensions;
             prevExtensionKeymap.current = extensionsKeymap;
@@ -3203,7 +3121,7 @@ var CodeMirror = React__namespace.forwardRef(function (_a, ref) {
                         classNames(languageExtension),
                         cmClassName,
                         tokensClassName,
-                    ]), translate: "no", children: jsxRuntime.jsx("code", { className: classNames("pre-placeholder", [placeholderClassName]), style: { marginLeft: gutterLineOffset() }, children: syntaxHighlightRender }) }), readOnly && showReadOnly && (jsxRuntime.jsx("span", __assign({ className: classNames("read-only", [readOnlyClassName]) }, ({}), { children: "Read-only" })))] }));
+                    ]), translate: "no", children: jsxRuntime.jsx("code", { className: classNames("pre-placeholder", [placeholderClassName]), style: { marginLeft: gutterLineOffset() }, children: syntaxHighlightRender }) }), readOnly && showReadOnly && (jsxRuntime.jsx("span", tslib.__assign({ className: classNames("read-only", [readOnlyClassName]) }, ({}), { children: "Read-only" })))] }));
     }
     return (jsxRuntime.jsx("div", { ref: combinedRef, "aria-autocomplete": "list", "aria-label": filePath ? "Code Editor for ".concat(getFileName(filePath)) : "Code Editor", "aria-multiline": "true", className: classNames("cm", [
             classNames(editorState),
@@ -3214,7 +3132,7 @@ var CodeMirror = React__namespace.forwardRef(function (_a, ref) {
 });
 
 var SandpackCodeEditor = React.forwardRef(function (_a, ref) {
-    var showTabs = _a.showTabs, _b = _a.showLineNumbers, showLineNumbers = _b === void 0 ? false : _b, _c = _a.showInlineErrors, showInlineErrors = _c === void 0 ? false : _c, _d = _a.showRunButton, showRunButton = _d === void 0 ? true : _d, _e = _a.wrapContent, wrapContent = _e === void 0 ? false : _e, _f = _a.closableTabs, closableTabs = _f === void 0 ? false : _f, initMode = _a.initMode, extensions = _a.extensions, extensionsKeymap = _a.extensionsKeymap, readOnly = _a.readOnly, showReadOnly = _a.showReadOnly, additionalLanguages = _a.additionalLanguages, className = _a.className, props = __rest(_a, ["showTabs", "showLineNumbers", "showInlineErrors", "showRunButton", "wrapContent", "closableTabs", "initMode", "extensions", "extensionsKeymap", "readOnly", "showReadOnly", "additionalLanguages", "className"]);
+    var showTabs = _a.showTabs, _b = _a.showLineNumbers, showLineNumbers = _b === void 0 ? false : _b, _c = _a.showInlineErrors, showInlineErrors = _c === void 0 ? false : _c, _d = _a.showRunButton, showRunButton = _d === void 0 ? true : _d, _e = _a.wrapContent, wrapContent = _e === void 0 ? false : _e, _f = _a.closableTabs, closableTabs = _f === void 0 ? false : _f, initMode = _a.initMode, extensions = _a.extensions, extensionsKeymap = _a.extensionsKeymap, readOnly = _a.readOnly, showReadOnly = _a.showReadOnly, additionalLanguages = _a.additionalLanguages, className = _a.className, props = tslib.__rest(_a, ["showTabs", "showLineNumbers", "showInlineErrors", "showRunButton", "wrapContent", "closableTabs", "initMode", "extensions", "extensionsKeymap", "readOnly", "showReadOnly", "additionalLanguages", "className"]);
     var sandpack = useSandpack().sandpack;
     var _g = useActiveCode(), code = _g.code, updateCode = _g.updateCode, readOnlyFile = _g.readOnly;
     var activeFile = sandpack.activeFile, status = sandpack.status, editorState = sandpack.editorState;
@@ -3225,17 +3143,17 @@ var SandpackCodeEditor = React.forwardRef(function (_a, ref) {
         updateCode(newCode, shouldUpdatePreview);
     };
     var activeFileUniqueId = useSandpackId();
-    return (jsxRuntime.jsxs(SandpackStack, __assign({ className: classNames("editor", [className]) }, props, { children: [shouldShowTabs && (jsxRuntime.jsx(FileTabs, { activeFileUniqueId: activeFileUniqueId, closableTabs: closableTabs })), jsxRuntime.jsxs("div", { "aria-labelledby": "".concat(activeFile, "-").concat(activeFileUniqueId, "-tab"), className: classNames("code-editor", [editorClassName]), id: "".concat(activeFile, "-").concat(activeFileUniqueId, "-tab-panel"), role: "tabpanel", children: [jsxRuntime.jsx(CodeMirror, { ref: ref, additionalLanguages: additionalLanguages, code: code, editorState: editorState, extensions: extensions, extensionsKeymap: extensionsKeymap, filePath: activeFile, initMode: initMode || sandpack.initMode, onCodeUpdate: function (newCode) { var _a; return handleCodeUpdate(newCode, (_a = sandpack.autoReload) !== null && _a !== void 0 ? _a : true); }, readOnly: readOnly || readOnlyFile, showInlineErrors: showInlineErrors, showLineNumbers: showLineNumbers, showReadOnly: showReadOnly, wrapContent: wrapContent }, activeFile), showRunButton && (!sandpack.autoReload || status === "idle") ? (jsxRuntime.jsx(RunButton$1, {})) : null] })] })));
+    return (jsxRuntime.jsxs(SandpackStack, tslib.__assign({ className: classNames("editor", [className]) }, props, { children: [shouldShowTabs && (jsxRuntime.jsx(FileTabs, { activeFileUniqueId: activeFileUniqueId, closableTabs: closableTabs })), jsxRuntime.jsxs("div", { "aria-labelledby": "".concat(activeFile, "-").concat(activeFileUniqueId, "-tab"), className: classNames("code-editor", [editorClassName]), id: "".concat(activeFile, "-").concat(activeFileUniqueId, "-tab-panel"), role: "tabpanel", children: [jsxRuntime.jsx(CodeMirror, { ref: ref, additionalLanguages: additionalLanguages, code: code, editorState: editorState, extensions: extensions, extensionsKeymap: extensionsKeymap, filePath: activeFile, initMode: initMode || sandpack.initMode, onCodeUpdate: function (newCode) { var _a; return handleCodeUpdate(newCode, (_a = sandpack.autoReload) !== null && _a !== void 0 ? _a : true); }, readOnly: readOnly || readOnlyFile, showInlineErrors: showInlineErrors, showLineNumbers: showLineNumbers, showReadOnly: showReadOnly, wrapContent: wrapContent }, activeFile), showRunButton && (!sandpack.autoReload || status === "idle") ? (jsxRuntime.jsx(RunButton$1, {})) : null] })] })));
 });
 
 var SandpackCodeViewer = React__namespace.forwardRef(function (_a, ref) {
-    var showTabs = _a.showTabs, showLineNumbers = _a.showLineNumbers, decorators = _a.decorators, propCode = _a.code, initMode = _a.initMode, wrapContent = _a.wrapContent, additionalLanguages = _a.additionalLanguages, props = __rest(_a, ["showTabs", "showLineNumbers", "decorators", "code", "initMode", "wrapContent", "additionalLanguages"]);
+    var showTabs = _a.showTabs, showLineNumbers = _a.showLineNumbers, decorators = _a.decorators, propCode = _a.code, initMode = _a.initMode, wrapContent = _a.wrapContent, additionalLanguages = _a.additionalLanguages, props = tslib.__rest(_a, ["showTabs", "showLineNumbers", "decorators", "code", "initMode", "wrapContent", "additionalLanguages"]);
     var sandpack = useSandpack().sandpack;
     var code = useActiveCode().code;
     var classNames = useClassNames();
     var shouldShowTabs = showTabs !== null && showTabs !== void 0 ? showTabs : sandpack.visibleFiles.length > 1;
     var activeFileUniqueId = useSandpackId();
-    return (jsxRuntime.jsxs(SandpackStack, __assign({ className: classNames("editor-viewer") }, props, { children: [shouldShowTabs ? (jsxRuntime.jsx(FileTabs, { activeFileUniqueId: activeFileUniqueId })) : null, jsxRuntime.jsx("div", { "aria-labelledby": "".concat(sandpack.activeFile, "-").concat(activeFileUniqueId, "-tab"), className: classNames("code-editor", [editorClassName]), id: "".concat(sandpack.activeFile, "-").concat(activeFileUniqueId, "-tab-panel"), role: "tabpanel", children: jsxRuntime.jsx(CodeMirror, { ref: ref, additionalLanguages: additionalLanguages, code: propCode !== null && propCode !== void 0 ? propCode : code, decorators: decorators, filePath: sandpack.activeFile, initMode: initMode || sandpack.initMode, showLineNumbers: showLineNumbers, showReadOnly: false, wrapContent: wrapContent, readOnly: true }) }), sandpack.status === "idle" ? jsxRuntime.jsx(RunButton$1, {}) : null] })));
+    return (jsxRuntime.jsxs(SandpackStack, tslib.__assign({ className: classNames("editor-viewer") }, props, { children: [shouldShowTabs ? (jsxRuntime.jsx(FileTabs, { activeFileUniqueId: activeFileUniqueId })) : null, jsxRuntime.jsx("div", { "aria-labelledby": "".concat(sandpack.activeFile, "-").concat(activeFileUniqueId, "-tab"), className: classNames("code-editor", [editorClassName]), id: "".concat(sandpack.activeFile, "-").concat(activeFileUniqueId, "-tab-panel"), role: "tabpanel", children: jsxRuntime.jsx(CodeMirror, { ref: ref, additionalLanguages: additionalLanguages, code: propCode !== null && propCode !== void 0 ? propCode : code, decorators: decorators, filePath: sandpack.activeFile, initMode: initMode || sandpack.initMode, showLineNumbers: showLineNumbers, showReadOnly: false, wrapContent: wrapContent, readOnly: true }) }), sandpack.status === "idle" ? jsxRuntime.jsx(RunButton$1, {}) : null] })));
 });
 
 var _a$3, _b;
@@ -3277,11 +3195,11 @@ var layoutClassName = css((_a$3 = {
     },
     _a$3));
 var SandpackLayout = React__namespace.forwardRef(function (_a, ref) {
-    var children = _a.children, className = _a.className, props = __rest(_a, ["children", "className"]);
+    var children = _a.children, className = _a.className, props = tslib.__rest(_a, ["children", "className"]);
     var sandpack = useSandpack().sandpack;
     var classNames = useClassNames();
     var combinedRef = useCombinedRefs(sandpack.lazyAnchorRef, ref);
-    return (jsxRuntime.jsx("div", __assign({ ref: combinedRef, className: classNames("layout", [layoutClassName, className]) }, props, { children: children })));
+    return (jsxRuntime.jsx("div", tslib.__assign({ ref: combinedRef, className: classNames("layout", [layoutClassName, className]) }, props, { children: children })));
 });
 
 /**
@@ -3504,7 +3422,7 @@ var useSandpackShellStdout = function (_a) {
                 message.payload.data &&
                 Boolean(message.payload.data.trim())) {
                 setLogs(function (prev) {
-                    var messages = __spreadArray(__spreadArray([], prev, true), [
+                    var messages = tslib.__spreadArray(tslib.__spreadArray([], prev, true), [
                         { data: message.payload.data, id: generateRandomId() },
                     ], false);
                     while (messages.length > maxMessageCount) {
@@ -3534,7 +3452,7 @@ var mapBundlerErrors = function (originalMessage) {
     return errorMessage;
 };
 var ErrorOverlay = function (props) {
-    var children = props.children, className = props.className, actionChildren = props.actionChildren, otherProps = __rest(props, ["children", "className", "actionChildren"]);
+    var children = props.children, className = props.className, actionChildren = props.actionChildren, otherProps = tslib.__rest(props, ["children", "className", "actionChildren"]);
     var errorMessage = useErrorMessage();
     var restart = useSandpackShell().restart;
     var classNames = useClassNames();
@@ -3551,7 +3469,7 @@ var ErrorOverlay = function (props) {
         }
     };
     if (privateDependencyError) {
-        return (jsxRuntime.jsxs("div", __assign({ className: classNames("overlay", [
+        return (jsxRuntime.jsxs("div", tslib.__assign({ className: classNames("overlay", [
                 classNames("error"),
                 absoluteClassName,
                 errorBundlerClassName,
@@ -3563,7 +3481,7 @@ var ErrorOverlay = function (props) {
                         ]), onClick: onSignIn, children: [jsxRuntime.jsx(SignInIcon, {}), jsxRuntime.jsx("span", { children: "Sign in" })] }) })] })));
     }
     if (isSandpackBundlerError && errorMessage) {
-        return (jsxRuntime.jsx("div", __assign({ className: classNames("overlay", [
+        return (jsxRuntime.jsx("div", tslib.__assign({ className: classNames("overlay", [
                 classNames("error"),
                 absoluteClassName,
                 errorBundlerClassName,
@@ -3578,7 +3496,7 @@ var ErrorOverlay = function (props) {
                                 runSandpack();
                             }, title: "Restart script", type: "button", children: [jsxRuntime.jsx(RestartIcon, {}), " ", jsxRuntime.jsx("span", { children: "Restart" })] }) })] }) })));
     }
-    return (jsxRuntime.jsxs("div", __assign({ className: classNames("overlay", [
+    return (jsxRuntime.jsxs("div", tslib.__assign({ className: classNames("overlay", [
             classNames("error"),
             absoluteClassName,
             errorClassName({ solidBg: true }),
@@ -3760,7 +3678,7 @@ var loadingBackgroundClassName = css({
     backgroundColor: "#0a0a0a",
 });
 var Loading = function (_a) {
-    _a.className; _a.showOpenInCodeSandbox; __rest(_a, ["className", "showOpenInCodeSandbox"]);
+    _a.className; _a.showOpenInCodeSandbox; tslib.__rest(_a, ["className", "showOpenInCodeSandbox"]);
     var classNames = useClassNames();
     return (jsxRuntime.jsx("div", { className: classNames("loading-background", [loadingBackgroundClassName]) }));
 };
@@ -3769,7 +3687,7 @@ var loadingClassName = css({
     backgroundColor: "$colors$surface1",
 });
 var LoadingOverlay = function (_a) {
-    var clientId = _a.clientId, loading = _a.loading, className = _a.className, style = _a.style, showOpenInCodeSandbox = _a.showOpenInCodeSandbox, customLoader = _a.customLoader, props = __rest(_a, ["clientId", "loading", "className", "style", "showOpenInCodeSandbox", "customLoader"]);
+    var clientId = _a.clientId, loading = _a.loading, className = _a.className, style = _a.style, showOpenInCodeSandbox = _a.showOpenInCodeSandbox, customLoader = _a.customLoader, props = tslib.__rest(_a, ["clientId", "loading", "className", "style", "showOpenInCodeSandbox", "customLoader"]);
     var classNames = useClassNames();
     var _b = useSandpack().sandpack, runSandpack = _b.runSandpack, environment = _b.environment;
     var _c = React__namespace.useState(false), shouldShowStdout = _c[0], setShouldShowStdout = _c[1];
@@ -3793,7 +3711,7 @@ var LoadingOverlay = function (_a) {
         return null;
     }
     if (loadingOverlayState === "TIMEOUT") {
-        return (jsxRuntime.jsx("div", __assign({ className: classNames("overlay", [
+        return (jsxRuntime.jsx("div", tslib.__assign({ className: classNames("overlay", [
                 classNames("error"),
                 absoluteClassName,
                 errorClassName,
@@ -3809,12 +3727,12 @@ var LoadingOverlay = function (_a) {
                             ]), onClick: runSandpack, title: "Restart script", type: "button", children: [jsxRuntime.jsx(RestartIcon, {}), " ", jsxRuntime.jsx("span", { children: "Try again" })] }) })] }) })));
     }
     var stillLoading = loadingOverlayState === "LOADING" || loadingOverlayState === "PRE_FADING";
-    return (jsxRuntime.jsxs(jsxRuntime.Fragment, { children: [jsxRuntime.jsxs("div", __assign({ className: classNames("overlay", [
+    return (jsxRuntime.jsxs(jsxRuntime.Fragment, { children: [jsxRuntime.jsxs("div", tslib.__assign({ className: classNames("overlay", [
                     classNames("loading"),
                     absoluteClassName,
                     loadingClassName,
                     className,
-                ]), style: __assign(__assign({}, style), { opacity: stillLoading ? 1 : 0, transition: "opacity ".concat(FADE_ANIMATION_DURATION, "ms ease-out") }) }, props, { children: [shouldShowStdout && (jsxRuntime.jsx("div", { className: stdoutPreview.toString(), children: jsxRuntime.jsx(StdoutList, { data: stdoutData }) })), customLoader || jsxRuntime.jsx(Loading, { showOpenInCodeSandbox: showOpenInCodeSandbox })] })), progressMessage && (jsxRuntime.jsx("div", { className: progressClassName$1.toString(), children: jsxRuntime.jsx("p", { children: progressMessage }) }))] }));
+                ]), style: tslib.__assign(tslib.__assign({}, style), { opacity: stillLoading ? 1 : 0, transition: "opacity ".concat(FADE_ANIMATION_DURATION, "ms ease-out") }) }, props, { children: [shouldShowStdout && (jsxRuntime.jsx("div", { className: stdoutPreview.toString(), children: jsxRuntime.jsx(StdoutList, { data: stdoutData }) })), customLoader || jsxRuntime.jsx(Loading, { showOpenInCodeSandbox: showOpenInCodeSandbox })] })), progressMessage && (jsxRuntime.jsx("div", { className: progressClassName$1.toString(), children: jsxRuntime.jsx("p", { children: progressMessage }) }))] }));
 };
 var stdoutPreview = css({
     position: "absolute",
@@ -3859,23 +3777,23 @@ var getFileParameters = function (files, environment) {
             content: files[next].code,
             isBinary: false,
         };
-        return __assign(__assign({}, prev), (_a = {}, _a[fileName] = value, _a));
+        return tslib.__assign(tslib.__assign({}, prev), (_a = {}, _a[fileName] = value, _a));
     }, {});
-    return getParameters(__assign({ files: normalizedFiles }, (environment ? { template: environment } : null)));
+    return getParameters(tslib.__assign({ files: normalizedFiles }, (environment ? { template: environment } : null)));
 };
 var UnstyledOpenInCodeSandboxButton = function (props) {
     var sandpack = useSandpack().sandpack;
     if (sandpack.exportOptions) {
-        return jsxRuntime.jsx(ExportToWorkspaceButton, __assign({ state: sandpack }, props));
+        return jsxRuntime.jsx(ExportToWorkspaceButton, tslib.__assign({ state: sandpack }, props));
     }
-    return jsxRuntime.jsx(RegularExportButton, __assign({ state: sandpack }, props));
+    return jsxRuntime.jsx(RegularExportButton, tslib.__assign({ state: sandpack }, props));
 };
 var ExportToWorkspaceButton = function (_a) {
-    var children = _a.children, state = _a.state, props = __rest(_a, ["children", "state"]);
-    var submit = function () { return __awaiter(void 0, void 0, void 0, function () {
+    var children = _a.children, state = _a.state, props = tslib.__rest(_a, ["children", "state"]);
+    var submit = function () { return tslib.__awaiter(void 0, void 0, void 0, function () {
         var normalizedFiles, response, data;
         var _a;
-        return __generator(this, function (_b) {
+        return tslib.__generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
                     if (!((_a = state.exportOptions) === null || _a === void 0 ? void 0 : _a.apiToken)) {
@@ -3884,7 +3802,7 @@ var ExportToWorkspaceButton = function (_a) {
                     normalizedFiles = Object.keys(state.files).reduce(function (prev, next) {
                         var _a;
                         var fileName = next.replace("/", "");
-                        return __assign(__assign({}, prev), (_a = {}, _a[fileName] = state.files[next], _a));
+                        return tslib.__assign(tslib.__assign({}, prev), (_a = {}, _a[fileName] = state.files[next], _a));
                     }, {});
                     return [4 /*yield*/, fetch("https://api.codesandbox.io/sandbox", {
                             method: "POST",
@@ -3909,11 +3827,11 @@ var ExportToWorkspaceButton = function (_a) {
             }
         });
     }); };
-    return (jsxRuntime.jsx("button", __assign({ onClick: submit, title: "Export to workspace in CodeSandbox", type: "button" }, props, { children: children })));
+    return (jsxRuntime.jsx("button", tslib.__assign({ onClick: submit, title: "Export to workspace in CodeSandbox", type: "button" }, props, { children: children })));
 };
 var RegularExportButton = function (_a) {
     var _b, _c, _d;
-    var children = _a.children, state = _a.state, props = __rest(_a, ["children", "state"]);
+    var children = _a.children, state = _a.state, props = tslib.__rest(_a, ["children", "state"]);
     var formRef = React__namespace.useRef(null);
     var _e = React__namespace.useState(), paramsValues = _e[0], setParamsValues = _e[1];
     React__namespace.useEffect(function debounce() {
@@ -3937,12 +3855,12 @@ var RegularExportButton = function (_a) {
      * as all parameters are attached in the URL
      */
     if (((_d = (_c = (_b = paramsValues === null || paramsValues === void 0 ? void 0 : paramsValues.get) === null || _b === void 0 ? void 0 : _b.call(paramsValues, "parameters")) === null || _c === void 0 ? void 0 : _c.length) !== null && _d !== void 0 ? _d : 0) > 1500) {
-        return (jsxRuntime.jsxs("button", __assign({ onClick: function () { var _a; return (_a = formRef.current) === null || _a === void 0 ? void 0 : _a.submit(); }, title: "Open in CodeSandbox", type: "button" }, props, { children: [jsxRuntime.jsxs("form", { ref: formRef, action: CSB_URL, method: "POST", style: { visibility: "hidden" }, target: "_blank", children: [jsxRuntime.jsx("input", { name: "environment", type: "hidden", value: state.environment === "node" ? "server" : state.environment }), Array.from(paramsValues, function (_a) {
+        return (jsxRuntime.jsxs("button", tslib.__assign({ onClick: function () { var _a; return (_a = formRef.current) === null || _a === void 0 ? void 0 : _a.submit(); }, title: "Open in CodeSandbox", type: "button" }, props, { children: [jsxRuntime.jsxs("form", { ref: formRef, action: CSB_URL, method: "POST", style: { visibility: "hidden" }, target: "_blank", children: [jsxRuntime.jsx("input", { name: "environment", type: "hidden", value: state.environment === "node" ? "server" : state.environment }), Array.from(paramsValues, function (_a) {
                             var key = _a[0], value = _a[1];
                             return (jsxRuntime.jsx("input", { name: key, type: "hidden", value: value }, key));
                         })] }), children] })));
     }
-    return (jsxRuntime.jsx("a", __assign({ href: "".concat(CSB_URL, "?").concat(paramsValues === null || paramsValues === void 0 ? void 0 : paramsValues.toString(), "&environment=").concat(state.environment === "node" ? "server" : state.environment), rel: "noreferrer noopener", target: "_blank", title: "Open in CodeSandbox" }, props, { children: children })));
+    return (jsxRuntime.jsx("a", tslib.__assign({ href: "".concat(CSB_URL, "?").concat(paramsValues === null || paramsValues === void 0 ? void 0 : paramsValues.toString(), "&environment=").concat(state.environment === "node" ? "server" : state.environment), rel: "noreferrer noopener", target: "_blank", title: "Open in CodeSandbox" }, props, { children: children })));
 };
 
 var OpenInCodeSandboxButton = function () {
@@ -4074,7 +3992,7 @@ var fileExplorerClassName = css({
     height: "100%",
 });
 var SandpackFileExplorer = function (_a) {
-    var className = _a.className, _b = _a.autoHiddenFiles, autoHiddenFiles = _b === void 0 ? false : _b, _c = _a.initialCollapsedFolder, initialCollapsedFolder = _c === void 0 ? [] : _c, props = __rest(_a, ["className", "autoHiddenFiles", "initialCollapsedFolder"]);
+    var className = _a.className, _b = _a.autoHiddenFiles, autoHiddenFiles = _b === void 0 ? false : _b, _c = _a.initialCollapsedFolder, initialCollapsedFolder = _c === void 0 ? [] : _c, props = tslib.__rest(_a, ["className", "autoHiddenFiles", "initialCollapsedFolder"]);
     var _d = useSandpack(), _e = _d.sandpack, status = _e.status, updateFile = _e.updateFile, deleteFile = _e.deleteFile, activeFile = _e.activeFile, files = _e.files, openFile = _e.openFile, visibleFilesFromProps = _e.visibleFilesFromProps, listen = _d.listen;
     var classNames = useClassNames();
     React__namespace.useEffect(function watchFSFilesChanges() {
@@ -4096,7 +4014,7 @@ var SandpackFileExplorer = function (_a) {
         obj[key] = files[key];
         return obj;
     }, {});
-    return (jsxRuntime.jsx("div", __assign({ className: classNames("file-explorer", [stackClassName, className]) }, props, { children: jsxRuntime.jsx("div", { className: classNames("file-explorer-list", [fileExplorerClassName]), children: jsxRuntime.jsx(ModuleList, { activeFile: activeFile, autoHiddenFiles: autoHiddenFiles, files: orderedFiles, initialCollapsedFolder: initialCollapsedFolder, prefixedPath: "/", selectFile: openFile, visibleFiles: visibleFilesFromProps }) }) })));
+    return (jsxRuntime.jsx("div", tslib.__assign({ className: classNames("file-explorer", [stackClassName, className]) }, props, { children: jsxRuntime.jsx("div", { className: classNames("file-explorer-list", [fileExplorerClassName]), children: jsxRuntime.jsx(ModuleList, { activeFile: activeFile, autoHiddenFiles: autoHiddenFiles, files: orderedFiles, initialCollapsedFolder: initialCollapsedFolder, prefixedPath: "/", selectFile: openFile, visibleFiles: visibleFilesFromProps }) }) })));
 };
 
 var splitUrl = function (url) {
@@ -4140,7 +4058,7 @@ var inputClassName = css({
 });
 var Navigator = function (_a) {
     var _b;
-    var clientId = _a.clientId, onURLChange = _a.onURLChange, className = _a.className, startRoute = _a.startRoute, props = __rest(_a, ["clientId", "onURLChange", "className", "startRoute"]);
+    var clientId = _a.clientId, onURLChange = _a.onURLChange, className = _a.className, startRoute = _a.startRoute, props = tslib.__rest(_a, ["clientId", "onURLChange", "className", "startRoute"]);
     var _c = React__namespace.useState(""), baseUrl = _c[0], setBaseUrl = _c[1];
     var _d = useSandpack(), sandpack = _d.sandpack, dispatch = _d.dispatch, listen = _d.listen;
     var _e = React__namespace.useState((_b = startRoute !== null && startRoute !== void 0 ? startRoute : sandpack.startRoute) !== null && _b !== void 0 ? _b : "/"), relativeUrl = _e[0], setRelativeUrl = _e[1];
@@ -4195,7 +4113,7 @@ var Navigator = function (_a) {
             justifyContent: "center",
         }),
     ]);
-    return (jsxRuntime.jsxs("div", __assign({ className: classNames("navigator", [navigatorClassName, className]) }, props, { children: [jsxRuntime.jsx("button", { "aria-label": "Go back one page", className: buttonsClassNames, disabled: !backEnabled, onClick: handleBack, type: "button", children: jsxRuntime.jsx(BackwardIcon, {}) }), jsxRuntime.jsx("button", { "aria-label": "Go forward one page", className: buttonsClassNames, disabled: !forwardEnabled, onClick: handleForward, type: "button", children: jsxRuntime.jsx(ForwardIcon, {}) }), jsxRuntime.jsx("button", { "aria-label": "Refresh page", className: buttonsClassNames, onClick: handleRefresh, type: "button", children: jsxRuntime.jsx(RefreshIcon, {}) }), jsxRuntime.jsx("input", { "aria-label": "Current Sandpack URL", className: classNames("input", [inputClassName]), name: "Current Sandpack URL", onChange: handleInputChange, onKeyDown: handleKeyDown, type: "text", value: relativeUrl })] })));
+    return (jsxRuntime.jsxs("div", tslib.__assign({ className: classNames("navigator", [navigatorClassName, className]) }, props, { children: [jsxRuntime.jsx("button", { "aria-label": "Go back one page", className: buttonsClassNames, disabled: !backEnabled, onClick: handleBack, type: "button", children: jsxRuntime.jsx(BackwardIcon, {}) }), jsxRuntime.jsx("button", { "aria-label": "Go forward one page", className: buttonsClassNames, disabled: !forwardEnabled, onClick: handleForward, type: "button", children: jsxRuntime.jsx(ForwardIcon, {}) }), jsxRuntime.jsx("button", { "aria-label": "Refresh page", className: buttonsClassNames, onClick: handleRefresh, type: "button", children: jsxRuntime.jsx(RefreshIcon, {}) }), jsxRuntime.jsx("input", { "aria-label": "Current Sandpack URL", className: classNames("input", [inputClassName]), name: "Current Sandpack URL", onChange: handleInputChange, onKeyDown: handleKeyDown, type: "text", value: relativeUrl })] })));
 };
 
 var _a$2;
@@ -4238,7 +4156,7 @@ var previewActionsClassName$1 = css({
     gap: "$space$2",
 });
 var SandpackPreview = React__namespace.forwardRef(function (_a, ref) {
-    var _b = _a.showNavigator, showNavigator = _b === void 0 ? false : _b, _c = _a.showRefreshButton, showRefreshButton = _c === void 0 ? true : _c, _d = _a.showOpenInCodeSandbox, showOpenInCodeSandbox = _d === void 0 ? true : _d, _e = _a.showSandpackErrorOverlay, showSandpackErrorOverlay = _e === void 0 ? true : _e; _a.showOpenNewtab; var _g = _a.showRestartButton, showRestartButton = _g === void 0 ? true : _g, _h = _a.actionsChildren, actionsChildren = _h === void 0 ? jsxRuntime.jsx(jsxRuntime.Fragment, {}) : _h, _j = _a.customLoader, customLoader = _j === void 0 ? jsxRuntime.jsx(jsxRuntime.Fragment, {}) : _j, _k = _a.errorActionChildren, errorActionChildren = _k === void 0 ? jsxRuntime.jsx(jsxRuntime.Fragment, {}) : _k, children = _a.children, className = _a.className, _l = _a.startRoute, startRoute = _l === void 0 ? "/" : _l, iFrameBackgroundColor = _a.iFrameBackgroundColor, props = __rest(_a, ["showNavigator", "showRefreshButton", "showOpenInCodeSandbox", "showSandpackErrorOverlay", "showOpenNewtab", "showRestartButton", "actionsChildren", "customLoader", "errorActionChildren", "children", "className", "startRoute", "iFrameBackgroundColor"]);
+    var _b = _a.showNavigator, showNavigator = _b === void 0 ? false : _b, _c = _a.showRefreshButton, showRefreshButton = _c === void 0 ? true : _c, _d = _a.showOpenInCodeSandbox, showOpenInCodeSandbox = _d === void 0 ? true : _d, _e = _a.showSandpackErrorOverlay, showSandpackErrorOverlay = _e === void 0 ? true : _e; _a.showOpenNewtab; var _g = _a.showRestartButton, showRestartButton = _g === void 0 ? true : _g, _h = _a.actionsChildren, actionsChildren = _h === void 0 ? jsxRuntime.jsx(jsxRuntime.Fragment, {}) : _h, _j = _a.customLoader, customLoader = _j === void 0 ? jsxRuntime.jsx(jsxRuntime.Fragment, {}) : _j, _k = _a.errorActionChildren, errorActionChildren = _k === void 0 ? jsxRuntime.jsx(jsxRuntime.Fragment, {}) : _k, children = _a.children, className = _a.className, _l = _a.startRoute, startRoute = _l === void 0 ? "/" : _l, iFrameBackgroundColor = _a.iFrameBackgroundColor, props = tslib.__rest(_a, ["showNavigator", "showRefreshButton", "showOpenInCodeSandbox", "showSandpackErrorOverlay", "showOpenNewtab", "showRestartButton", "actionsChildren", "customLoader", "errorActionChildren", "children", "className", "startRoute", "iFrameBackgroundColor"]);
     var _m = useSandpackClient({ startRoute: startRoute }), sandpack = _m.sandpack, listen = _m.listen, iframe = _m.iframe, getClient = _m.getClient, clientId = _m.clientId, dispatch = _m.dispatch;
     var _o = React__namespace.useState(null), iframeComputedHeight = _o[0], setComputedAutoHeight = _o[1];
     var status = sandpack.status;
@@ -4265,7 +4183,7 @@ var SandpackPreview = React__namespace.forwardRef(function (_a, ref) {
         iframe.current.src = newUrl;
         // eslint-disable-next-line react-hooks/exhaustive-deps
     };
-    return (jsxRuntime.jsxs(SandpackStack, __assign({ className: classNames("preview", [className]) }, props, { children: [showNavigator && (jsxRuntime.jsx(Navigator, { clientId: clientId, onURLChange: handleNewURL, startRoute: startRoute })), jsxRuntime.jsxs("div", { className: classNames("preview-container", [previewClassName]), style: { background: iFrameBackgroundColor }, children: [jsxRuntime.jsx("iframe", { ref: iframe, className: classNames("preview-iframe", [previewIframe]), style: {
+    return (jsxRuntime.jsxs(SandpackStack, tslib.__assign({ className: classNames("preview", [className]) }, props, { children: [showNavigator && (jsxRuntime.jsx(Navigator, { clientId: clientId, onURLChange: handleNewURL, startRoute: startRoute })), jsxRuntime.jsxs("div", { className: classNames("preview-container", [previewClassName]), style: { background: iFrameBackgroundColor }, children: [jsxRuntime.jsx("iframe", { ref: iframe, className: classNames("preview-iframe", [previewIframe]), style: {
                             height: iframeComputedHeight ? iframeComputedHeight : undefined,
                             background: iFrameBackgroundColor,
                         }, title: "Sandpack Preview" }), jsxRuntime.jsxs("div", { className: classNames("preview-actions", [previewActionsClassName$1]), children: [actionsChildren, showRestartButton && sandpack.environment === "node" && (jsxRuntime.jsx(RoundedButton, { onClick: restart, children: jsxRuntime.jsx(RestartIcon, {}) })), !showNavigator && showRefreshButton && status === "running" && (jsxRuntime.jsx(RoundedButton, { onClick: refresh, children: jsxRuntime.jsx(RefreshIcon, {}) })), sandpack.teamId && (jsxRuntime.jsx("button", { className: classNames("button", [
@@ -4291,7 +4209,7 @@ var transpiledCodeClassName = css((_a$1 = {
     },
     _a$1));
 var SandpackTranspiledCode = function (_a) {
-    var className = _a.className, props = __rest(_a, ["className"]);
+    var className = _a.className, props = tslib.__rest(_a, ["className"]);
     var sandpack = useSandpack().sandpack;
     var transpiledCode = useTranspiledCode();
     var classNames = useClassNames();
@@ -4306,11 +4224,11 @@ var SandpackTranspiledCode = function (_a) {
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
-    return (jsxRuntime.jsxs("div", __assign({ className: classNames("transpiled-code", [
+    return (jsxRuntime.jsxs("div", tslib.__assign({ className: classNames("transpiled-code", [
             stackClassName,
             transpiledCodeClassName,
             className,
-        ]) }, props, { children: [jsxRuntime.jsx(SandpackCodeViewer, __assign({ code: transpiledCode !== null && transpiledCode !== void 0 ? transpiledCode : "", initMode: sandpack.initMode }, props)), jsxRuntime.jsx("iframe", { ref: hiddenIframeRef, style: { display: "none" }, title: "transpiled sandpack code" }), jsxRuntime.jsx(ErrorOverlay, {}), jsxRuntime.jsx(LoadingOverlay, { clientId: "hidden", showOpenInCodeSandbox: false })] })));
+        ]) }, props, { children: [jsxRuntime.jsx(SandpackCodeViewer, tslib.__assign({ code: transpiledCode !== null && transpiledCode !== void 0 ? transpiledCode : "", initMode: sandpack.initMode }, props)), jsxRuntime.jsx("iframe", { ref: hiddenIframeRef, style: { display: "none" }, title: "transpiled sandpack code" }), jsxRuntime.jsx(ErrorOverlay, {}), jsxRuntime.jsx(LoadingOverlay, { clientId: "hidden", showOpenInCodeSandbox: false })] })));
 };
 
 var wrapperClassName$1 = css({
@@ -4562,7 +4480,7 @@ var formatDiffMessage = function (error, path) {
             .filter(function (s) { return s.content.trim(); })
             .forEach(function (code) {
             var currentLineMargin = (code.lineNumber + "").length;
-            var newMargin = __spreadArray([], margin_1, true);
+            var newMargin = tslib.__spreadArray([], margin_1, true);
             newMargin.length -= currentLineMargin;
             if (code.highlight) {
                 newMargin.length -= 2;
@@ -4737,19 +4655,19 @@ var INITIAL_STATE = {
     specsCount: 0,
 };
 var SandpackTests = function (_a) {
-    var _b = _a.verbose, verbose = _b === void 0 ? false : _b, _c = _a.watchMode, watchMode = _c === void 0 ? true : _c, style = _a.style, className = _a.className, onComplete = _a.onComplete, actionsChildren = _a.actionsChildren, _d = _a.showVerboseButton, showVerboseButton = _d === void 0 ? true : _d, _e = _a.showWatchButton, showWatchButton = _e === void 0 ? true : _e, _f = _a.hideTestsAndSupressLogs, hideTestsAndSupressLogs = _f === void 0 ? false : _f, props = __rest(_a, ["verbose", "watchMode", "style", "className", "onComplete", "actionsChildren", "showVerboseButton", "showWatchButton", "hideTestsAndSupressLogs"]);
+    var _b = _a.verbose, verbose = _b === void 0 ? false : _b, _c = _a.watchMode, watchMode = _c === void 0 ? true : _c, style = _a.style, className = _a.className, onComplete = _a.onComplete, actionsChildren = _a.actionsChildren, _d = _a.showVerboseButton, showVerboseButton = _d === void 0 ? true : _d, _e = _a.showWatchButton, showWatchButton = _e === void 0 ? true : _e, _f = _a.hideTestsAndSupressLogs, hideTestsAndSupressLogs = _f === void 0 ? false : _f, props = tslib.__rest(_a, ["verbose", "watchMode", "style", "className", "onComplete", "actionsChildren", "showVerboseButton", "showWatchButton", "hideTestsAndSupressLogs"]);
     var theme = useSandpackTheme();
     var _g = useSandpackClient(), getClient = _g.getClient, iframe = _g.iframe, listen = _g.listen, sandpack = _g.sandpack;
-    var _h = React__namespace.useState(__assign(__assign({}, INITIAL_STATE), { verbose: verbose, watchMode: watchMode })), state = _h[0], setState = _h[1];
+    var _h = React__namespace.useState(tslib.__assign(tslib.__assign({}, INITIAL_STATE), { verbose: verbose, watchMode: watchMode })), state = _h[0], setState = _h[1];
     var runAllTests = React__namespace.useCallback(function () {
-        setState(function (oldState) { return (__assign(__assign({}, oldState), { status: "running", specs: {} })); });
+        setState(function (oldState) { return (tslib.__assign(tslib.__assign({}, oldState), { status: "running", specs: {} })); });
         var client = getClient();
         if (client) {
             client.dispatch({ type: "run-all-tests" });
         }
     }, [getClient]);
     var runSpec = React__namespace.useCallback(function () {
-        setState(function (oldState) { return (__assign(__assign({}, oldState), { status: "running", specs: {} })); });
+        setState(function (oldState) { return (tslib.__assign(tslib.__assign({}, oldState), { status: "running", specs: {} })); });
         var client = getClient();
         if (client) {
             client.dispatch({ type: "run-tests", path: sandpack.activeFile });
@@ -4783,22 +4701,22 @@ var SandpackTests = function (_a) {
                         return runAllTests();
                     }
                     else {
-                        return setState(function (oldState) { return (__assign(__assign({}, oldState), { status: "idle", specs: {} })); });
+                        return setState(function (oldState) { return (tslib.__assign(tslib.__assign({}, oldState), { status: "idle", specs: {} })); });
                     }
                 }
                 if (data.event === "test_count") {
-                    return setState(function (oldState) { return (__assign(__assign({}, oldState), { specsCount: data.count })); });
+                    return setState(function (oldState) { return (tslib.__assign(tslib.__assign({}, oldState), { specsCount: data.count })); });
                 }
                 if (data.event === "total_test_start") {
                     currentDescribeBlocks = [];
-                    return setState(function (oldState) { return (__assign(__assign({}, oldState), { status: "running" })); });
+                    return setState(function (oldState) { return (tslib.__assign(tslib.__assign({}, oldState), { status: "running" })); });
                 }
                 if (data.event === "total_test_end") {
                     return setState(function (oldState) {
                         if (onComplete !== undefined) {
                             onComplete(oldState.specs);
                         }
-                        return __assign(__assign({}, oldState), { status: "complete" });
+                        return tslib.__assign(tslib.__assign({}, oldState), { status: "complete" });
                     });
                 }
                 if (data.event === "add_file") {
@@ -4817,10 +4735,10 @@ var SandpackTests = function (_a) {
                                 return acc;
                             }
                             else {
-                                return __assign(__assign({}, acc), (_b = {}, _b[key] = value, _b));
+                                return tslib.__assign(tslib.__assign({}, acc), (_b = {}, _b[key] = value, _b));
                             }
                         }, {});
-                        return __assign(__assign({}, oldState), { specs: specs });
+                        return tslib.__assign(tslib.__assign({}, oldState), { specs: specs });
                     });
                 }
                 if (data.event === "file_error") {
@@ -4833,7 +4751,7 @@ var SandpackTests = function (_a) {
                     if (currentDescribe === undefined) {
                         return;
                     }
-                    return setState(set(__spreadArray(__spreadArray([
+                    return setState(set(tslib.__spreadArray(tslib.__spreadArray([
                         "specs",
                         spec,
                         "describes"
@@ -4851,18 +4769,18 @@ var SandpackTests = function (_a) {
                 }
                 if (data.event === "add_test") {
                     var _b = splitTail(currentDescribeBlocks), describePath = _b[0], currentDescribe = _b[1];
-                    var test = {
+                    var test_1 = {
                         status: "idle",
                         errors: [],
                         name: data.testName,
-                        blocks: __spreadArray([], currentDescribeBlocks, true),
+                        blocks: tslib.__spreadArray([], currentDescribeBlocks, true),
                         path: data.path,
                     };
                     if (currentDescribe === undefined) {
-                        return setState(set(["specs", data.path, "tests", data.testName], test));
+                        return setState(set(["specs", data.path, "tests", data.testName], test_1));
                     }
                     else {
-                        return setState(set(__spreadArray(__spreadArray([
+                        return setState(set(tslib.__spreadArray(tslib.__spreadArray([
                             "specs",
                             data.path,
                             "describes"
@@ -4870,57 +4788,57 @@ var SandpackTests = function (_a) {
                             currentDescribe,
                             "tests",
                             data.testName,
-                        ], false), test));
+                        ], false), test_1));
                     }
                 }
                 if (data.event === "test_start") {
-                    var test = data.test;
-                    var _c = splitTail(test.blocks), describePath = _c[0], currentDescribe = _c[1];
+                    var test_2 = data.test;
+                    var _c = splitTail(test_2.blocks), describePath = _c[0], currentDescribe = _c[1];
                     var startedTest = {
                         status: "running",
-                        name: test.name,
-                        blocks: test.blocks,
-                        path: test.path,
+                        name: test_2.name,
+                        blocks: test_2.blocks,
+                        path: test_2.path,
                         errors: [],
                     };
                     if (currentDescribe === undefined) {
-                        return setState(set(["specs", test.path, "tests", test.name], startedTest));
+                        return setState(set(["specs", test_2.path, "tests", test_2.name], startedTest));
                     }
                     else {
-                        return setState(set(__spreadArray(__spreadArray([
+                        return setState(set(tslib.__spreadArray(tslib.__spreadArray([
                             "specs",
-                            test.path,
+                            test_2.path,
                             "describes"
                         ], flatMap(describePath, function (name) { return [name, "describes"]; }), true), [
                             currentDescribe,
                             "tests",
-                            test.name,
+                            test_2.name,
                         ], false), startedTest));
                     }
                 }
                 if (data.event === "test_end") {
-                    var test = data.test;
-                    var _d = splitTail(test.blocks), describePath = _d[0], currentDescribe = _d[1];
+                    var test_3 = data.test;
+                    var _d = splitTail(test_3.blocks), describePath = _d[0], currentDescribe = _d[1];
                     var endedTest = {
-                        status: test.status,
-                        errors: test.errors,
-                        duration: test.duration,
-                        name: test.name,
-                        blocks: test.blocks,
-                        path: test.path,
+                        status: test_3.status,
+                        errors: test_3.errors,
+                        duration: test_3.duration,
+                        name: test_3.name,
+                        blocks: test_3.blocks,
+                        path: test_3.path,
                     };
                     if (currentDescribe === undefined) {
-                        return setState(set(["specs", test.path, "tests", test.name], endedTest));
+                        return setState(set(["specs", test_3.path, "tests", test_3.name], endedTest));
                     }
                     else {
-                        return setState(set(__spreadArray(__spreadArray([
+                        return setState(set(tslib.__spreadArray(tslib.__spreadArray([
                             "specs",
-                            test.path,
+                            test_3.path,
                             "describes"
                         ], flatMap(describePath, function (name) { return [name, "describes"]; }), true), [
                             currentDescribe,
                             "tests",
-                            test.name,
+                            test_3.name,
                         ], false), endedTest));
                     }
                 }
@@ -4950,12 +4868,12 @@ var SandpackTests = function (_a) {
     var testResults = getAllTestResults(specs);
     var suiteResults = getAllSuiteResults(specs);
     var classNames = useClassNames();
-    return (jsxRuntime.jsxs(SandpackStack, __assign({ className: classNames("tests", [className]), style: __assign(__assign({}, setTestTheme(theme.themeMode === "dark")), style) }, props, { children: [jsxRuntime.jsx("iframe", { ref: iframe, style: { display: "none" }, title: "Sandpack Tests" }), jsxRuntime.jsx(Header$1, { hideTestsAndSupressLogs: hideTestsAndSupressLogs, setSuiteOnly: function () {
-                    return setState(function (s) { return (__assign(__assign({}, s), { suiteOnly: !s.suiteOnly })); });
+    return (jsxRuntime.jsxs(SandpackStack, tslib.__assign({ className: classNames("tests", [className]), style: tslib.__assign(tslib.__assign({}, setTestTheme(theme.themeMode === "dark")), style) }, props, { children: [jsxRuntime.jsx("iframe", { ref: iframe, style: { display: "none" }, title: "Sandpack Tests" }), jsxRuntime.jsx(Header$1, { hideTestsAndSupressLogs: hideTestsAndSupressLogs, setSuiteOnly: function () {
+                    return setState(function (s) { return (tslib.__assign(tslib.__assign({}, s), { suiteOnly: !s.suiteOnly })); });
                 }, setVerbose: function () {
-                    return setState(function (s) { return (__assign(__assign({}, s), { verbose: !s.verbose })); });
+                    return setState(function (s) { return (tslib.__assign(tslib.__assign({}, s), { verbose: !s.verbose })); });
                 }, setWatchMode: function () {
-                    setState(function (s) { return (__assign(__assign({}, s), { watchMode: !s.watchMode })); });
+                    setState(function (s) { return (tslib.__assign(tslib.__assign({}, s), { watchMode: !s.watchMode })); });
                 }, showSuitesOnly: state.specsCount > 1, showVerboseButton: showVerboseButton, showWatchButton: showWatchButton, status: state.status, suiteOnly: state.suiteOnly, verbose: state.verbose, watchMode: state.watchMode }), state.status === "running" || state.status === "initialising" ? (jsxRuntime.jsx(Loading, { showOpenInCodeSandbox: false })) : (jsxRuntime.jsxs("div", { className: previewActionsClassName.toString(), children: [actionsChildren, jsxRuntime.jsx(RunButton, { onClick: state.suiteOnly ? runSpec : runAllTests })] })), jsxRuntime.jsx("div", { className: containerClassName.toString(), children: specs.length === 0 && state.status === "complete" ? (jsxRuntime.jsxs("div", { className: fileErrorContainerClassName.toString(), children: [jsxRuntime.jsx("p", { children: "No test files found." }), jsxRuntime.jsxs("p", { children: ["Test match:", " ", jsxRuntime.jsx("span", { className: failTextClassName.toString(), children: testFileRegex.toString() })] })] })) : (jsxRuntime.jsxs(jsxRuntime.Fragment, { children: [jsxRuntime.jsx(Specs, { hideTestsAndSupressLogs: hideTestsAndSupressLogs, openSpec: openSpec, specs: specs, status: state.status, verbose: state.verbose }), state.status === "complete" && testResults.total > 0 && (jsxRuntime.jsx(Summary, { duration: duration, suites: suiteResults, tests: testResults }))] })) })] })));
 };
 var containerClassName = css({
@@ -5394,7 +5312,7 @@ var useSandpackConsole = function (_a) {
                 if (!logsMessages_1)
                     return;
                 setLogs(function (prev) {
-                    var messages = __spreadArray(__spreadArray([], prev, true), logsMessages_1, true).filter(function (value, index, self) {
+                    var messages = tslib.__spreadArray(tslib.__spreadArray([], prev, true), logsMessages_1, true).filter(function (value, index, self) {
                         return index === self.findIndex(function (s) { return s.id === value.id; });
                     });
                     while (messages.length > maxMessageCount) {
@@ -5417,7 +5335,7 @@ var useSandpackConsole = function (_a) {
  */
 var SandpackConsole = React__namespace.forwardRef(function (_a, ref) {
     var _b;
-    var _c = _a.showHeader, showHeader = _c === void 0 ? true : _c, _d = _a.showSyntaxError, showSyntaxError = _d === void 0 ? false : _d, maxMessageCount = _a.maxMessageCount, onLogsChange = _a.onLogsChange, className = _a.className; _a.showSetupProgress; var _f = _a.showResetConsoleButton, showResetConsoleButton = _f === void 0 ? true : _f, _g = _a.showRestartButton, showRestartButton = _g === void 0 ? true : _g, _h = _a.resetOnPreviewRestart, resetOnPreviewRestart = _h === void 0 ? false : _h, _j = _a.actionsChildren, actionsChildren = _j === void 0 ? jsxRuntime.jsx(jsxRuntime.Fragment, {}) : _j, _k = _a.standalone, standalone = _k === void 0 ? false : _k, props = __rest(_a, ["showHeader", "showSyntaxError", "maxMessageCount", "onLogsChange", "className", "showSetupProgress", "showResetConsoleButton", "showRestartButton", "resetOnPreviewRestart", "actionsChildren", "standalone"]);
+    var _c = _a.showHeader, showHeader = _c === void 0 ? true : _c, _d = _a.showSyntaxError, showSyntaxError = _d === void 0 ? false : _d, maxMessageCount = _a.maxMessageCount, onLogsChange = _a.onLogsChange, className = _a.className; _a.showSetupProgress; var _f = _a.showResetConsoleButton, showResetConsoleButton = _f === void 0 ? true : _f, _g = _a.showRestartButton, showRestartButton = _g === void 0 ? true : _g, _h = _a.resetOnPreviewRestart, resetOnPreviewRestart = _h === void 0 ? false : _h, _j = _a.actionsChildren, actionsChildren = _j === void 0 ? jsxRuntime.jsx(jsxRuntime.Fragment, {}) : _j, _k = _a.standalone, standalone = _k === void 0 ? false : _k, props = tslib.__rest(_a, ["showHeader", "showSyntaxError", "maxMessageCount", "onLogsChange", "className", "showSetupProgress", "showResetConsoleButton", "showRestartButton", "resetOnPreviewRestart", "actionsChildren", "standalone"]);
     var environment = useSandpack().sandpack.environment;
     var _l = useSandpackClient(), iframe = _l.iframe, internalClientId = _l.clientId;
     var restart = useSandpackShell().restart;
@@ -5450,7 +5368,7 @@ var SandpackConsole = React__namespace.forwardRef(function (_a, ref) {
         },
     }); });
     var classNames = useClassNames();
-    return (jsxRuntime.jsxs(SandpackStack, __assign({ className: classNames("console", [
+    return (jsxRuntime.jsxs(SandpackStack, tslib.__assign({ className: classNames("console", [
             css((_b = {
                     height: "100%",
                     background: "$surface1",
@@ -5496,7 +5414,7 @@ var SandpackConsole = React__namespace.forwardRef(function (_a, ref) {
 
 var Sandpack = function (_a) {
     var _b, _c, _d, _e, _f, _g, _h, _j;
-    var options = _a.options, template = _a.template, customSetup = _a.customSetup, files = _a.files, theme = _a.theme, props = __rest(_a, ["options", "template", "customSetup", "files", "theme"]);
+    var options = _a.options, template = _a.template, customSetup = _a.customSetup, files = _a.files, theme = _a.theme, props = tslib.__rest(_a, ["options", "template", "customSetup", "files", "theme"]);
     options !== null && options !== void 0 ? options : (options = {});
     (_b = options.resizablePanels) !== null && _b !== void 0 ? _b : (options.resizablePanels = true);
     (_c = options.editorWidthPercentage) !== null && _c !== void 0 ? _c : (options.editorWidthPercentage = 50);
@@ -5626,7 +5544,7 @@ var Sandpack = function (_a) {
         ? { className: THEME_PREFIX + "-preset-column", style: rightColumnStyle }
         : {};
     var classNames = useClassNames();
-    return (jsxRuntime.jsx(SandpackProvider, __assign({ customSetup: customSetup, files: files, options: providerOptions, template: template, theme: theme }, props, { children: jsxRuntime.jsxs(SandpackLayout, { className: rtlLayout ? classNames("rtl-layout", [rtlLayoutClassName]) : "", children: [jsxRuntime.jsx(SandpackCodeEditor, __assign({}, codeEditorOptions, { style: {
+    return (jsxRuntime.jsx(SandpackProvider, tslib.__assign({ customSetup: customSetup, files: files, options: providerOptions, template: template, theme: theme }, props, { children: jsxRuntime.jsxs(SandpackLayout, { className: rtlLayout ? classNames("rtl-layout", [rtlLayoutClassName]) : "", children: [jsxRuntime.jsx(SandpackCodeEditor, tslib.__assign({}, codeEditorOptions, { style: {
                         height: options.editorHeight, // use the original editor height
                         flexGrow: horizontalSize,
                         flexShrink: horizontalSize,
@@ -5638,7 +5556,7 @@ var Sandpack = function (_a) {
                         dragEventTargetRef.current = event.target;
                     }, style: {
                         left: "calc(".concat(rtlLayout ? 100 - horizontalSize : horizontalSize, "% - 5px)"),
-                    } })), jsxRuntime.jsxs(RightColumn, __assign({}, rightColumnProps, { children: [mode === "preview" && (jsxRuntime.jsx(SandpackPreview, { actionsChildren: actionsChildren, showNavigator: options.showNavigator, showRefreshButton: options.showRefreshButton, style: topRowStyle })), mode === "tests" && (jsxRuntime.jsx(SandpackTests, { actionsChildren: actionsChildren, style: topRowStyle })), mode === "console" && (jsxRuntime.jsx(SandpackConsole, { actionsChildren: actionsChildren, style: topRowStyle, standalone: true })), (options.showConsoleButton || consoleVisibility) && (jsxRuntime.jsxs(jsxRuntime.Fragment, { children: [options.resizablePanels && consoleVisibility && (jsxRuntime.jsx("div", { className: classNames("resize-handler", [
+                    } })), jsxRuntime.jsxs(RightColumn, tslib.__assign({}, rightColumnProps, { children: [mode === "preview" && (jsxRuntime.jsx(SandpackPreview, { actionsChildren: actionsChildren, showNavigator: options.showNavigator, showRefreshButton: options.showRefreshButton, style: topRowStyle })), mode === "tests" && (jsxRuntime.jsx(SandpackTests, { actionsChildren: actionsChildren, style: topRowStyle })), mode === "console" && (jsxRuntime.jsx(SandpackConsole, { actionsChildren: actionsChildren, style: topRowStyle, standalone: true })), (options.showConsoleButton || consoleVisibility) && (jsxRuntime.jsxs(jsxRuntime.Fragment, { children: [options.resizablePanels && consoleVisibility && (jsxRuntime.jsx("div", { className: classNames("resize-handler", [
                                         dragHandler({ direction: "vertical" }),
                                     ]), "data-direction": "vertical", onMouseDown: function (event) {
                                         dragEventTargetRef.current = event.target;

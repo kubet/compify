@@ -13,10 +13,10 @@ import { isSafeRegistryPath } from 'src/common/registry-path';
  * shadcn-compatible registry (https://ui.shadcn.com/docs/registry).
  *
  * Any published component is installable into any shadcn project:
- *   npx shadcn@latest add https://api.compify.app/r/<user>/<name>.json
+ *   bunx shadcn@latest add https://api.compify.app/r/<user>/<name>.json
  * or, with `"@compify": "https://api.compify.app/r/{name}.json"` configured
  * in components.json registries:
- *   npx shadcn@latest add @compify/<user>/<name>
+ *   bunx shadcn@latest add @compify/<user>/<name>
  */
 @Controller('r')
 export class RegistryController {

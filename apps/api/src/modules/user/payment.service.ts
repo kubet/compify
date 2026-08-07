@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { SubscriptionStatus } from 'src/entities/subscription/subscription.entity';
 import {
   BillingCycle,
@@ -10,11 +10,13 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import Stripe from 'stripe';
 import { Request } from 'express';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class PaymentService {
-  private stripe: Stripe;
+  private readonly stripeClient?: Stripe;
   constructor(
+    private readonly configService: ConfigService,
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
     @InjectRepository(SubscriptionPlan)
@@ -22,7 +24,25 @@ export class PaymentService {
     @InjectRepository(Subscription)
     private readonly subscriptionRepo: Repository<Subscription>,
   ) {
-    this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+    const secretKey = this.configService.get<string>('STRIPE_SECRET_KEY');
+    if (secretKey) this.stripeClient = new Stripe(secretKey);
+  }
+
+  private get stripe(): Stripe {
+    if (!this.stripeClient) {
+      throw new ServiceUnavailableException('Stripe billing is not configured');
+    }
+    return this.stripeClient;
+  }
+
+  private get stripeWebhookSecret(): string {
+    const secret = this.configService.get<string>('STRIPE_WEBHOOK_SECRET');
+    if (!secret) {
+      throw new ServiceUnavailableException(
+        'Stripe webhook verification is not configured',
+      );
+    }
+    return secret;
   }
 
   async createFreeSubscription(user: User) {
@@ -110,21 +130,6 @@ export class PaymentService {
       subscription_billing_cycle_anchor: 'now', // Add billing cycle anchor
       subscription_proration_behavior: 'create_prorations', // Add proration behavior
     });
-
-    console.log(
-      stripeSubscription,
-      'stripeSubscription',
-      currentSubscription,
-      newPlan,
-      invoice.lines.data.map((item) => ({
-        description: item.description,
-        amount: item.amount / 100,
-        period: {
-          start: new Date(item.period.start * 1000),
-          end: new Date(item.period.end * 1000),
-        },
-      })),
-    );
 
     return {
       amountDue: invoice.amount_due / 100,
@@ -256,12 +261,16 @@ export class PaymentService {
 
   async stripeWebhook(rawBody: Buffer, signature: string) {
     let event: Stripe.Event;
+    // Resolve optional configuration before signature parsing so disabled billing
+    // produces an explicit 503 rather than a misleading verification error.
+    const stripe = this.stripe;
+    const webhookSecret = this.stripeWebhookSecret;
 
     try {
-      event = this.stripe.webhooks.constructEvent(
+      event = stripe.webhooks.constructEvent(
         rawBody,
         signature,
-        process.env.STRIPE_WEBHOOK_SECRET,
+        webhookSecret,
       );
     } catch (err) {
       console.error('Webhook signature verification failed:', err.message);
@@ -314,8 +323,7 @@ export class PaymentService {
             availableCredits: planCredits,
             availableAiCredits: planAiCredits,
           });
-          console.log('Subscription created successfully');
-          break;
+              break;
         }
 
         case 'customer.subscription.deleted': {
@@ -330,8 +338,7 @@ export class PaymentService {
               { stripeSubscriptionId: deletedSubscription.id },
               { status: SubscriptionStatus.CANCELLED },
             );
-            console.log('Subscription cancelled successfully');
-          }
+                }
           break;
         }
 
@@ -369,8 +376,7 @@ export class PaymentService {
                 availableAiCredits: planAiCredits,
               });
 
-              console.log('Subscription upgraded successfully');
-            }
+                    }
           }
           // Check if subscription has expired or is past due
           else if (
@@ -391,9 +397,6 @@ export class PaymentService {
 
               // Create free subscription for the user
               await this.createFreeSubscription(subscription.user);
-              console.log(
-                'User moved to free plan due to subscription expiration',
-              );
             }
           }
           break;
@@ -408,7 +411,6 @@ export class PaymentService {
           if (user) {
             user.failedPayments = (user.failedPayments || 0) + 1;
             await this.userRepo.save(user);
-            console.log('Incremented failed payments for:', invoice.customer_email);
           }
           break;
         }

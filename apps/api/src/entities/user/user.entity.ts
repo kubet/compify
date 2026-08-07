@@ -13,7 +13,6 @@ import { Component } from '../project/component.entity';
 import { Upvote } from '../project/upvote.entity';
 import { CliToken } from '../cli/cli-tokens.entity';
 
-
 @Entity()
 export class User {
   @PrimaryGeneratedColumn('uuid')
@@ -25,13 +24,15 @@ export class User {
   @Column({ unique: true, nullable: true })
   username: string;
 
-  @Column({ nullable: true })
+  // Password hashes must never be loaded by ordinary user queries or serialized
+  // as part of a user response. Authentication flows opt in explicitly.
+  @Column({ nullable: true, select: false })
   password: string;
 
-  @Column({nullable:true})
+  @Column({ nullable: true })
   firstName: string;
 
-  @Column({nullable:true})
+  @Column({ nullable: true })
   lastName: string;
 
   @Column({ default: false })

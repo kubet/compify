@@ -16,24 +16,25 @@ Build, preview and share UI components. Live at [compify.app](https://compify.ap
 
 - [Product direction](PRODUCT.md) — positioning, personas, roadmap
 - [CLI reference](docs/cli.md)
-- [shadcn registry interop](docs/registry.md) — `npx shadcn add @compify/<user>/<name>`
+- [shadcn registry interop](docs/registry.md) — `bunx shadcn add @compify/<user>/<name>`
 - [Publishing guide](docs/publishing.md)
 - [MCP server for agents](docs/mcp.md) — `compify mcp`
 - [Open-source/self-host readiness](docs/open-source-readiness.md) — current gaps and release gate
+- [Self-hosting with Docker Compose](docs/self-hosting.md) — reproducible single-host setup
 
 ## Development
 
-Each app is self-contained for now (no workspace hoisting yet).
+Each app is self-contained for now (no workspace hoisting yet). Bun 1.3.9 is the only supported package manager and JavaScript runtime; each package commits its own `bun.lock`.
 
 ```bash
 # frontend — http://localhost:3000
-cd apps/web && yarn && yarn dev
+cd apps/web && bun install && bun run dev
 
 # api — http://localhost:3009 (needs PostgreSQL + MinIO, see .env.stage.local)
-cd apps/api && yarn && yarn start:dev
+cd apps/api && bun install && bun run start:dev
 
 # cli
-cd packages/cli && yarn && yarn build
+cd packages/cli && bun install && bun run build
 ```
 
 ### API environment
@@ -50,11 +51,11 @@ files), `images` (`<shortId>` preview + `<shortId>-og` social image, webp),
 
 ## Self-hosting status
 
-The code is MIT-licensed, but self-hosting is not turnkey yet. The checked-in
-PM2 scripts describe compify.app's existing server; they do not provision a
-fresh host. See the [readiness audit](docs/open-source-readiness.md) before
-running production or presenting the repository as a supported self-host
-distribution.
+A Docker Compose deployment now provisions the web app, API, PostgreSQL,
+MinIO, buckets, schema migrations, and the default free plan. Follow the
+[self-hosting guide](docs/self-hosting.md). It targets local or single-server
+installations; remaining hardening and hosted-service coupling are tracked in
+the [readiness audit](docs/open-source-readiness.md).
 
 ## Production
 
@@ -67,3 +68,7 @@ Deploys are automatic: pushing to `main` triggers the Deploy workflow, which
 SSHes to the host, updates the checkout, and runs the path-filtered
 `deploy/server/deploy-{web,api}.sh` (build → `pm2 reload` → health check →
 rollback on failure).
+
+## License
+
+Original Compify code is MIT-licensed. The vendored `compify-pack` Sandpack derivative retains its upstream Apache-2.0 license; see `packages/compify-pack/PROVENANCE.md`.

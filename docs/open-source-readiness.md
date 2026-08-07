@@ -4,9 +4,19 @@ _Last reviewed: 2026-08-07 against `main`._
 
 ## Executive summary
 
-Compify is source-available under MIT today and its three main applications build. The public shadcn registry, CLI, MCP server, contributor/security files, secret scanning, dependency updates, and production deployment scripts already exist. It is **not yet a turnkey self-hosted product**: the checked-in deployment describes compify.app's existing server, while a fresh operator still needs undocumented infrastructure, seed data, external assets, and manual database/storage setup.
+Compify is open-source under MIT, with the vendored Sandpack derivative retaining Apache-2.0. The main applications build, and a fresh single-host installation can now provision web, API, PostgreSQL, MinIO, buckets, schema, and seed data through Docker Compose. The public registry, CLI, MCP server, CI, security policy, and operational documentation also exist.
 
-Treat the repository as an open beta for contributors, not a supported self-host distribution, until the P0 gate below is complete.
+Treat self-hosting as beta until the remaining P0 items are complete—most importantly removal of hosted CDN/bundler dependencies, stronger manifest/removal semantics, broader end-to-end tests, and a clean full-image smoke test in CI.
+
+## Progress since the audit
+
+The first hardening pass is now implemented: Docker Compose and non-root images,
+MinIO bucket initialization, an initial reviewed-and-executed TypeORM migration,
+a deterministic free-plan seed, startup configuration validation, optional
+Stripe/Google/email integrations, self-host URL controls, hashed single-use
+password resets, hashed CLI tokens, path traversal defenses, CLI/API tests, and
+vendored Sandpack provenance. The remaining unchecked items below are still real
+release work rather than claims that those areas are finished.
 
 ## What is already here
 
@@ -24,34 +34,34 @@ Treat the repository as an open beta for contributors, not a supported self-host
 
 ### P0 — required before calling it self-hostable
 
-- [ ] **Reproducible installation:** add pinned Dockerfiles and Compose (or an equally complete install path) for web, API, PostgreSQL, MinIO, bucket initialization, and any required bundler/static assets. Include a one-command smoke test.
-- [ ] **Real migrations:** replace production `synchronize: true` in `apps/api/src/app.module.ts` with versioned TypeORM migrations. Run migrations once before workers start; document forward/rollback compatibility. Convert `src/migrations/extention.md` into an actual migration.
-- [ ] **Bootstrap data and storage:** idempotently create the four MinIO buckets and required policies/CORS, PostgreSQL database/extensions, and the free subscription plan. Do not require operators to invent `FREE_PLAN_ID`.
-- [ ] **Configuration contract:** validate environment variables at startup with required/optional/default semantics. Optional AI, OAuth, email, Turnstile, and billing integrations must be conditionally enabled. Stripe currently constructs at startup even when documented as optional.
-- [ ] **Remove hosted-service coupling:** replace remaining hard-coded `compify.app`, `api.compify.app`, and `cdn.compify.app` runtime references. Document or ship the editor's CDN files and capture/bundler service. Static `public/service-worker.js` needs generated runtime configuration.
-- [ ] **Secure component paths:** reject absolute and traversal paths from stored component files before CLI writes/removes them or registry items expose them. Persist the actual installed file list/layout in `compify.json`; never recursively delete an inferred folder containing user files.
-- [ ] **Close web/template XSS sinks:** replace raw `dangerouslySetInnerHTML` flows in `UtilityInput`, `TooltipHelp`, and the Notion template with escaped React rendering or reviewed sanitization. Move browser auth away from localStorage to Secure/HttpOnly/SameSite cookies and add a CSP.
-- [ ] **Harden reset and bearer tokens:** the reset lookup is now bound to normalized email, but tokens still need hashed, atomic single-use storage and regression tests. Hash CLI tokens at rest, add expiry/rotation, and invalidate sessions after password resets.
-- [ ] **Protect template secrets:** rename `NEXT_PUBLIC_NOTION_SECRET` to a server-only variable and ensure the Notion client cannot enter browser bundles.
-- [ ] **CLI correctness:** use the same normalized directory name in add/diff/migrate/remove; make missing files count as diffs; surface fetch/auth failures; validate login tokens. Add headless auth (environment/file) in addition to keytar.
+- [x] **Reproducible installation:** pinned non-root Dockerfiles and Compose now provision web, API, PostgreSQL, MinIO, buckets, migrations, and seed data. A full clean-image smoke test still belongs in CI.
+- [ ] **Migration rollout:** production synchronization is disabled and the tested initial migration includes extensions/indexes/schema/seed. Docker runs it before startup; the legacy PM2 deployment still needs an explicit baseline and run-once rollout procedure before it can execute migrations safely.
+- [ ] **Bootstrap policy hardening:** Compose idempotently creates all buckets and migrations create extensions plus a deterministic free plan. Still replace shared MinIO root credentials with least-privilege application credentials and document bucket CORS/policies.
+- [x] **Configuration contract:** core environment variables are validated at startup; Stripe, Google OAuth, and transactional email no longer crash startup when disabled and return explicit 503 responses when invoked unconfigured.
+- [ ] **Remove hosted-service coupling:** API/web/CLI/CDN origins and the service worker are configurable, but a fully independent operator must still supply licensed editor CDN assets and any required bundler behavior. Inventory, provenance, and an open redistribution package remain outstanding.
+- [ ] **Component install manifest:** API and CLI reject traversal/symlink paths, lifecycle commands share normalized folders, and removal no longer recursively deletes inferred folders. Still persist exact installed files/layout/source/hash in `compify.json` so removal never depends on mutable remote metadata.
+- [ ] **Browser auth/CSP:** the identified UtilityInput, TooltipHelp, and Notion HTML sinks are escaped or rendered as text. JWTs still need migration from localStorage to Secure/HttpOnly/SameSite cookies plus a restrictive CSP.
+- [ ] **Finish token lifecycle:** password resets are random, hashed, email-bound, expiring and atomically single-use; CLI tokens are hashed and only shown at creation. Add CLI expiry/rotation policy and invalidate existing sessions after password resets.
+- [x] **Protect template secrets:** the Notion credential is server-only and Notion-controlled HTML/text/URLs are escaped and scheme-checked.
+- [x] **CLI baseline correctness:** lifecycle commands normalize folders consistently, missing files are diffs, failures surface, login validates tokens, and `COMPIFY_TOKEN` supports headless use. Exact-file manifest/version semantics remain a separate gate above.
 - [ ] **Contract/e2e tests:** cover auth, component visibility, `/cli`, `/r`, path safety, install/diff/migrate/remove, and a CLI-to-API fixture. Run tests—not only builds—in CI.
-- [ ] **License provenance:** document the origin/commit and retained notices for the vendored Sandpack fork and templates/assets/fonts; generate a third-party notice/SBOM and review dependency licenses.
+- [ ] **License provenance and SBOM:** Sandpack now retains Apache-2.0 plus an honest import/provenance record. Still generate a repository-wide third-party notice/SBOM and review templates, assets, fonts, and dependency licenses.
 
 ### P1 — required before a stable 1.0
 
 - [ ] Publish the repository CLI version (local is newer than npm at review time), automate npm provenance/release notes, add `engines`, repository/homepage/bugs metadata, and define supported Node/OS/keychain platforms.
 - [ ] Version immutable component publishes and record source URL, version/hash, installed layout, and files in the manifest. Current migrations pull mutable latest content.
-- [ ] Reconcile CLI docs with behavior: bare `add`, `list`, universal non-interactive claims, and advertised flags currently diverge. Generate reference docs from Commander where possible.
+- [x] Reconcile the major CLI docs/behavior gaps: bare `add` now selects interactively, `list` lists without installing, and JSON/silent behavior is explicit. Generated reference docs remain desirable.
 - [ ] Add OpenAPI with versioned API compatibility and error schemas. Define deprecation and CLI/server compatibility policy.
-- [ ] Replace superficial `/health` with separate liveness/readiness checks for DB, MinIO, config, and migrations.
+- [x] Keep `/health` as liveness and use `/ready` for PostgreSQL and required MinIO bucket readiness; deployments now gate on readiness.
 - [ ] Use immutable deployment artifacts/releases. Current rollback restores build output only, not dependencies, source, environment, or schema.
-- [ ] Fix CI/deploy dependency paths: web consumes `packages/compify-pack`, but changes there do not trigger the web job/deploy.
+- [x] Fix CI/deploy dependency paths: `packages/compify-pack` changes now trigger web validation and deployment.
 - [ ] Create a tested upgrade, backup, and disaster-recovery runbook. Add checksums/encryption, consistent object snapshots, retention based on bucket listings, monitoring, and scheduled restore drills.
 - [ ] Add dependency auditing, CodeQL/SAST, branch protection, CODEOWNERS, issue/PR templates, changelog, release workflow, and signed/provenance artifacts.
 
 ### P2 — project maturity
 
-- [ ] Workspace-level commands for install/build/test/lint/typecheck; lock the package manager and runtime versions.
+- [ ] Workspace-level commands for install/build/test/lint/typecheck. Bun 1.3.9 is pinned per package and each package commits its own lockfile.
 - [ ] Lint/typecheck/coverage gates for all packages; remove build-time network calls (the web sitemap currently contacts the API during build and logs an error offline).
 - [ ] Structured request/audit logs, error tracking, metrics/traces, log rotation, uptime/dependency/disk alerts, and an operator dashboard.
 - [ ] Multi-architecture images, Kubernetes/Helm examples if demanded, external S3-compatible storage support, documented reverse proxy/TLS, and horizontal scaling guidance.
@@ -69,9 +79,9 @@ Treat the repository as an open beta for contributors, not a supported self-host
 
 On the review machine:
 
-- `apps/api`: `yarn build` passed; `yarn test --runInBand` passed (3 suites, 45 tests).
-- `apps/web`: `yarn build` passed, but its sitemap attempted a production API request and logged an error before completing.
-- `packages/cli`: `yarn build` and 10 new configuration/path-safety tests passed.
+- `apps/api`: `bun run build` passed; `bun run test --runInBand` passed (8 suites, 60 tests).
+- `apps/web`: `bun run build` passed.
+- `packages/cli`: `bun run build` and 14 configuration/API/path-safety tests passed. `packages/compify-pack`: `bun install --frozen-lockfile` and its prepare build passed.
 - Deployment shell scripts passed syntax review in the parallel deployment audit.
 
 A release should repeat these checks from a clean clone in CI and add an actual Compose/self-host smoke test before changing the self-host support claim.

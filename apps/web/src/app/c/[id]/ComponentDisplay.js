@@ -397,7 +397,7 @@ export default function ComponentDisplay({ data }) {
                                     <div className="space-y-2">
                                         <InstallCommand
                                             label="shadcn"
-                                            command={`npx shadcn@latest add https://api.compify.app/r/${publishingDomain.replace(/^compify\//, '')}.json`}
+                                            command={`bunx shadcn@latest add https://api.compify.app/r/${publishingDomain.replace(/^compify\//, '')}.json`}
                                         />
                                         <InstallCommand
                                             label="compify"

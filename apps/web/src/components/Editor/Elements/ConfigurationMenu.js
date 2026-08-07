@@ -1,3 +1,4 @@
+import { cdnUrl } from '@/constains';
 import { Dropdown } from '@/components/Elements'
 import LabelButton from '@/components/Elements/LabelButton'
 import CollapsibleSection from '@/components/Elements/CollapsibleSection'
@@ -63,7 +64,7 @@ function ConfigurationMenu({ initSettings,
     React.useEffect(() => {
         const loadFonts = async () => {
             try {
-                const response = await fetch('https://cdn.compify.app/font-list.json')
+                const response = await fetch(`${cdnUrl}/font-list.json`)
                 const fonts = await response.json()
                 setOptions(fonts.map(font => ({
                     label: font.n,

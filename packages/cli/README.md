@@ -16,9 +16,9 @@ A powerful CLI tool for managing and syncing components from your global registr
 ## Installation
 
 ```bash
-npm install -g @compify/cli
+bun add --global @compify/cli
 # or
-yarn global add @compify/cli
+bun add --global @compify/cli
 ```
 
 ## Quick Start
