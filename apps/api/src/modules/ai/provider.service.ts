@@ -2,6 +2,7 @@ import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { OpenAI } from 'openai';
 import Anthropic from '@anthropic-ai/sdk';
 import { Response } from 'express';
+import { generationPrompt } from './prompts';
 
 // Keep interfaces but make them more permissive
 interface GenerationParams {
@@ -9,7 +10,6 @@ interface GenerationParams {
   model: string;
   maxTokens?: number;
   temperature?: number;
-  systemPrompt?: string;
   responseFormat?: { type: string };
   initialCode?: string;
 }
@@ -81,15 +81,9 @@ export class ProviderService {
 
   async generateOpenRouterText(params: GenerationParams): Promise<string> {
     try {
-      const messages = params.systemPrompt
-        ? [
-            { role: 'system', content: params.systemPrompt },
-            ...(params.messages as any[]),
-          ]
-        : (params.messages as any[]);
       const response = (await this.getOpenRouter().chat.completions.create({
         model: params.model,
-        messages,
+        messages: params.messages as any[],
         temperature: params.temperature ?? 0.5,
         max_tokens: params.maxTokens ?? 4096,
         top_p: 1,
@@ -118,7 +112,7 @@ export class ProviderService {
         messages: params.messages as any[],
         max_tokens: params.maxTokens ?? 4096,
         temperature: params.temperature ?? 0.5,
-        system: params.systemPrompt,
+        system: generationPrompt(),
         response_format: params.responseFormat ?? undefined,
       })) as any;
 
@@ -232,7 +226,7 @@ export class ProviderService {
       messages: params.messages as any[],
       max_tokens: params.maxTokens ?? 4096,
       temperature: params.temperature ?? 0.5,
-      system: params.systemPrompt,
+      system: generationPrompt(),
     })) as any;
 
     for await (const chunk of stream) {

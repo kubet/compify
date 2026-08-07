@@ -2,9 +2,12 @@
 
 ## Supported versions
 
-Until the first stable release, security fixes are applied to the latest commit
-on `main` only. After versioned releases begin, this table will list the
-supported release lines.
+Security fixes are applied to the latest `0.1.x` release and to `main`.
+
+| Version | Supported |
+| ------- | --------- |
+| 0.1.x   | Yes       |
+| < 0.1   | No        |
 
 ## Reporting a vulnerability
 

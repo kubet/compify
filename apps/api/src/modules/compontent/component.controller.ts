@@ -189,14 +189,24 @@ export class ComponentController {
 
   @Post('gif/create')
   async getAnimatedImg(
-    @Body('captures') captures: string[],
-    @Body('id') id: string,
+    @Body('captures') captures: unknown,
+    @Body('id') id: unknown,
     @GetUser() user: User,
   ) {
-    if (captures.length > 5 || captures.length === 0) {
-      throw new BadRequestException('Captures array is required');
+    if (
+      !Array.isArray(captures) ||
+      captures.length === 0 ||
+      captures.length > 5 ||
+      !captures.every(
+        (capture): capture is string =>
+          typeof capture === 'string' && capture.length > 0,
+      )
+    ) {
+      throw new BadRequestException(
+        'Captures must be an array of one to five non-empty strings',
+      );
     }
-    if (!id) {
+    if (typeof id !== 'string' || id.trim().length === 0) {
       throw new BadRequestException('Id is required');
     }
     await this.componentService.checkIfUserIsOwnerOrThrow403(id, user);

@@ -583,7 +583,7 @@ export class UserService {
           type: TokenType.EMAIL_VERIFICATION,
         });
       }
-      const token = (Math.floor(Math.random() * 9000000) + 1000000).toString();
+      const token = crypto.randomInt(1_000_000, 10_000_000).toString();
 
       await this.tokenRepo.save({
         email: email,
@@ -838,7 +838,7 @@ export class UserService {
   private async generateUniqueUsername(email: string): Promise<string> {
     let base = email?.split('@')[0].replace(/[^a-zA-Z0-9._-]/g, '');
     if (!base || base.length < 3) {
-      base = `user${Math.floor(Math.random() * 10000)}`;
+      base = `user${crypto.randomInt(0, 10_000)}`;
     }
 
     let username = base;
@@ -852,9 +852,9 @@ export class UserService {
       if (!existing) {
         return username;
       }
-      username = `${base}${Math.floor(Math.random() * 10 ** (attempt + 2))}`;
+      username = `${base}${crypto.randomInt(0, 10 ** (attempt + 2))}`;
     }
-    return `user${Date.now()}${Math.floor(Math.random() * 1000)}`;
+    return `user${Date.now()}${crypto.randomInt(0, 1_000)}`;
   }
 
   async createUser(signUpDto: SignUpDto, verified = false): Promise<User> {
