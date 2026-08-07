@@ -1,6 +1,7 @@
 name: CI
 
 on:
+  workflow_dispatch:
   pull_request:
   push:
     branches: [main]
@@ -58,7 +59,7 @@ jobs:
 
   web:
     needs: changes
-    if: needs.changes.outputs.web == 'true'
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.web == 'true'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -75,7 +76,7 @@ jobs:
 
   compify-pack:
     needs: changes
-    if: needs.changes.outputs.pack == 'true'
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.pack == 'true'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -93,7 +94,7 @@ jobs:
 
   api:
     needs: changes
-    if: needs.changes.outputs.api == 'true'
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.api == 'true'
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -133,7 +134,7 @@ jobs:
 
   cli:
     needs: changes
-    if: needs.changes.outputs.cli == 'true'
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.cli == 'true'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -150,7 +151,7 @@ jobs:
 
   template:
     needs: changes
-    if: needs.changes.outputs.template == 'true'
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.template == 'true'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -167,7 +168,7 @@ jobs:
 
   self-host-smoke:
     needs: changes
-    if: needs.changes.outputs.selfhost == 'true'
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.selfhost == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
