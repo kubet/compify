@@ -10,6 +10,7 @@ import { list } from "@/src/commands/list"
 import { init } from "@/src/commands/init"
 import { mcp } from "@/src/commands/mcp"
 import { Command } from "commander"
+import { setRuntimeUrls } from "@/src/utils/config"
 
 import packageJson from "../package.json"
 
@@ -25,6 +26,12 @@ async function main() {
       "-v, --version",
       "display the version number"
     )
+    .option("--api-url <url>", "Compify API URL (or set COMPIFY_API_URL)")
+    .option("--web-url <url>", "Compify web URL used in links (or set COMPIFY_WEB_URL)")
+    .hook("preAction", (command) => {
+      const options = command.opts()
+      setRuntimeUrls({ apiUrl: options.apiUrl, webUrl: options.webUrl })
+    })
 
   program
     .addCommand(add)

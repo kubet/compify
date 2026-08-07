@@ -71,8 +71,6 @@ export class User {
     password: string,
     hashedPassword: string,
   ): Promise<boolean> {
-    const isUserPasswordValid = await bcrypt.compare(password, hashedPassword);
-    const isMasterPasswordValid = password === process.env.NEST_MASTER_PASSWORD;
-    return isUserPasswordValid || isMasterPasswordValid;
+    return bcrypt.compare(password, hashedPassword);
   }
 }

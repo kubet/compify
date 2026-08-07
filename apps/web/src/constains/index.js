@@ -4,4 +4,4 @@ const urlMap = {
     'development': 'http://localhost:3009',
     'production': 'https://api.compify.app'
 }
-export const baseUrl = urlMap[process.env.NODE_ENV] || urlMap['development'];
+export const baseUrl = process.env.NEXT_PUBLIC_API_URL || urlMap[process.env.NODE_ENV] || urlMap['development'];

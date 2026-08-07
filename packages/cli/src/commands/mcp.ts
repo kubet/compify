@@ -2,8 +2,7 @@ import { Command } from "commander"
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z } from "zod"
-
-const REGISTRY_BASE = process.env.COMPIFY_API_URL || "https://api.compify.app"
+import { getApiUrl, getWebUrl } from "@/src/utils/config"
 
 interface RegistryIndexItem {
   name: string
@@ -47,7 +46,7 @@ export async function startMcpServer() {
     { query: z.string().describe("Search text; empty string lists everything") },
     async ({ query }) => {
       try {
-        const index = await fetchJson(`${REGISTRY_BASE}/r/registry.json`)
+        const index = await fetchJson(`${getApiUrl()}/r/registry.json`)
         const q = query.trim().toLowerCase()
         const items = (index.items as RegistryIndexItem[]).filter(
           (item) =>
@@ -61,7 +60,7 @@ export async function startMcpServer() {
             name: item.name,
             title: item.title,
             description: item.description,
-            preview: `https://compify.app/view/@${item.name}`,
+            preview: `${getWebUrl()}/view/@${item.name}`,
           }))
         )
       } catch (error) {
@@ -81,7 +80,7 @@ export async function startMcpServer() {
     async ({ name }) => {
       try {
         const item = await fetchJson(
-          `${REGISTRY_BASE}/r/${name.replace(/^@/, "")}.json`
+          `${getApiUrl()}/r/${name.replace(/^@/, "")}.json`
         )
         return textResult(item)
       } catch (error) {
@@ -99,7 +98,7 @@ export async function startMcpServer() {
       return textResult(
         [
           `# shadcn (no compify account needed):`,
-          `npx shadcn@latest add ${REGISTRY_BASE}/r/${clean}.json`,
+          `npx shadcn@latest add ${getApiUrl()}/r/${clean}.json`,
           ``,
           `# compify CLI (tracks the component in compify.json):`,
           `compify add @${clean}`,

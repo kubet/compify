@@ -114,6 +114,13 @@ const UtilityInput = forwardRef(({ value,
     const [highlightedContent, setHighlightedContent] = useState('');
     const overlayRef = useRef(null);
 
+    const escapeHtml = (text) => String(text)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('\"', '&quot;')
+        .replaceAll("'", '&#39;');
+
     const highlightText = (text) => {
         if (!text) return '';
         const textString = String(text);
@@ -127,13 +134,13 @@ const UtilityInput = forwardRef(({ value,
         for (const match of matches) {
             const [fullMatch, token] = match;
             if (checkTokenNameExists(token)) {
-                result += textString.slice(lastIndex, match.index);
-                result += `<span style="color: #ea7508">${token}</span>`;
+                result += escapeHtml(textString.slice(lastIndex, match.index));
+                result += `<span style="color: #ea7508">${escapeHtml(token)}</span>`;
                 lastIndex = match.index + fullMatch.length;
             }
         }
 
-        result += textString.slice(lastIndex);
+        result += escapeHtml(textString.slice(lastIndex));
         return result;
     };
 
@@ -262,7 +269,7 @@ const UtilityInput = forwardRef(({ value,
                             dangerouslySetInnerHTML={{
                                 __html: value !== undefined && (value !== '' || value === 0)
                                     ? highlightText(String(value))
-                                    : `<span style="opacity: 0.5">${placeholder || ''}</span>`
+                                    : `<span style="opacity: 0.5">${escapeHtml(placeholder || '')}</span>`
                             }}
                         />
                     </div>

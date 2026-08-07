@@ -41,7 +41,7 @@ This project includes a blog that can be powered by Notion. This allows you to m
 
 4. Create a `.env.local` file in the root of your project with the following variables:
    ```
-   NEXT_PUBLIC_NOTION_SECRET=your_notion_integration_secret
+   NOTION_SECRET=your_notion_integration_secret
    NEXT_PUBLIC_NOTION_BLOG_PAGE_ID=your_notion_database_id
    ```
 

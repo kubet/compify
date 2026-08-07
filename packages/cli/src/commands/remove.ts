@@ -4,6 +4,7 @@ import { Command } from "commander"
 import prompts from "prompts"
 import { ApiClient } from "../utils/api-client"
 import { logger } from "../utils/logger"
+import { componentFolderName, safeComponentPath } from "../utils/component-path"
 
 interface CompifyConfig {
   components: Array<{
@@ -93,32 +94,16 @@ export const remove = new Command()
           
           // Try both flat and folder structures
           const flatDir = baseComponentDir
-          const folderDir = path.join(baseComponentDir, component.name)
+          const folderDir = path.join(baseComponentDir, componentFolderName(component.name))
           let hasRemovedFiles = false
 
-          // Check folder structure first (more common)
-          if (fs.existsSync(folderDir)) {
-            if (!opts.yes) {
-              const { confirm } = await prompts({
-                type: 'confirm',
-                name: 'confirm',
-                message: `Remove folder ${component.name}?`,
-                initial: true
-              })
-              if (!confirm) continue
-            }
-
-            await fs.remove(folderDir)
-            if (!opts.silent) {
-              logger.success(`Removed folder ${component.name}`)
-            }
-            hasRemovedFiles = true
-          }
-
-          // Check flat structure
+          // Remove only files declared by the registry. Never recursively
+          // delete the inferred component folder: it may contain user files.
           for (const filename of Object.keys(component.files)) {
-            const filePath = path.join(flatDir, filename)
-            
+            const folderPath = safeComponentPath(folderDir, filename)
+            const flatPath = safeComponentPath(flatDir, filename)
+            const filePath = fs.existsSync(folderPath) ? folderPath : flatPath
+
             if (fs.existsSync(filePath)) {
               if (!opts.yes) {
                 const { confirm } = await prompts({
@@ -145,8 +130,9 @@ export const remove = new Command()
           // Remove empty parent directories in flat structure
           const dirs = new Set(Object.keys(component.files).map(file => path.dirname(file)))
           for (const dir of dirs) {
-            const dirPath = path.join(flatDir, dir)
-            if (dir !== '.' && fs.existsSync(dirPath)) {
+            if (dir !== '.') {
+              const dirPath = safeComponentPath(flatDir, dir)
+              if (!fs.existsSync(dirPath)) continue
               const files = await fs.readdir(dirPath)
               if (files.length === 0) {
                 await fs.remove(dirPath)

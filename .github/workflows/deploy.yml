@@ -32,6 +32,7 @@ jobs:
           filters: |
             web:
               - 'apps/web/**'
+              - 'packages/compify-pack/**'
               - 'deploy/server/deploy-web.sh'
             api:
               - 'apps/api/**'

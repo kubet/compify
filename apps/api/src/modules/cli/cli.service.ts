@@ -7,6 +7,7 @@ import { NotFoundException, ForbiddenException } from '@nestjs/common';
 import { shortIdToUuid, uuidToShortId } from 'src/common/short-id';
 import { CliToken } from 'src/entities/cli/cli-tokens.entity';
 import { MinioClientService } from '../minio/minio.service';
+import { isSafeRegistryPath } from 'src/common/registry-path';
 
 @Injectable()
 export class CliService {
@@ -84,10 +85,10 @@ export class CliService {
     
     // Add null check and provide fallback for malformed entries
     const remappedFiles = Object.fromEntries(
-      Object.entries(files).map(([filename, content]) => [
-        filename,
-        content?.code || ''
-      ])
+      Object.entries(files)
+        .map(([filename, content]) => [filename.replace(/^\/+/, ''), content] as const)
+        .filter(([filename]) => isSafeRegistryPath(filename))
+        .map(([filename, content]) => [filename, content?.code || ''])
     );
 
     return {

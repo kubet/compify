@@ -4,6 +4,7 @@ import { Command } from "commander"
 import prompts, { PromptObject } from "prompts"
 import { ApiClient } from "../utils/api-client"
 import { logger } from "../utils/logger"
+import { componentFolderName, safeComponentPath } from "../utils/component-path"
 
 interface AddOptions {
   components?: string[]
@@ -31,9 +32,6 @@ interface ComponentSetup {
   createFolder: boolean;
   overwrite: boolean;
 }
-
-const componentFolderName = (name: string) =>
-  name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")
 
 async function promptForComponentSetup(
   cwd: string, 
@@ -152,8 +150,8 @@ export const add = new Command()
 
           // Check if any files already exist
           const hasExistingFiles = Object.keys(component.files).some(filename => 
-            fs.existsSync(path.join(componentDir, filename)) ||
-            fs.existsSync(path.join(componentDir, componentFolderName(component.name), filename))
+            fs.existsSync(safeComponentPath(componentDir, filename)) ||
+            fs.existsSync(safeComponentPath(path.join(componentDir, componentFolderName(component.name)), filename))
           )
 
           // If not using flags, ask for setup
@@ -181,7 +179,7 @@ export const add = new Command()
 
           // Create component files
           for (const [filename, content] of Object.entries(component.files)) {
-            const filePath = path.join(componentDir, filename)
+            const filePath = safeComponentPath(componentDir, filename)
             
             if (fs.existsSync(filePath) && !opts.overwrite) {
               if (!opts.silent) {

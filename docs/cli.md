@@ -26,6 +26,20 @@ compify login -t <token>  # non-interactive
 Generate a token on compify.app under **Profile → CLI token**. The token is
 stored in your OS keychain-backed config, never in the project.
 
+### Use a self-hosted server
+
+Select another API globally or with environment variables:
+
+```bash
+compify --api-url https://api.example.com login -t <token>
+COMPIFY_API_URL=https://api.example.com compify list
+```
+
+Set `--web-url` / `COMPIFY_WEB_URL` as well when MCP results should link to a
+self-hosted web frontend. Options must appear before the subcommand. Tokens are
+isolated per API URL in the OS keychain; the hosted compify.app credential
+keeps its existing keychain entry. Trailing slashes are accepted.
+
 ## Commands
 
 ### `compify init`

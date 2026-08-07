@@ -19,6 +19,7 @@ Build, preview and share UI components. Live at [compify.app](https://compify.ap
 - [shadcn registry interop](docs/registry.md) — `npx shadcn add @compify/<user>/<name>`
 - [Publishing guide](docs/publishing.md)
 - [MCP server for agents](docs/mcp.md) — `compify mcp`
+- [Open-source/self-host readiness](docs/open-source-readiness.md) — current gaps and release gate
 
 ## Development
 
@@ -28,7 +29,7 @@ Each app is self-contained for now (no workspace hoisting yet).
 # frontend — http://localhost:3000
 cd apps/web && yarn && yarn dev
 
-# api — http://localhost:3091 (needs PostgreSQL + MinIO, see .env.stage.local)
+# api — http://localhost:3009 (needs PostgreSQL + MinIO, see .env.stage.local)
 cd apps/api && yarn && yarn start:dev
 
 # cli
@@ -46,6 +47,14 @@ ZeptoMail, Turnstile. Env files are gitignored — never commit them.
 MinIO buckets: `components` (one JSON object per component id holding its
 files), `images` (`<shortId>` preview + `<shortId>-og` social image, webp),
 `public` (static assets, served via cdn.compify.app), `projects`.
+
+## Self-hosting status
+
+The code is MIT-licensed, but self-hosting is not turnkey yet. The checked-in
+PM2 scripts describe compify.app's existing server; they do not provision a
+fresh host. See the [readiness audit](docs/open-source-readiness.md) before
+running production or presenting the repository as a supported self-host
+distribution.
 
 ## Production
 

@@ -1,9 +1,13 @@
 import keytar from 'keytar';
+import { getCredentialAccount } from './config';
 
 export class AuthManager {
   private static instance: AuthManager;
   private readonly service: string = 'compify-cli';
-  private readonly account: string = 'default';
+
+  private get account(): string {
+    return getCredentialAccount();
+  }
 
   private constructor() {}
 

@@ -51,11 +51,11 @@ The registry protocol is the distribution: we adopt it rather than invent one.
 - Docs: registry interop, CLI reference, publishing guide ✅
 - `llms.txt` for agent discovery ✅
 
-**Phase 2 — agent-native (next)**
+**Phase 2 — agent-native (in progress)**
 - `compify mcp` — stdio MCP server in the CLI (search / view / install tools)
-  so agents without shadcn set up can still use compify directly.
-- Per-component agent docs (`docs` field in registry items, richer metadata).
-- Publish CLI to npm as `@compify/cli`.
+  so agents without shadcn set up can still use compify directly. ✅
+- Per-component agent docs (`docs` field in registry items, richer metadata). ✅
+- Publish the current CLI release to npm as `@compify/cli` and automate releases.
 
 **Phase 3 — teams & revenue**
 - Org namespaces (`@org/name`) — usernames and org handles share one

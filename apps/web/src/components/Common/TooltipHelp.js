@@ -49,10 +49,9 @@ export default function TooltipHelp({
                             >
                                 <h2 className="text-white text-lg font-medium mb-3">{title}</h2>
 
-                                <p
-                                    className="text-gray-400 text-sm max-w-[14rem]"
-                                    dangerouslySetInnerHTML={{ __html: description }}
-                                />
+                                <p className="text-gray-400 text-sm max-w-[14rem]">
+                                    {description}
+                                </p>
 
                             </div>
                         </div>

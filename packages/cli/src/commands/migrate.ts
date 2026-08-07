@@ -5,6 +5,7 @@ import prompts from "prompts"
 import kleur from "kleur"
 import { ApiClient } from "../utils/api-client"
 import { logger } from "../utils/logger"
+import { componentFolderName, safeComponentPath } from "../utils/component-path"
 
 interface CompifyConfig {
   components: Array<{
@@ -82,14 +83,14 @@ export const migrate = new Command()
           
           // Try both flat and folder structures
           const flatDir = baseComponentDir
-          const folderDir = path.join(baseComponentDir, component.name)
+          const folderDir = path.join(baseComponentDir, componentFolderName(component.name))
           const updatedFiles: string[] = []
           let hasChanges = false
 
           // First, check if we need to migrate
           for (const [filename, registryContent] of Object.entries(registryComponent.files)) {
-            const flatPath = path.join(flatDir, filename)
-            const folderPath = path.join(folderDir, filename)
+            const flatPath = safeComponentPath(flatDir, filename)
+            const folderPath = safeComponentPath(folderDir, filename)
             let localPath: string | null = null
             let localContent: string | null = null
 
@@ -140,8 +141,8 @@ export const migrate = new Command()
 
           // Perform the migration
           for (const [filename, registryContent] of Object.entries(registryComponent.files)) {
-            const flatPath = path.join(flatDir, filename)
-            const folderPath = path.join(folderDir, filename)
+            const flatPath = safeComponentPath(flatDir, filename)
+            const folderPath = safeComponentPath(folderDir, filename)
             let targetPath: string | null = null
 
             // Determine which path to use

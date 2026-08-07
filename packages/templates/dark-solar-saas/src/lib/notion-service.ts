@@ -5,7 +5,7 @@ import { BlockObjectResponse, PageObjectResponse } from '@notionhq/client/build/
 
 // Initialize Notion client
 const notion = new Client({
-  auth: process.env.NEXT_PUBLIC_NOTION_SECRET,
+  auth: process.env.NOTION_SECRET,
 });
 
 // Define types for Notion properties

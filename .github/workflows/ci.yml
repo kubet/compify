@@ -34,6 +34,7 @@ jobs:
           filters: |
             web:
               - 'apps/web/**'
+              - 'packages/compify-pack/**'
             api:
               - 'apps/api/**'
             cli:
@@ -72,6 +73,7 @@ jobs:
           cache-dependency-path: apps/api/yarn.lock
       - run: yarn install --frozen-lockfile
       - run: yarn build
+      - run: yarn test --runInBand
 
   cli:
     needs: changes
@@ -85,5 +87,6 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 22
-      - run: yarn install
+      - run: yarn install --frozen-lockfile
       - run: yarn build
+      - run: yarn test

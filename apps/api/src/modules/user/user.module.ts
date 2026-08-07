@@ -38,7 +38,7 @@ import { Report } from 'src/entities/common/report.entity';
     JwtModule.registerAsync({
       useFactory: async () => {
         return {
-          secret: process.env.NEST_JWT_SECRET,
+          secret: process.env.JWT_SECRET,
           signOptions: { expiresIn: '30d' },
         };
       },

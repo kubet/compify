@@ -2,8 +2,10 @@ import fetch from 'node-fetch';
 import { AuthManager } from './auth-manager';
 import { logger } from './logger';
 
-// Override with COMPIFY_API_URL for local development (e.g. http://localhost:3091).
-const BASE_URL = `${process.env.COMPIFY_API_URL || 'https://api.compify.app'}/cli`;
+import { getApiUrl } from './config';
+
+// COMPIFY_API_URL and the global --api-url option select a self-hosted server.
+const getBaseUrl = () => `${getApiUrl()}/cli`;
 export interface ComponentResponse {
   id: string;
   name: string;
@@ -39,7 +41,7 @@ export class ApiClient {
   async getComponent(componentName: string): Promise<ComponentResponse> {
     try {
       const headers = await this.getHeaders();
-      const response = await fetch(`${BASE_URL}/get?id=${encodeURIComponent(componentName)}`, {
+      const response = await fetch(`${getBaseUrl()}/get?id=${encodeURIComponent(componentName)}`, {
         headers
       });
 
@@ -59,7 +61,7 @@ export class ApiClient {
 
   async getComponents(): Promise<ComponentResponse[]> {
     const headers = await this.getHeaders();
-    const response = await fetch(`${BASE_URL}/get-all`, { headers });
+    const response = await fetch(`${getBaseUrl()}/get-all`, { headers });
     return await response.json() as ComponentResponse[];
   }
 } 

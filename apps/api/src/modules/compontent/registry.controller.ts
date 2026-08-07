@@ -6,6 +6,8 @@ import {
   ComponentVisibility,
 } from 'src/entities/project/component.entity';
 import { MinioClientService } from '../minio/minio.service';
+import { ConfigService } from '@nestjs/config';
+import { isSafeRegistryPath } from 'src/common/registry-path';
 
 /**
  * shadcn-compatible registry (https://ui.shadcn.com/docs/registry).
@@ -22,7 +24,12 @@ export class RegistryController {
     @InjectRepository(Component)
     private componentRepository: Repository<Component>,
     private minioService: MinioClientService,
+    private configService: ConfigService,
   ) {}
+
+  private get frontendUrl(): string {
+    return (this.configService.get<string>('FRONTEND_URL') || 'https://compify.app').replace(/\/$/, '');
+  }
 
   // Compify-internal files that make no sense inside a consumer project.
   private static readonly EXCLUDED_FILES = [
@@ -48,7 +55,7 @@ export class RegistryController {
     return {
       $schema: 'https://ui.shadcn.com/schema/registry.json',
       name: 'compify',
-      homepage: 'https://compify.app',
+      homepage: this.frontendUrl,
       items: components.map((component) => ({
         name: component.publishingDomain.replace(/^compify\//, ''),
         type: 'registry:component',
@@ -119,7 +126,7 @@ export class RegistryController {
 
     const itemName = publishingDomain.split('/')[1];
     const author = component.user?.username
-      ? `@${component.user.username} (https://compify.app)`
+      ? `@${component.user.username} (${this.frontendUrl})`
       : undefined;
 
     return {
@@ -134,6 +141,7 @@ export class RegistryController {
         .filter(
           ([path, file]: [string, any]) =>
             !RegistryController.EXCLUDED_FILES.includes(path) &&
+            isSafeRegistryPath(path.replace(/^\//, '')) &&
             typeof file?.code === 'string',
         )
         .map(([path, file]: [string, any]) => {
@@ -149,9 +157,9 @@ export class RegistryController {
             content: file.code,
           };
         }),
-      docs: `Preview and customize at https://compify.app/view/@${publishingDomain}`,
+      docs: `Preview and customize at ${this.frontendUrl}/view/@${publishingDomain}`,
       meta: {
-        source: `https://compify.app/view/@${publishingDomain}`,
+        source: `${this.frontendUrl}/view/@${publishingDomain}`,
       },
     };
   }

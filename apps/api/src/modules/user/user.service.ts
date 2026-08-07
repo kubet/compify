@@ -545,9 +545,11 @@ export class UserService {
     }
   }
   async resetPassword(token: string, password: string, email: string) {
+    email = email?.trim().toLowerCase();
     const latestToken = await this.tokenRepo
       .createQueryBuilder('token')
       .where('token.token = :token', { token: token })
+      .andWhere('token.email = :email', { email })
       .andWhere('token.type = :type', { type: TokenType.RESET_PASSWORD })
       .orderBy('token.date', 'DESC')
       .groupBy('token.id')
@@ -566,6 +568,9 @@ export class UserService {
     }
     
     const user = await this.userRepo.findOneBy({ email });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
     user.password = await this.hashPassword(password, await bcrypt.genSalt());
     try {
       await this.userRepo.save(user);

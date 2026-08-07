@@ -6,6 +6,7 @@ import { diffLines } from "diff"
 import kleur from "kleur"
 import { ApiClient } from "../utils/api-client"
 import { logger } from "../utils/logger"
+import { componentFolderName, safeComponentPath } from "../utils/component-path"
 
 interface CompifyConfig {
   components: Array<{
@@ -104,12 +105,12 @@ async function diffComponent(componentId: string, componentName: string, compone
 
     // Try both flat and folder structures
     const flatDir = componentDir
-    const folderDir = path.join(componentDir, componentName)
+    const folderDir = path.join(componentDir, componentFolderName(componentName))
 
     for (const [filename, registryContent] of Object.entries(registryComponent.files)) {
       // Check both flat and folder structure paths
-      const flatPath = path.join(flatDir, filename)
-      const folderPath = path.join(folderDir, filename)
+      const flatPath = safeComponentPath(flatDir, filename)
+      const folderPath = safeComponentPath(folderDir, filename)
       let localContent: string | null = null
       let actualPath: string | null = null
 
