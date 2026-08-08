@@ -135,7 +135,7 @@ function FileSelector({ files, onSelect, onClose, selectedFiles, onRemove }) {
     );
 }
 
-function RemapFiles({ files, apply, close, setSnackHeight, usedUiFrameworks, theme, userPlan, activeFile }) {
+function RemapFiles({ files, apply, close, setSnackHeight, usedUiFrameworks, componentId, userPlan, activeFile }) {
     const [selectedFiles, setSelectedFiles] = useState([]);
     const [isFileSelectorOpen, setIsFileSelectorOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -215,7 +215,7 @@ function RemapFiles({ files, apply, close, setSnackHeight, usedUiFrameworks, the
     const getFiles = () => {
         const filesObj = {};
         selectedFiles.forEach(file => {
-            filesObj[file] = files[file]?.code;
+            filesObj[denormalizePath(file)] = files[file]?.code;
         });
         return filesObj;
     }
@@ -235,11 +235,11 @@ function RemapFiles({ files, apply, close, setSnackHeight, usedUiFrameworks, the
             const response = await remapFiles({
                 files: getFiles(),
                 uiFrameworks: usedUiFrameworks,
-                themeKeys: theme?.values?.map(value => value.key)
+                componentId
             });
             if (response.status === 201) {
                 const formattedFiles = Object.entries(response.data).reduce((acc, [filename, content]) => {
-                    acc[filename] = { code: content };
+                    acc[normalizePath(filename)] = { code: content };
                     return acc;
                 }, {});
                 setRemappedFiles(formattedFiles);

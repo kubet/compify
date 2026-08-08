@@ -12,6 +12,13 @@ interface GenerationParams {
   temperature?: number;
   responseFormat?: { type: string };
   initialCode?: string;
+  signal?: AbortSignal;
+}
+
+export interface StreamOutcome {
+  emittedOutput: boolean;
+  succeeded: boolean;
+  disconnected: boolean;
 }
 
 interface StreamProcessor {
@@ -136,70 +143,138 @@ export class ProviderService {
     res: Response,
     streamGenerator: AsyncGenerator<any>,
     processor: StreamProcessor,
-  ) {
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
+    deferFailure = false,
+    signal?: AbortSignal,
+  ): Promise<StreamOutcome> {
+    if (signal?.aborted || res.destroyed || res.closed) {
+      return { emittedOutput: false, succeeded: false, disconnected: true };
+    }
+    if (!res.headersSent) {
+      res.setHeader('Content-Type', 'text/event-stream');
+      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('Connection', 'keep-alive');
+      res.write('data: {"status":"connected"}\n\n');
+    }
 
     let buffer = '';
-    let hasReceivedText = false;
+    let emittedOutput = false;
+    let disconnected = false;
+    let outputBytes = 0;
+    const maxOutputBytes = 1_000_000;
+    const maxBufferBytes = 250_000;
+    let resolveClose: () => void = () => undefined;
+    const closePromise = new Promise<void>((resolve) => {
+      resolveClose = resolve;
+    });
+    const onClose = () => {
+      disconnected = true;
+      resolveClose();
+    };
+    const onAbort = onClose;
+    res.once('close', onClose);
+    signal?.addEventListener('abort', onAbort, { once: true });
+    const iterator = streamGenerator[Symbol.asyncIterator]();
+    let cancellationSignalled = false;
+    const cancelIterator = () => {
+      if (cancellationSignalled) return;
+      cancellationSignalled = true;
+      void iterator.return?.(undefined as any).catch(() => undefined);
+    };
+    const outcome = (succeeded: boolean): StreamOutcome => ({
+      emittedOutput,
+      succeeded,
+      disconnected,
+    });
+    const write = (value: string) => {
+      if (disconnected || res.writableEnded || res.destroyed || res.closed)
+        return false;
+      res.write(value);
+      return (
+        !disconnected && !res.writableEnded && !res.destroyed && !res.closed
+      );
+    };
 
     try {
       processor.onStart?.();
-      res.write('data: {"status":"connected"}\n\n');
-
-      for await (const chunk of streamGenerator) {
-        hasReceivedText = true;
-        buffer += chunk;
-
+      while (true) {
+        const next = await Promise.race([
+          iterator.next().then((value) => ({ kind: 'next' as const, value })),
+          closePromise.then(() => ({ kind: 'close' as const })),
+        ]);
+        if (next.kind === 'close') {
+          cancelIterator();
+          return outcome(false);
+        }
+        if (next.value.done) break;
+        const text =
+          typeof next.value.value === 'string' ? next.value.value : '';
+        outputBytes += Buffer.byteLength(text, 'utf8');
+        if (outputBytes > maxOutputBytes)
+          throw new Error('AI output limit exceeded');
+        buffer += text;
+        if (Buffer.byteLength(buffer, 'utf8') > maxBufferBytes)
+          throw new Error('AI stream buffer limit exceeded');
         while (buffer.includes('\n')) {
           const newlineIndex = buffer.indexOf('\n');
           const line = buffer.slice(0, newlineIndex);
           buffer = buffer.slice(newlineIndex + 1);
-
           const processedLine = processor.processLine(line);
           if (processedLine !== null) {
-            res.write(
+            const usable = processedLine.trim().length > 0;
+            const wrote = write(
               `data: ${JSON.stringify({ response: processedLine + '\n' })}\n\n`,
             );
+            if (usable && wrote) emittedOutput = true;
           }
         }
       }
-
-      if (buffer) {
+      if (buffer && !disconnected) {
         const processedLine = processor.processLine(buffer);
         if (processedLine !== null) {
-          res.write(`data: ${JSON.stringify({ response: processedLine })}\n\n`);
+          const usable = processedLine.trim().length > 0;
+          const wrote = write(
+            `data: ${JSON.stringify({ response: processedLine })}\n\n`,
+          );
+          if (usable && wrote) emittedOutput = true;
         }
       }
-
-      if (!hasReceivedText) {
-        res.write(
+      if (disconnected) return outcome(false);
+      if (!emittedOutput && deferFailure) return outcome(false);
+      if (!emittedOutput) {
+        write(
           `data: ${JSON.stringify({ error: 'No response generated' })}\n\n`,
         );
+        return outcome(false);
       }
-
       processor.onEnd?.();
-      res.write(`data: ${JSON.stringify({ status: 'done' })}\n\n`);
+      write(`data: ${JSON.stringify({ status: 'done' })}\n\n`);
+      return outcome(true);
     } catch (error) {
       processor.onError?.(error);
-      res.write(
-        `data: ${JSON.stringify({ error: error.message || 'Stream error occurred' })}\n\n`,
-      );
+      if (disconnected) return outcome(false);
+      if (!emittedOutput && deferFailure) return outcome(false);
+      write(`data: ${JSON.stringify({ error: 'AI generation failed' })}\n\n`);
+      return outcome(false);
     } finally {
-      res.end();
+      res.removeListener('close', onClose);
+      signal?.removeEventListener('abort', onAbort);
+      if (disconnected) cancelIterator();
+      if (!disconnected && (!deferFailure || emittedOutput)) res.end();
     }
   }
 
   // Stream generators with more permissive types
   async *createOpenAIStream(params: GenerationParams) {
-    const stream = (await this.getOpenAI().chat.completions.create({
-      model: params.model,
-      messages: params.messages as any[],
-      temperature: params.temperature ?? 0.5,
-      max_tokens: params.maxTokens ?? 4096,
-      stream: true,
-    })) as any;
+    const stream = (await this.getOpenAI().chat.completions.create(
+      {
+        model: params.model,
+        messages: params.messages as any[],
+        temperature: params.temperature ?? 0.5,
+        max_tokens: params.maxTokens ?? 4096,
+        stream: true,
+      },
+      { signal: params.signal },
+    )) as any;
 
     for await (const chunk of stream) {
       yield chunk.choices[0]?.delta?.content || '';
@@ -207,13 +282,16 @@ export class ProviderService {
   }
 
   async *createOpenRouterStream(params: GenerationParams) {
-    const stream = (await this.getOpenRouter().chat.completions.create({
-      model: params.model,
-      messages: params.messages as any[],
-      temperature: params.temperature ?? 0.5,
-      max_tokens: params.maxTokens ?? 4096,
-      stream: true,
-    })) as any;
+    const stream = (await this.getOpenRouter().chat.completions.create(
+      {
+        model: params.model,
+        messages: params.messages as any[],
+        temperature: params.temperature ?? 0.5,
+        max_tokens: params.maxTokens ?? 4096,
+        stream: true,
+      },
+      { signal: params.signal },
+    )) as any;
 
     for await (const chunk of stream) {
       yield chunk.choices[0]?.delta?.content || '';
@@ -221,13 +299,16 @@ export class ProviderService {
   }
 
   async *createAnthropicStream(params: GenerationParams) {
-    const stream = (await this.getAnthropic().messages.stream({
-      model: params.model,
-      messages: params.messages as any[],
-      max_tokens: params.maxTokens ?? 4096,
-      temperature: params.temperature ?? 0.5,
-      system: generationPrompt(),
-    })) as any;
+    const stream = (await this.getAnthropic().messages.stream(
+      {
+        model: params.model,
+        messages: params.messages as any[],
+        max_tokens: params.maxTokens ?? 4096,
+        temperature: params.temperature ?? 0.5,
+        system: generationPrompt(),
+      },
+      { signal: params.signal },
+    )) as any;
 
     for await (const chunk of stream) {
       if (chunk.type === 'content_block_delta') {

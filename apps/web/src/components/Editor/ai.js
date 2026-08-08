@@ -1,5 +1,6 @@
 import { baseUrl } from "@/constains";
 import { useState, useCallback, useRef } from "react";
+import { applyAiStreamEvent, assertAiStreamComplete, parseAiSseLine } from "./ai-stream";
 
 const apiClient = {
   async generateCode(
@@ -14,6 +15,7 @@ const apiClient = {
   ) {
     const response = await fetch(baseUrl + endpoint, {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
@@ -29,7 +31,10 @@ const apiClient = {
     });
 
     if (!response.ok) {
-      throw new Error("You don't have enough ai credits to generate code.");
+      if (response.status === 402) {
+        throw new Error("You don't have enough AI credits to generate code.");
+      }
+      throw new Error("AI generation request failed.");
     }
 
     return response;
@@ -46,6 +51,7 @@ export function useAI() {
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     let buffer = "";
+    let streamState = { done: false, response: "" };
 
     const updateResponse = (newContent) => {
       fullResponseRef.current += newContent;
@@ -67,16 +73,14 @@ export function useAI() {
           const line = buffer.slice(dataIndex, endIndex);
           buffer = buffer.slice(endIndex + 1);
 
+          let event;
           try {
-            const data = JSON.parse(line.slice(6));
-            if (data.response) {
-              updateResponse(data.response);
-            } else if (data.error) {
-              throw new Error(data.error);
-            }
-          } catch (e) {
-            console.error("Error parsing SSE data:", e);
+            event = parseAiSseLine(line);
+          } catch (error) {
+            throw new Error("Invalid AI stream response", { cause: error });
           }
+          streamState = applyAiStreamEvent(streamState, event);
+          if (streamState.response) updateResponse(streamState.response);
         }
       }
     } finally {
@@ -84,18 +88,14 @@ export function useAI() {
         const remainingData = buffer.split("\n");
         for (const line of remainingData) {
           if (line.startsWith("data: ")) {
-            try {
-              const data = JSON.parse(line.slice(6));
-              if (data.response) {
-                updateResponse(data.response);
-              }
-            } catch (e) {
-              console.error("Error parsing remaining SSE data:", e);
-            }
+            const event = parseAiSseLine(line);
+            streamState = applyAiStreamEvent(streamState, event);
+            if (streamState.response) updateResponse(streamState.response);
           }
         }
       }
     }
+    assertAiStreamComplete(streamState);
   };
 
   const generateCode = useCallback(

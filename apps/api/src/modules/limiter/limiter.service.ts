@@ -11,6 +11,13 @@ import { UserUsedComponents } from 'src/entities/user/user-used-components.entit
 import { User } from 'src/entities/user/user.entity';
 import { Repository } from 'typeorm';
 
+export interface AiCreditReservation {
+  userId: string;
+  credits: number;
+  kind: 'paid' | 'free';
+  active: boolean;
+}
+
 @Injectable()
 export class LimiterService {
   constructor(
@@ -134,53 +141,117 @@ export class LimiterService {
     return false;
   }
 
-  async aiCreditUsage(user: User, credits: number = 1) {
+  async reserveAiCredits(
+    userId: string,
+    credits: number = 1,
+    kind: 'paid' | 'free' = 'paid',
+  ): Promise<AiCreditReservation> {
+    if (!Number.isSafeInteger(credits) || credits < 1 || credits > 10_000) {
+      throw new HttpException('Invalid credit request', HttpStatus.BAD_REQUEST);
+    }
     const subscription = await this.userRepository
       .createQueryBuilder('user')
-      .leftJoinAndSelect('user.subscriptions', 'subscription')
-      .leftJoinAndSelect('subscription.plan', 'plan')
-      .where('user.id = :userId', { userId: user.id })
-      .orderBy('subscription.createdAt', 'DESC')
+      .leftJoin('user.subscriptions', 'subscription')
+      .where('user.id = :userId', { userId })
+      .select('subscription.id', 'subscriptionId')
       .limit(1)
-      .select(['plan.toAiCredits'])
       .getRawOne();
-    if (!subscription) {
+    if (!subscription?.subscriptionId)
       throw new NotFoundException('Subscription not found');
-    }
-    if (user.availableAiCredits <= 0) {
+
+    const column =
+      kind === 'paid' ? 'availableAiCredits' : 'availableFreeAiCredits';
+    const result = await this.userRepository
+      .createQueryBuilder()
+      .update(User)
+      .set({ [column]: () => `"${column}" - ${credits}` })
+      .where('id = :userId', { userId })
+      .andWhere(`"${column}" >= :credits`, { credits })
+      .execute();
+    if (result.affected !== 1) {
       throw new HttpException(
-        "You don't have enough ai credits!",
+        kind === 'paid'
+          ? "You don't have enough ai credits!"
+          : "You don't have enough free ai credits!",
         HttpStatus.PAYMENT_REQUIRED,
       );
     }
-    this.userRepository.update(user.id, {
-      availableAiCredits: user.availableAiCredits - credits,
-    });
+    return { userId, credits, kind, active: true };
+  }
+
+  async settleAiCreditReservation(
+    reservation: AiCreditReservation,
+    usedCredits: number = reservation.credits,
+  ) {
+    if (!reservation.active) return false;
+    if (
+      !Number.isSafeInteger(usedCredits) ||
+      usedCredits < 1 ||
+      usedCredits > reservation.credits
+    ) {
+      throw new HttpException(
+        'Invalid credit settlement',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    const refundCredits = reservation.credits - usedCredits;
+    reservation.active = false;
+    if (refundCredits === 0) return true;
+    const column =
+      reservation.kind === 'paid'
+        ? 'availableAiCredits'
+        : 'availableFreeAiCredits';
+    try {
+      const result = await this.userRepository
+        .createQueryBuilder()
+        .update(User)
+        .set({ [column]: () => `"${column}" + ${refundCredits}` })
+        .where('id = :userId', { userId: reservation.userId })
+        .andWhere(`"${column}" <= :maxBeforeRefund`, {
+          maxBeforeRefund: 2_147_483_647 - refundCredits,
+        })
+        .execute();
+      if (result.affected !== 1) throw new Error('AI credit settlement failed');
+      return true;
+    } catch (error) {
+      reservation.active = true;
+      throw error;
+    }
+  }
+
+  async refundAiCreditReservation(reservation: AiCreditReservation) {
+    if (!reservation.active) return false;
+    // Claim the refund before awaiting so repeated error paths cannot refund twice.
+    reservation.active = false;
+    const column =
+      reservation.kind === 'paid'
+        ? 'availableAiCredits'
+        : 'availableFreeAiCredits';
+    try {
+      const result = await this.userRepository
+        .createQueryBuilder()
+        .update(User)
+        .set({ [column]: () => `"${column}" + ${reservation.credits}` })
+        .where('id = :userId', { userId: reservation.userId })
+        .andWhere(`"${column}" <= :maxBeforeRefund`, {
+          maxBeforeRefund: 2_147_483_647 - reservation.credits,
+        })
+        .execute();
+      if (result.affected !== 1) throw new Error('AI credit refund failed');
+      return true;
+    } catch (error) {
+      reservation.active = true;
+      throw error;
+    }
+  }
+
+  async aiCreditUsage(user: User, credits: number = 1) {
+    await this.reserveAiCredits(user.id, credits, 'paid');
     return null;
   }
 
   async freeAiCreditUsage(user: User, credits: number = 1) {
-    const subscription = await this.userRepository
-      .createQueryBuilder('user')
-      .leftJoinAndSelect('user.subscriptions', 'subscription')
-      .leftJoinAndSelect('subscription.plan', 'plan')
-      .where('user.id = :userId', { userId: user.id })
-      .orderBy('subscription.createdAt', 'DESC')
-      .limit(1)
-      .select(['plan.toFreeAiCredits'])
-      .getRawOne();
-    if (!subscription) {
-      throw new NotFoundException('Subscription not found');
-    }
-    if (user.availableFreeAiCredits <= 0) {
-      throw new HttpException(
-        "You don't have enough free ai credits!",
-        HttpStatus.PAYMENT_REQUIRED,
-      );
-    }
-    this.userRepository.update(user.id, {
-      availableFreeAiCredits: user.availableFreeAiCredits - credits,
-    });
+    await this.reserveAiCredits(user.id, credits, 'free');
     return null;
   }
 
