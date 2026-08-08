@@ -22,6 +22,8 @@ const external = [
 ];
 
 const baseConfig = { input: "src/index.ts", external };
+const modificationBanner =
+  "/* Modified by Compify from CodeSandbox Sandpack v2.19.8; see packages/compify-pack/PROVENANCE.md. */";
 
 const configBase = [
   {
@@ -44,7 +46,7 @@ const configBase = [
         format: "cjs",
         inlineDynamicImports: true,
         interop: "auto",
-        banner: `"use client";\n`,
+        banner: `${modificationBanner}\n"use client";\n`,
         preserveModules: false,
       },
       {
@@ -54,7 +56,7 @@ const configBase = [
         exports: "named",
         format: "es",
         inlineDynamicImports: true,
-        banner: `"use client";\n`,
+        banner: `${modificationBanner}\n"use client";\n`,
         preserveModules: false,
       },
     ],
@@ -88,6 +90,7 @@ const configBase = [
         format: "cjs",
         inlineDynamicImports: true,
         interop: "auto",
+        banner: modificationBanner,
       },
       {
         dir: "dist/unstyled",
@@ -96,6 +99,7 @@ const configBase = [
         exports: "named",
         format: "es",
         inlineDynamicImports: true,
+        banner: modificationBanner,
       },
     ],
   },

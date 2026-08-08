@@ -9,9 +9,10 @@ commands for self-hosted Compify registries.
 
 ## Release status
 
-The repository source is the current release candidate. Do not assume that
-`@compify/cli` is available from a package registry until a release announcement
-says so. The commands do not require a managed Compify service: local
+npm contains the older `@compify/cli@0.1.0`, but it does not contain the
+Storybook workflow documented here. Version 0.2.0 in this repository is the
+current release candidate and is not published until its release is announced.
+The new commands do not require a managed Compify service: local
 `storybook inspect` and `storybook export` work without an account or server.
 
 ## Build from source

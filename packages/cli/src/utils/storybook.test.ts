@@ -189,4 +189,40 @@ export const Primary = {}
     fs.writeFileSync(path.join(root, "Fine.tsx"), `import "./bad.pem"\nexport const Fine = () => null`)
     expect(() => buildStoryBundle(undefined, { cwd: root })).toThrow(/secret file/)
   })
+
+  it("statically supports the basic CSF Next preview.meta/meta.story form", () => {
+    const root = project({
+      "Factory.stories.tsx": `import preview from "./preview"
+import { Factory } from "./Factory"
+const meta = preview.meta({ component: Factory })
+export const Primary = meta.story({ name: "Primary action", args: { label: "Go" } })
+`,
+      "preview.ts": `export default { meta: (value: unknown) => value }
+`,
+      "Factory.tsx": `export const Factory = () => null
+`,
+    })
+    const bundle = buildStoryBundle(undefined, { cwd: root })
+    expect(bundle.entry).toBe("Factory.tsx")
+    expect(bundle.stories).toEqual([{ exportName: "Primary", name: "Primary action", args: { label: "Go" }, portable: true }])
+    expect(bundle.diagnostics).not.toContainEqual(expect.objectContaining({ code: "MISSING_META" }))
+  })
+
+  it("fails closed for CSF Next Story.extend inheritance", () => {
+    const root = project({
+      "Factory.stories.tsx": `import preview from "./preview"
+import { Factory } from "./Factory"
+const meta = preview.meta({ component: Factory })
+const Base = meta.story({ args: { label: "Base" } })
+export const Primary = Base.extend({ args: { label: "Go" } })
+`,
+      "preview.ts": `export default { meta: (value: unknown) => value }
+`,
+      "Factory.tsx": `export const Factory = () => null
+`,
+    })
+    const bundle = buildStoryBundle(undefined, { cwd: root })
+    expect(bundle.diagnostics).toContainEqual(expect.objectContaining({ code: "CSF_FACTORY_EXTEND_UNSUPPORTED", severity: "error" }))
+  })
+
 })

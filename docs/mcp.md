@@ -3,18 +3,28 @@ title: MCP integrations
 description: Use Storybook context and Compify registry context without conflating their roles.
 ---
 
-There are two complementary MCP surfaces:
+There are upstream and downstream MCP surfaces with different authority:
 
 1. The **official Storybook MCP server** exposes a project's Storybook context
    to agents. Its MCP/manifests path is currently preview/unstable and React-only.
    Storybook remains upstream for authoring, tests, and docs.
-2. **`compify mcp`** searches and reads artifacts available through a Compify
-   registry. It does not inspect local Storybook source and is not a replacement
-   or proxy for the official Storybook server.
+2. The **official shadcn MCP** consumes registries configured in the target
+   project's `components.json` and owns discovery/installation semantics.
+3. **`compify mcp`** is a deprecated compatibility registry browser. It does not
+   inspect local Storybook source or add approval/provenance evidence beyond the
+   item itself. Do not build new integrations around it; it may be removed unless
+   pilots prove a Compify-specific evidence tool is needed.
 
 Static `compify storybook inspect` and `export` do not require either server.
 
-## Compify registry MCP
+## Preferred downstream integration
+
+Configure the Compify namespace (including optional Bearer headers) as shown in
+[Registry](./registry.md), then follow the official
+[shadcn MCP documentation](https://ui.shadcn.com/docs/mcp). This preserves native
+alias, target, dependency and authentication behavior.
+
+## Deprecated Compify registry MCP
 
 Build and link the current CLI source, then register its linked stdio
 executable with your MCP client:
@@ -30,10 +40,10 @@ executable with your MCP client:
 }
 ```
 
-The MCP client must inherit the path containing the linked executable. These
-docs do not promise package-registry availability.
+The MCP client must inherit the path containing the linked executable. The older npm CLI does not contain this 0.2 compatibility server; use the built
+release candidate until publication is announced.
 
-## Compify tools
+## Compatibility tools
 
 | Tool | What it does |
 | --- | --- |

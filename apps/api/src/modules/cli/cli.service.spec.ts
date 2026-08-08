@@ -205,7 +205,7 @@ describe('CliService Storybook publishing', () => {
     expect(componentService.create.mock.calls[0][0].visibility).toBe('free');
   });
 
-  it('does not advertise public URLs for private components', async () => {
+  it('returns an authenticated registry URL and private owner preview', async () => {
     const { service } = harness();
     await expect(
       service.publishStory(
@@ -213,7 +213,7 @@ describe('CliService Storybook publishing', () => {
         `Bearer ${VALID_TOKEN}`,
       ),
     ).resolves.toMatchObject({
-      registryUrl: null,
+      registryUrl: 'https://api.test/r/alice/card.json',
       previewUrl: 'https://web.test/create/short-id',
     });
   });

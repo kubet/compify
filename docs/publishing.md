@@ -37,10 +37,19 @@ to an API that does not currently expose this endpoint, so a bare `login` /
 option and must appear before `storybook`, for example
 `compify --api-url https://api.example.com storybook publish ...`.
 
-Visibility is explicit: `public` is registry-indexed, `unlisted` is available by
-direct address but omitted from discovery/index surfaces, and `private` is
-restricted to its owner. This does not imply a managed hosted endpoint or a
-package-registry release.
+Visibility is explicit: `public` is registry-indexed; `unlisted` is available by
+direct address but omitted from discovery/index surfaces; and `private` is
+absent from the public index and served only when the standard registry request
+carries its owner's CLI token as a Bearer header. See [Registry](./registry.md)
+for `components.json` configuration. This does not imply a managed hosted
+endpoint or scoped enterprise authorization.
+
+For CLI-published Storybook artifacts, the registry endpoint now preserves the
+reviewed component paths, dependency set, digest, stories and provenance metadata
+instead of applying the legacy browser editor's path transformation. The server
+still reconstructs JSON from stored source rather than serving immutable uploaded
+bytes; content-addressed revisions and byte-for-byte publication attestations
+remain roadmap work.
 
 See [Storybook translation](./storybook.mdx) for supported input and security
 boundaries. Publishing never means that Compify executed the Storybook story or

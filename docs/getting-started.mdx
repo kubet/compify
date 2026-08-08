@@ -12,9 +12,10 @@ description: Build Compify with Bun and translate a supported Storybook story lo
 
 ## Build the current source
 
-The Storybook commands and addon described in these docs are available from the
-repository source/release candidate. This documentation does not imply package
-registry availability or a managed hosted service.
+The older `@compify/cli@0.1.0` exists on npm, but the Storybook commands and
+addon described here are the 0.2 source/release candidate. Build this checkout
+until their publication is explicitly announced. No managed hosted service is
+implied.
 
 ```bash
 git clone https://github.com/kubet/compify.git
@@ -40,8 +41,9 @@ bun packages/cli/dist/index.js storybook export \
   --output .compify/button.registry.json
 ```
 
-The inspection should report `Button.tsx`, `button.css`, the `react` dependency,
-`Primary` and `Disabled`, and no portability issues. The export selects only the
+The inspection should report `Button.tsx`, `button.module.css`, `Primary` and `Disabled`,
+and no portability issues. React is a consumer peer rather than an artifact
+runtime dependency because the source uses the automatic JSX transform. The export selects only the
 `Primary` story metadata while retaining the component source graph. Open and
 review the generated JSON; artifact generation is not proof that the result is
 visually or behaviorally equivalent in a consumer app.

@@ -106,7 +106,9 @@ environments, set `COMPIFY_TOKEN`. Global options such as `--api-url` and
 - `compify migrate [componentId]` — update installed source; backups are enabled
   by default.
 - `compify remove [components...]` — remove files and manifest entries.
-- `compify mcp` — run the Compify registry MCP server over stdio.
+- `compify mcp` — deprecated compatibility registry MCP. Prefer the official
+  shadcn MCP configured through `components.json`; no new workflow should depend
+  on this command.
 - `compify logout` — clear stored credentials.
 
 Public registry items can also be installed through shadcn tooling; see

@@ -16,6 +16,7 @@ import { Report } from 'src/entities/common/report.entity';
 import { UserUsedComponents } from 'src/entities/user/user-used-components.entity';
 import { Upvote } from 'src/entities/project/upvote.entity';
 import { Subscription } from 'src/entities/subscription/subscription.entity';
+import { CliToken } from 'src/entities/cli/cli-tokens.entity';
 @Module({
   imports: [
     ConfigModule,
@@ -28,6 +29,7 @@ import { Subscription } from 'src/entities/subscription/subscription.entity';
       UserUsedComponents,
       Upvote,
       Subscription,
+      CliToken,
     ]),
     MinioModule,
   ],

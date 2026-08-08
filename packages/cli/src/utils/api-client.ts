@@ -27,7 +27,7 @@ export interface PublishStoryResponse {
   componentId: string;
   publishingDomain: string;
   digest: string;
-  registryUrl: string | null;
+  registryUrl: string;
   previewUrl: string;
 }
 

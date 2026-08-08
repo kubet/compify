@@ -65,9 +65,16 @@ The implementation is intentionally constrained to React CSF source files named
 `*.stories.tsx`, `*.stories.ts`, `*.stories.jsx`, `*.stories.js`, `*.stories.mjs`,
 or `*.stories.cjs`.
 
+It also recognizes the narrow CSF Next factory form
+`const meta = preview.meta({ component })` where `preview` is imported, followed
+by `export const Name = meta.story({ ...static metadata... })`. It never imports
+or executes that preview. `Story.extend`, `Story.input`, `Story.composed`,
+computed factory inputs, and imported/spread configuration remain unsupported;
+real Storybook 9/10 fixtures are still required before this is a broad claim.
+
 It currently recognizes:
 
-- a CSF default export;
+- a classic CSF default export or the narrow factory meta above;
 - CSF3 named variable exports;
 - CSF2 named function exports, including static `.args` and `.storyName`
   assignments;
@@ -81,7 +88,7 @@ It currently recognizes:
 Static literals include strings, numbers, booleans, null, literal arrays and
 objects, expression-free template literals, and simple unary literal values.
 Dynamic expressions are not evaluated. Dynamic args make that story
-non-portable and produce a warning; a missing default export or no named story
+non-portable and produce a warning; missing recognized meta or no named story
 exports is an error. Inspection reports non-portability; export and publish
 fail instead of emitting or uploading a partially portable artifact.
 

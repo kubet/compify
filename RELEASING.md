@@ -45,17 +45,21 @@ and package version produced each file.
 
 ## Package publishing
 
-Package publication is a separate explicit decision. Prefer npm trusted
-publishing/OIDC with provenance from a protected GitHub environment; do not use
-long-lived npm tokens. Publish from a clean, tagged checkout only after the
+Package publication is a separate explicit decision. The manual **Package
+release** workflow accepts only `cli-v<package-version>` or
+`storybook-v<package-version>` refs, always performs a dry run, and publishes
+only after explicit `publish=true` approval in the protected `npm-release`
+environment. Configure each npm package as a trusted publisher for that workflow;
+do not use long-lived npm tokens. Publish from a clean, tagged checkout only after the
 packed-package validation passes. Record the npm URL and integrity/provenance in
 the GitHub release. If trusted publishing is not configured, leave the package
 unpublished rather than weakening the release process.
 
-`compify-pack` must not be published until its exact Sandpack upstream revision,
-required upstream notices, local modification history and React peer
-compatibility have been reconstructed and reviewed. Repository inclusion is not
-package-release approval.
+`compify-pack` is an internal `private` package and must not be published. Its
+Sandpack v2.19.8 provenance and declared modified-file set are now verified in
+CI, but its React 17 peer contract and editor-specific API are not a supported
+standalone consumer surface. Repository inclusion is not package-release
+approval.
 
 ## Rollback and security
 

@@ -4,6 +4,10 @@ import { join } from "node:path";
 const root = join(import.meta.dir, "..");
 const required = [
   "LICENSE", "THIRD_PARTY_NOTICES.md", "RELEASING.md", "SECURITY.md",
+  "GOVERNANCE.md", "SUPPORT.md", ".github/workflows/package-release.yml",
+  "docs/compatibility.md",
+  "docs/ecosystem-strategy.md", "scripts/shadcn-consumer-smoke.ts",
+  "scripts/verify-sandpack-provenance.ts",
   "packages/cli/LICENSE", "packages/storybook/LICENSE",
   "packages/compify-pack/LICENSE", "packages/compify-pack/PROVENANCE.md",
   "apps/api/files/OFL.txt", "apps/api/files/COMPIFY-LICENSE",

@@ -1,3 +1,4 @@
+// Modified by Compify; see packages/compify-pack/PROVENANCE.md.
 import type { SandpackBundlerFiles } from "@codesandbox/sandpack-client";
 import { normalizePath } from "@codesandbox/sandpack-client";
 import { dequal as deepEqual } from "dequal";

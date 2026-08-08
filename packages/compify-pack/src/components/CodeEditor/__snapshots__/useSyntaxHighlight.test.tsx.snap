@@ -1,4 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
+// Modified by Compify; see packages/compify-pack/PROVENANCE.md.
 
 exports[`useSyntaxHighlight renders a css block 1`] = `
 Array [

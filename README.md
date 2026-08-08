@@ -24,6 +24,8 @@ Bun-powered component CLI, Compify MCP server, and self-hosting baseline. See
 
 - [Documentation](docs/index.mdx)
 - [Storybook translation](docs/storybook.mdx)
+- [Compatibility matrix](docs/compatibility.md)
+- [Ecosystem and cloud strategy](docs/ecosystem-strategy.md)
 - [Getting started](docs/getting-started.mdx)
 - [CLI reference](docs/cli.md)
 - [Publishing](docs/publishing.md)
@@ -58,6 +60,14 @@ baseline. The public repository does not promise a managed hosted deployment or
 contain production credentials, topology, or private deployment automation.
 Before exposing an installation, follow the security and production checklist
 in the [self-hosting guide](docs/self-hosting.md).
+
+## Community and releases
+
+- [Contributing](CONTRIBUTING.md)
+- [Support boundaries](SUPPORT.md)
+- [Governance](GOVERNANCE.md)
+- [Security policy](SECURITY.md)
+- [Release process](RELEASING.md)
 
 ## License
 

@@ -15,6 +15,7 @@ describe('RegistryController visibility', () => {
     const controller = new RegistryController(
       { createQueryBuilder: () => qb } as any,
       {} as any,
+      {} as any,
       { get: () => 'https://web.test' } as any,
     );
     await controller.index();
@@ -42,6 +43,7 @@ describe('RegistryController visibility', () => {
       qb[method].mockReturnValue(qb);
     const controller = new RegistryController(
       { createQueryBuilder: () => qb } as any,
+      {} as any,
       {
         getFile: jest.fn().mockResolvedValue({ buffer: Buffer.from('{}') }),
       } as any,
@@ -70,6 +72,7 @@ describe('RegistryController visibility', () => {
       qb[method].mockReturnValue(qb);
     const controller = new RegistryController(
       { createQueryBuilder: () => qb } as any,
+      {} as any,
       {
         getFile: jest.fn().mockResolvedValue({ buffer: Buffer.from('{bad') }),
       } as any,
@@ -77,6 +80,125 @@ describe('RegistryController visibility', () => {
     );
     await expect(controller.item('alice', 'broken')).rejects.toMatchObject({
       status: 404,
+    });
+  });
+
+  it('serves a private item only to its owning Bearer token', async () => {
+    const component: any = {
+      id: 'id',
+      name: 'Secret',
+      visibility: ComponentVisibility.PRIVATE,
+      publishingDomain: 'alice/secret',
+      usedDeps: {},
+      user: { id: 'alice-id', username: 'alice' },
+    };
+    const componentQb: any = {
+      leftJoinAndSelect: jest.fn(),
+      where: jest.fn(),
+      getOne: jest.fn().mockResolvedValue(component),
+    };
+    componentQb.leftJoinAndSelect.mockReturnValue(componentQb);
+    componentQb.where.mockReturnValue(componentQb);
+    const tokenQb: any = {
+      addSelect: jest.fn(),
+      leftJoinAndSelect: jest.fn(),
+      where: jest.fn(),
+      getOne: jest.fn().mockResolvedValue({
+        token: 'stored',
+        user: { id: 'alice-id', username: 'alice' },
+      }),
+    };
+    for (const method of ['addSelect', 'leftJoinAndSelect', 'where'])
+      tokenQb[method].mockReturnValue(tokenQb);
+    const tokenRepo = {
+      createQueryBuilder: () => tokenQb,
+      save: jest.fn().mockResolvedValue(undefined),
+    };
+    const controller = new RegistryController(
+      { createQueryBuilder: () => componentQb } as any,
+      tokenRepo as any,
+      {
+        getFile: jest.fn().mockResolvedValue({ buffer: Buffer.from('{}') }),
+      } as any,
+      { get: () => 'https://web.test' } as any,
+    );
+    await expect(
+      controller.item('alice', 'secret', `Bearer cli_${'a'.repeat(64)}`),
+    ).resolves.toMatchObject({ name: 'alice/secret' });
+    expect(tokenRepo.save).toHaveBeenCalled();
+  });
+
+  it('does not reveal a private item without a valid owner token', async () => {
+    const component: any = {
+      id: 'id',
+      name: 'Secret',
+      visibility: ComponentVisibility.PRIVATE,
+      publishingDomain: 'alice/secret',
+      usedDeps: {},
+      user: { id: 'alice-id', username: 'alice' },
+    };
+    const qb: any = {
+      leftJoinAndSelect: jest.fn(),
+      where: jest.fn(),
+      getOne: jest.fn().mockResolvedValue(component),
+    };
+    qb.leftJoinAndSelect.mockReturnValue(qb);
+    qb.where.mockReturnValue(qb);
+    const controller = new RegistryController(
+      { createQueryBuilder: () => qb } as any,
+      {} as any,
+      {} as any,
+      { get: () => 'https://web.test' } as any,
+    );
+    await expect(controller.item('alice', 'secret')).rejects.toMatchObject({
+      status: 404,
+    });
+  });
+
+  it('preserves a CLI-published Storybook graph instead of legacy editor remapping', async () => {
+    const storybook = {
+      schemaVersion: 1,
+      entry: 'src/Button.tsx',
+      stories: [{ exportName: 'Primary' }],
+      provenance: { storyPath: 'src/Button.stories.tsx' },
+      digest: 'a'.repeat(64),
+    };
+    const component: any = {
+      id: 'id',
+      name: 'button',
+      description: 'Reviewed',
+      visibility: ComponentVisibility.PUBLIC,
+      publishingDomain: 'alice/button',
+      usedDeps: { global: { react: '^19.0.0' }, files: {} },
+      pageSettings: { storybook },
+      user: { id: 'alice-id', username: 'alice' },
+    };
+    const qb: any = {
+      leftJoinAndSelect: jest.fn(),
+      where: jest.fn(),
+      getOne: jest.fn().mockResolvedValue(component),
+    };
+    qb.leftJoinAndSelect.mockReturnValue(qb);
+    qb.where.mockReturnValue(qb);
+    const controller = new RegistryController(
+      { createQueryBuilder: () => qb } as any,
+      {} as any,
+      {
+        getFile: jest.fn().mockResolvedValue({
+          buffer: Buffer.from(
+            JSON.stringify({
+              'src/Button.tsx': { code: 'export const Button = () => null' },
+            }),
+          ),
+        }),
+      } as any,
+      { get: () => 'https://web.test' } as any,
+    );
+    await expect(controller.item('alice', 'button')).resolves.toMatchObject({
+      name: 'button',
+      dependencies: ['react'],
+      meta: { compify: storybook },
+      files: [{ path: 'src/Button.tsx', type: 'registry:component' }],
     });
   });
 });

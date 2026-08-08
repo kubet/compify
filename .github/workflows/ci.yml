@@ -29,6 +29,7 @@ jobs:
         with:
           bun-version: 1.3.9
       - run: bun scripts/release-check.ts
+      - run: bun scripts/verify-sandpack-provenance.ts
       - run: docker compose --env-file deploy/self-host.env.example config --quiet
 
   changes:
@@ -55,6 +56,9 @@ jobs:
               - 'apps/api/**'
             cli:
               - 'packages/cli/**'
+              - 'examples/storybook-button/**'
+              - 'examples/consumer-next-ts/**'
+              - 'scripts/shadcn-consumer-smoke.ts'
             pack:
               - 'packages/compify-pack/**'
             storybook:
@@ -183,6 +187,8 @@ jobs:
       - run: bun run test
       - run: bun run test:package
       - run: bun pm pack --dry-run
+      - name: Verify export in a clean shadcn 4.16.2 consumer
+        run: bun ../../scripts/shadcn-consumer-smoke.ts
 
   template:
     needs: changes

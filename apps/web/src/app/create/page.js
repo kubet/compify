@@ -37,6 +37,7 @@ function Create() {
   const [description, setDescription] = useState('');
   const [privacy, setPrivacy] = useState('public');
   const [canCreate, setCanCreate] = useState(true);
+  const [isCreating, setIsCreating] = useState(false);
   const getInitFileByTemplate = (template, componentName) => {
     switch (template) {
       case 'react':
@@ -61,29 +62,39 @@ function Create() {
   }
 
   const handleCreateComponent = async (templateId) => {
-    const canCreate = await handleCheckIfCanCreate();
-    if (!canCreate) {
-      setCanCreate(false);
-      return;
-    }
-    const files = getInitFileByTemplate(templateId, name);
-    const mainFile = Object.entries(files).find(([_, data]) => data.main);
-    const initialActiveFile = mainFile ? mainFile[0] : Object.keys(files)[0];
-    const component = {
-      name,
-      description,
-      code: JSON.stringify(files),
-      language: templateId,
-      activeFile: initialActiveFile,
-      usedDeps: getUsedDepsForTemplate(templateId)
-    };
-
-    const response = await createComponent(component);
-    if (response.status === 201) {
-      router.push(`/create/${response.data.id}`, undefined, { shallow: true });
-    } else {
-      setToastMessage('Failed to create component');
+    if (isCreating) return;
+    setIsCreating(true);
+    try {
+      const allowed = await handleCheckIfCanCreate();
+      if (!allowed) {
+        setCanCreate(false);
+        return;
+      }
+      const files = getInitFileByTemplate(templateId, name);
+      const mainFile = Object.entries(files).find(([_, data]) => data.main);
+      const initialActiveFile = mainFile ? mainFile[0] : Object.keys(files)[0];
+      const component = {
+        name,
+        description,
+        code: JSON.stringify(files),
+        language: templateId,
+        activeFile: initialActiveFile,
+        usedDeps: getUsedDepsForTemplate(templateId)
+      };
+      const response = await createComponent(component);
+      if (response.status === 201) {
+        router.push(`/create/${response.data.id}`, undefined, { shallow: true });
+      } else {
+        setToastMessage(response.data?.message || 'Failed to create component');
+        setToastType('error');
+        setShowToast(true);
+      }
+    } catch {
+      setToastMessage('Unable to create the component. Check the API connection and try again.');
       setToastType('error');
+      setShowToast(true);
+    } finally {
+      setIsCreating(false);
     }
   }
 
@@ -102,16 +113,6 @@ function Create() {
       case 0:
         return
       case 1:
-        return <div className="flex flex-row items-center gap-2">
-          <LabelButton
-            onClick={() => setStep(0)}
-            Icon={ArrowLeft}
-            variant="info"
-          >
-            Back
-          </LabelButton>
-        </div>
-      case 2:
         return <div className="flex flex-row items-center gap-2">
           <LabelButton
             onClick={() => setStep(0)}
@@ -143,8 +144,6 @@ function Create() {
         return 'Create component'
       case 1:
         return 'Select runtime'
-      case 2:
-        return 'Select project'
       case 5:
         return 'Example components'
     }
@@ -173,6 +172,7 @@ function Create() {
         setStep={setStep}
         name={name}
         setName={setName}
+        disabled={isCreating}
       />
       {showToast && (
         <Toast

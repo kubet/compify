@@ -1,8 +1,13 @@
 {
   "name": "compify-pack",
   "version": "0.0.31",
-  "description": "",
-  "keywords": [],
+  "description": "Private vendored CodeSandbox Sandpack v2.19.8 derivative used by the Compify web editor.",
+  "keywords": [
+    "compify",
+    "sandpack",
+    "editor",
+    "vendored"
+  ],
   "author": "Compify",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -133,5 +138,15 @@
     "micromatch": "4.0.8",
     "tar": "7.5.22",
     "vite": "6.4.3"
+  },
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kubet/compify.git",
+    "directory": "packages/compify-pack"
+  },
+  "homepage": "https://github.com/kubet/compify/tree/main/packages/compify-pack",
+  "bugs": {
+    "url": "https://github.com/kubet/compify/issues"
   }
 }

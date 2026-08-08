@@ -5,8 +5,9 @@ The following redistributed artifacts retain their upstream terms.
 
 ## Sandpack derivative (`packages/compify-pack`)
 
-`compify-pack` is a derivative of CodeSandbox Sandpack and is distributed under
-the Apache License 2.0. See `packages/compify-pack/LICENSE` and
+`compify-pack` is a private internal derivative of CodeSandbox Sandpack v2.19.8
+(commit `83a494906a61517ea597ae94b26e1972f0c67777`) and retains Apache
+License 2.0. The complete-tree baseline and modified paths are verified; see `packages/compify-pack/LICENSE` and
 `packages/compify-pack/PROVENANCE.md`.
 
 ## Tailwind CSS browser compiler

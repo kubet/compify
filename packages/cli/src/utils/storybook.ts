@@ -148,10 +148,35 @@ function resolveAlias(node: any, values: Map<string, any>): any {
   }
   return node
 }
+function csfFactoryMeta(ast: any): { binding: string; node: any } | undefined {
+  const imported = new Set<string>()
+  for (const statement of ast.program.body) if (statement.type === "ImportDeclaration") {
+    for (const specifier of statement.specifiers) if (specifier.local?.name) imported.add(specifier.local.name)
+  }
+  for (const statement of ast.program.body) {
+    const declaration = statement.type === "ExportNamedDeclaration" ? statement.declaration : statement
+    if (declaration?.type !== "VariableDeclaration") continue
+    for (const item of declaration.declarations) {
+      const init = unwrap(item.init); const callee = unwrap(init?.callee)
+      if (item.id.type !== "Identifier" || init?.type !== "CallExpression" || init.arguments.length !== 1) continue
+      if (callee?.type !== "MemberExpression" || callee.computed || callee.property.name !== "meta") continue
+      if (callee.object.type !== "Identifier" || !imported.has(callee.object.name)) continue
+      const node = unwrap(init.arguments[0])
+      if (node?.type === "ObjectExpression") return { binding: item.id.name, node }
+    }
+  }
+  return undefined
+}
 function defaultMeta(ast: any): any {
   const values = declarations(ast)
   const statement = ast.program.body.find((item: any) => item.type === "ExportDefaultDeclaration")
-  return statement ? resolveAlias(statement.declaration, values) : undefined
+  return statement ? resolveAlias(statement.declaration, values) : csfFactoryMeta(ast)?.node
+}
+function unwrapCsfFactoryStory(node: any, metaBinding: string | undefined): any {
+  node = unwrap(node); const callee = unwrap(node?.callee)
+  if (node?.type !== "CallExpression" || node.arguments.length !== 1 || callee?.type !== "MemberExpression" || callee.computed) return node
+  if (callee.object?.type === "Identifier" && callee.object.name === metaBinding && callee.property.name === "story") return unwrap(node.arguments[0])
+  return node
 }
 function inferComponentSpecifier(ast: any): string | undefined {
   const values = declarations(ast)
@@ -172,6 +197,7 @@ function inspectStories(ast: any, file: string, diagnostics: PortabilityDiagnost
   const candidates = new Map<string, any>()
   const assignments = new Map<string, any>()
   const meta = defaultMeta(ast)
+  const factoryMeta = csfFactoryMeta(ast)
   for (const statement of ast.program.body) {
     if (statement.type === "ExportNamedDeclaration") {
       const d = statement.declaration
@@ -186,8 +212,12 @@ function inspectStories(ast: any, file: string, diagnostics: PortabilityDiagnost
   const exclude = staticValue(objectProperty(meta, "excludeStories")); const include = staticValue(objectProperty(meta, "includeStories"))
   const allowed = (n: string) => !(exclude.ok && Array.isArray(exclude.value) && exclude.value.includes(n)) && !(include.ok && Array.isArray(include.value) && !include.value.includes(n))
   const stories: StoryInfo[] = []
-  for (const [exportName, value] of candidates) {
+  for (const [exportName, rawValue] of candidates) {
     if (!allowed(exportName) || exportName.startsWith("_") || exportName === "meta") continue
+    const value = unwrapCsfFactoryStory(rawValue, factoryMeta?.binding)
+    if (value === rawValue && rawValue?.type === "CallExpression" && rawValue.callee?.type === "MemberExpression" && rawValue.callee.property?.name === "extend") {
+      diagnostics.push({ severity: "error", code: "CSF_FACTORY_EXTEND_UNSUPPORTED", message: "CSF factory Story.extend() inheritance is not statically supported", file, exportName })
+    }
     const argsNode = objectProperty(value, "args") ?? assignments.get(`${exportName}.args`)
     const nameNode = objectProperty(value, "name") ?? assignments.get(`${exportName}.storyName`)
     const nameValue = staticValue(nameNode)

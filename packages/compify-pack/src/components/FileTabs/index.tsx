@@ -1,3 +1,4 @@
+// Modified by Compify; see packages/compify-pack/PROVENANCE.md.
 import * as React from "react";
 
 import { useSandpack } from "../../hooks/useSandpack";

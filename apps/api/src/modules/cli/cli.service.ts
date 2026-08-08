@@ -16,6 +16,7 @@ import { CliToken } from 'src/entities/cli/cli-tokens.entity';
 import { MinioClientService } from '../minio/minio.service';
 import { isSafeRegistryPath } from 'src/common/registry-path';
 import { createHash } from 'crypto';
+import { authenticateCliToken } from 'src/common/cli-token-auth';
 import { ComponentService } from '../compontent/component.service';
 import { ConfigService } from '@nestjs/config';
 import { PublishStoryDto } from 'src/models/cli/publish-story.dto';
@@ -33,29 +34,7 @@ export class CliService {
   ) {}
 
   async getUserByCliToken(cliToken: string) {
-    if (typeof cliToken !== 'string' || !/^cli_[a-f0-9]{64}$/.test(cliToken)) {
-      throw new UnauthorizedException('Invalid CLI token');
-    }
-    const tokenHash = createHash('sha256').update(cliToken).digest('hex');
-    let cliTokenEntity = await this.findCliToken(tokenHash);
-    // Legacy rows stored the full, prefixed raw token. Since a valid presented
-    // token cannot have the shape of a stored 64-hex digest, this fallback
-    // cannot turn a database digest into a replayable credential.
-    if (!cliTokenEntity) cliTokenEntity = await this.findCliToken(cliToken);
-    if (!cliTokenEntity) throw new UnauthorizedException('Invalid CLI token');
-    cliTokenEntity.token = tokenHash;
-    cliTokenEntity.lastUsedAt = new Date();
-    await this.cliTokenRepo.save(cliTokenEntity);
-    return cliTokenEntity.user;
-  }
-
-  private findCliToken(token: string) {
-    return this.cliTokenRepo
-      .createQueryBuilder('cliToken')
-      .addSelect('cliToken.token')
-      .leftJoinAndSelect('cliToken.user', 'user')
-      .where('cliToken.token = :token', { token })
-      .getOne();
+    return authenticateCliToken(this.cliTokenRepo, cliToken);
   }
 
   async getAll(cliToken: string) {
@@ -201,9 +180,7 @@ export class CliService {
       componentId: component.id,
       publishingDomain,
       digest: computedDigest,
-      registryUrl: publiclyAddressable
-        ? `${backendUrl}/r/${publishingDomain}.json`
-        : null,
+      registryUrl: `${backendUrl}/r/${publishingDomain}.json`,
       previewUrl: publiclyAddressable
         ? `${frontendUrl}/view/@${publishingDomain}`
         : `${frontendUrl}/create/${component.id}`,

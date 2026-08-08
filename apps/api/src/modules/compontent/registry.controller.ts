@@ -1,5 +1,11 @@
-import { ApiTags } from '@nestjs/swagger';
-import { Controller, Get, NotFoundException, Param } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Headers,
+  NotFoundException,
+  Param,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
@@ -9,12 +15,18 @@ import {
 import { MinioClientService } from '../minio/minio.service';
 import { ConfigService } from '@nestjs/config';
 import { isSafeRegistryPath } from 'src/common/registry-path';
+import { CliToken } from 'src/entities/cli/cli-tokens.entity';
+import {
+  authenticateCliToken,
+  bearerCliToken,
+} from 'src/common/cli-token-auth';
 
 /**
  * shadcn-compatible registry (https://ui.shadcn.com/docs/registry).
  *
- * Any published component is installable into any shadcn project:
- *   bunx shadcn@latest add https://api.compify.app/r/<user>/<name>.json
+ * Serves shadcn-compatible item JSON for supported public/unlisted source and
+ * owner-authenticated private source. Compatibility is version/fixture scoped:
+ *   bunx shadcn@4.16.2 add https://api.compify.app/r/<user>/<name>.json
  * or, with `"@compify": "https://api.compify.app/r/{name}.json"` configured
  * in components.json registries:
  *   bunx shadcn@latest add @compify/<user>/<name>
@@ -25,6 +37,8 @@ export class RegistryController {
   constructor(
     @InjectRepository(Component)
     private componentRepository: Repository<Component>,
+    @InjectRepository(CliToken)
+    private cliTokenRepository: Repository<CliToken>,
     private minioService: MinioClientService,
     private configService: ConfigService,
   ) {}
@@ -72,24 +86,43 @@ export class RegistryController {
   // Official components live under the "compify" handle and resolve from the
   // short form too: /r/glass-3d-text.json === /r/compify/glass-3d-text.json.
   @Get(':name.json')
-  async officialItem(@Param('name') name: string) {
-    return this.buildItem(`compify/${name}`, name);
+  @ApiBearerAuth('cli-bearer')
+  async officialItem(
+    @Param('name') name: string,
+    @Headers('authorization') authorization?: string,
+  ) {
+    return this.buildItem(`compify/${name}`, name, authorization);
   }
 
   @Get(':username/:name.json')
-  async item(@Param('username') username: string, @Param('name') name: string) {
-    return this.buildItem(`${username}/${name}`);
+  @ApiBearerAuth('cli-bearer')
+  async item(
+    @Param('username') username: string,
+    @Param('name') name: string,
+    @Headers('authorization') authorization?: string,
+  ) {
+    return this.buildItem(`${username}/${name}`, undefined, authorization);
   }
 
   @Get(':username/:name')
+  @ApiBearerAuth('cli-bearer')
   async itemNoExt(
     @Param('username') username: string,
     @Param('name') name: string,
+    @Headers('authorization') authorization?: string,
   ) {
-    return this.buildItem(`${username}/${name.replace(/\.json$/, '')}`);
+    return this.buildItem(
+      `${username}/${name.replace(/\.json$/, '')}`,
+      undefined,
+      authorization,
+    );
   }
 
-  private async buildItem(publishingDomain: string, displayName?: string) {
+  private async buildItem(
+    publishingDomain: string,
+    displayName?: string,
+    authorization?: string,
+  ) {
     const component = await this.componentRepository
       .createQueryBuilder('component')
       .leftJoinAndSelect('component.user', 'user')
@@ -98,10 +131,30 @@ export class RegistryController {
       })
       .getOne();
 
-    if (
-      !component ||
-      (component.visibility !== ComponentVisibility.PUBLIC &&
-        component.visibility !== ComponentVisibility.FREE)
+    if (!component) {
+      throw new NotFoundException(`Component "@${publishingDomain}" not found`);
+    }
+    if (component.visibility === ComponentVisibility.PRIVATE) {
+      // Private items remain absent from the public index. Standard shadcn
+      // namespace Bearer headers may retrieve an item only for its owner.
+      // Missing or invalid credentials intentionally look like a missing item
+      // so callers cannot enumerate private publishing domains.
+      try {
+        const user = await authenticateCliToken(
+          this.cliTokenRepository,
+          bearerCliToken(authorization),
+        );
+        if (!component.user || component.user.id !== user.id) {
+          throw new Error('owner mismatch');
+        }
+      } catch {
+        throw new NotFoundException(
+          `Component "@${publishingDomain}" not found`,
+        );
+      }
+    } else if (
+      component.visibility !== ComponentVisibility.PUBLIC &&
+      component.visibility !== ComponentVisibility.FREE
     ) {
       throw new NotFoundException(`Component "@${publishingDomain}" not found`);
     }
@@ -137,6 +190,41 @@ export class RegistryController {
         if (depName === 'tailwindcss') continue;
         deps.add(depName);
       }
+    }
+
+    const storybook = (component.pageSettings as any)?.storybook;
+    if (
+      storybook &&
+      storybook.schemaVersion === 1 &&
+      typeof storybook.entry === 'string' &&
+      typeof storybook.digest === 'string' &&
+      Array.isArray(storybook.stories) &&
+      storybook.provenance &&
+      typeof storybook.provenance === 'object'
+    ) {
+      // CLI-published artifacts are already reviewed source graphs. Preserve
+      // their paths and Compify metadata instead of applying the legacy browser
+      // editor's second, incompatible path transformation.
+      return {
+        $schema: 'https://ui.shadcn.com/schema/registry-item.json',
+        name: component.name,
+        type: 'registry:component',
+        description: component.description || undefined,
+        dependencies: [...deps],
+        files: Object.entries(files)
+          .filter(
+            ([path, file]: [string, any]) =>
+              isSafeRegistryPath(path.replace(/^\//, '')) &&
+              typeof file?.code === 'string',
+          )
+          .sort(([left], [right]) => left.localeCompare(right))
+          .map(([path, file]: [string, any]) => ({
+            path: path.replace(/^\//, ''),
+            type: 'registry:component',
+            content: file.code,
+          })),
+        meta: { compify: storybook },
+      };
     }
 
     const itemName = publishingDomain.split('/')[1];
