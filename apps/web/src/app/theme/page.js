@@ -70,6 +70,8 @@ const ThemeContent = () => {
                 setToastMsg({ text: 'This theme no longer exists or you no longer have access. Return to the component and create a new theme.', type: 'error' })
             } else if (response.status === 428) {
                 setToastMsg({ text: 'This editor is out of date. Reload the page before saving.', type: 'error' })
+            } else if (response.status === 400 && typeof response.data?.message === 'string') {
+                setToastMsg({ text: response.data.message.slice(0, 300), type: 'error' })
             } else {
                 setToastMsg({ text: 'Failed to save theme', type: 'error' })
             }

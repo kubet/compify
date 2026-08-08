@@ -1,7 +1,7 @@
-import React, { useCallback, useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect } from 'react'
 import DesignTokens from './DesignTokens';
 import LabelButton from '@/components/Elements/LabelButton';
-import keyReplace from '../utils';
+import { compileThemeCollections } from '../utils';
 import BotInput from '@/components/Editor/Elements/BotInput';
 import { InputField } from '@/components/Elements';
 import { Send, Bot, Sparkles, Palette, Layout, Type, Grid, Moon, TextQuote, LayoutGrid, BoxSelect, X, Loader, ArrowRight, Check, HelpCircle } from 'lucide-react';
@@ -27,80 +27,31 @@ function DesignTokenWrapperStep({ handleNext, initialData }) {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showHelpModal, setShowHelpModal] = useState(false);
     const [deleteError, setDeleteError] = useState('');
-
-    const getAllTokens = useMemo(() => {
-        const factorTokens = factors.map(factor => ({ key: factor.key, value: factor.value, c: factor.c }));
-        const groupTokens = Object.entries(groups).flatMap(([groupKey, group]) =>
-            group.options.map(item => ({ key: `${groupKey}-${item.key}`, value: item.value, c: item.c }))
-        );
-        return [...factorTokens, ...groupTokens, ...values];
-    }, [factors, groups, values]);
-
-    const compileValue = useCallback((value, tokens) => {
-        if (typeof value !== 'string') {
-            return value; // Return non-string values as-is
-        }
-        let compiledValue = keyReplace(tokens, value);
-        // Check if the compiled value still contains token references
-        if (typeof compiledValue === 'string' && compiledValue.includes('--')) {
-            compiledValue = keyReplace(tokens, compiledValue);
-        }
-        return compiledValue;
-    }, []);
-
-    const updateCompiledValues = useCallback(() => {
-        const allTokens = getAllTokens;
-
-        const updatedFactors = factors.map(factor => ({
-            ...factor,
-            c: compileValue(factor.value, allTokens)
-        }));
-
-        const updatedGroups = Object.fromEntries(
-            Object.entries(groups).map(([key, group]) => [
-                key,
-                {
-                    ...group,
-                    options: group.options.map(item => ({
-                        ...item,
-                        c: compileValue(item.value, allTokens)
-                    }))
-                }
-            ])
-        );
-
-        const updatedValues = values.map(value => ({
-            ...value,
-            c: compileValue(value.value, allTokens)
-        }));
-
-        return { updatedFactors, updatedGroups, updatedValues };
-    }, [compileValue, getAllTokens, factors, groups, values]);
+    const [compileError, setCompileError] = useState('');
 
     useEffect(() => {
-        const { updatedFactors, updatedGroups, updatedValues } = updateCompiledValues();
+        try {
+            const compiled = compileThemeCollections({ factors, groups, values });
+            setFactors(previous => JSON.stringify(previous) === JSON.stringify(compiled.factors) ? previous : compiled.factors);
+            setGroups(previous => JSON.stringify(previous) === JSON.stringify(compiled.groups) ? previous : compiled.groups);
+            setValues(previous => JSON.stringify(previous) === JSON.stringify(compiled.values) ? previous : compiled.values);
+            setCompileError('');
+        } catch (error) {
+            // Keep all three collections at their last state; never apply a partial compile.
+            console.error('Theme compilation failed:', error);
+            setCompileError(error instanceof Error ? error.message : 'Theme tokens could not be compiled.');
+        }
+    }, [factors, groups, values]);
 
-        setFactors(prevFactors => {
-            if (JSON.stringify(prevFactors) !== JSON.stringify(updatedFactors)) {
-                return updatedFactors;
-            }
-            return prevFactors;
-        });
-
-        setGroups(prevGroups => {
-            if (JSON.stringify(prevGroups) !== JSON.stringify(updatedGroups)) {
-                return updatedGroups;
-            }
-            return prevGroups;
-        });
-
-        setValues(prevValues => {
-            if (JSON.stringify(prevValues) !== JSON.stringify(updatedValues)) {
-                return updatedValues;
-            }
-            return prevValues;
-        });
-    }, [updateCompiledValues]);
+    const handleCompiledSave = () => {
+        try {
+            compileThemeCollections({ factors, groups, values });
+            setCompileError('');
+            handleNext({ factors, groups, values });
+        } catch (error) {
+            setCompileError(error instanceof Error ? error.message : 'Theme tokens could not be compiled.');
+        }
+    };
 
     const handleGenerateDesign = async () => {
         setIsGenerating(true);
@@ -167,6 +118,7 @@ function DesignTokenWrapperStep({ handleNext, initialData }) {
     return (
         <div className="min-h-[calc(100vh-12rem)] relative space-y-8">
             {deleteError && <p className="rounded-md border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">{deleteError}</p>}
+            {compileError && <p className="rounded-md border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">{compileError}</p>}
             {/* Design Tokens Section */}
             <div>
                 <div className="flex items-center justify-between mb-6">
@@ -294,7 +246,8 @@ function DesignTokenWrapperStep({ handleNext, initialData }) {
                         Delete Theme
                     </LabelButton>}
                     <LabelButton
-                        onClick={() => handleNext({ factors, groups, values })}
+                        onClick={handleCompiledSave}
+                        isDisabled={Boolean(compileError)}
                         variant="info"
                         fullWidth
                     >

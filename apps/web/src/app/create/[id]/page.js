@@ -14,6 +14,8 @@ import LimitModal from '@/components/Common/LimitModal';
 import { useRouter } from 'next/navigation';
 import { fetchDaisyUIFiles, fetchShadcnFiles, getUIConfigFiles } from '@/components/Editor/Templates/common';
 import { doubleHash, generateHashForAllFiles } from '@/components/Project/utils/double-hash';
+import { compileThemeCollections } from '@/components/Project/utils';
+import { applyThemeConfigFiles, emitThemeConfigFiles } from '@/components/Project/common/getTokenConfigFiles';
 import ReportModal from './modals/ReportModal';
 import SetupModal from '@/components/Editor/Elements/SetupModal';
 import UpvoteButtons from '@/components/Product/UpvoteButtons';
@@ -253,14 +255,27 @@ function EditComponent() {
         }
     }
     const handleSaveComponent = async (propSetup = null, visibilityOverride = null) => {
-        if (themeExportError) {
-            setToastMessage(`Theme cannot be exported: ${themeExportError}`);
-            setToastType('error');
-            setShowToast(true);
-            return false;
+        let filesForSave = files;
+        if (initialTheme && usedUiFrameworks.includes('theme')) {
+            try {
+                const compiled = compileThemeCollections(initialTheme);
+                const emittedFiles = emitThemeConfigFiles(compiled);
+                filesForSave = applyThemeConfigFiles(files, emittedFiles);
+                setThemeExportError(null);
+            } catch (error) {
+                const message = error instanceof Error ? error.message : 'Theme tokens could not be compiled.';
+                setThemeExportError(message);
+                setToastMessage(`Theme cannot be exported: ${message}`);
+                setToastType('error');
+                setShowToast(true);
+                return false;
+            }
+        } else {
+            filesForSave = applyThemeConfigFiles(files, null);
+            setThemeExportError(null);
         }
         const filteredFiles = Object.fromEntries(
-            Object.entries(files).filter(([_, fileData]) => fileData.hidden !== true)
+            Object.entries(filesForSave).filter(([_, fileData]) => fileData.hidden !== true)
         );
         const component = {
             name,
@@ -286,7 +301,8 @@ function EditComponent() {
         if (response.status === 201) {
             setToastMessage('Component saved successfully');
             setToastType('success');
-            const hash = generateHashForAllFiles(files);
+            setFiles(filesForSave);
+            const hash = generateHashForAllFiles(filesForSave);
             setTextHash(hash);
         } else {
             setToastMessage(response.data.message || 'Failed to save component');
@@ -378,6 +394,8 @@ function EditComponent() {
             setToastMessage('This theme changed in another tab. Reload it before saving again.');
         } else if (response.status === 404) {
             setToastMessage('This theme no longer exists or you no longer have access. Reload the component.');
+        } else if (response.status === 400 && typeof response.data?.message === 'string') {
+            setToastMessage(response.data.message.slice(0, 300));
         } else {
             setToastMessage('Failed to save theme. Reload the component and try again.');
         }
@@ -496,6 +514,11 @@ function EditComponent() {
                 }
 
             </div>
+            {themeExportError && (
+                <p className="mb-4 w-full rounded-md border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">
+                    Theme cannot be exported: {themeExportError}
+                </p>
+            )}
             {template && <Editor
                 key={isSetup ? 'setup' : 'editor'}
                 initialFiles={files}

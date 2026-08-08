@@ -4,7 +4,6 @@ import React, { useCallback, useMemo, useRef, useState } from 'react'
 import { isValidColor, isValidColorValue } from '../Steps/DesignToken/utils';
 import { AnimatePresence, motion } from 'framer-motion';
 import { constructColorValue } from '../Steps/DesignToken/InputControl';
-import { resolveMetaToken } from '../utils';
 import Menu from '@/components/Elements/Menu';
 import useDebounce from '@/utils/debounce';
 const ColorSwatch = ({ color, isSelected, size = '8', onClick }) => {
