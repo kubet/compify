@@ -26,6 +26,7 @@ function DesignTokenWrapperStep({ handleNext, initialData }) {
     const [backupState, setBackupState] = useState(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showHelpModal, setShowHelpModal] = useState(false);
+    const [deleteError, setDeleteError] = useState('');
 
     const getAllTokens = useMemo(() => {
         const factorTokens = factors.map(factor => ({ key: factor.key, value: factor.value, c: factor.c }));
@@ -147,14 +148,25 @@ function DesignTokenWrapperStep({ handleNext, initialData }) {
     };
 
     const handleDeleteTheme = async () => {
-        const resp = await deleteTheme(initialData.id);
+        if (!initialData?.id) return;
+        const resp = await deleteTheme(initialData.id, initialData.etag);
         if (resp.status === 200 || resp.status === 201) {
             router.push('/my-components');
+        } else if (resp.status === 409) {
+            setDeleteError('This theme changed in another tab. Reload the page before deleting it.');
+            setShowDeleteModal(false);
+        } else if (resp.status === 404) {
+            setDeleteError('This theme no longer exists or you no longer have access. Return to your components.');
+            setShowDeleteModal(false);
+        } else {
+            setDeleteError('The theme could not be deleted. Reload the page and try again.');
+            setShowDeleteModal(false);
         }
     }
 
     return (
         <div className="min-h-[calc(100vh-12rem)] relative space-y-8">
+            {deleteError && <p className="rounded-md border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">{deleteError}</p>}
             {/* Design Tokens Section */}
             <div>
                 <div className="flex items-center justify-between mb-6">
@@ -274,13 +286,13 @@ function DesignTokenWrapperStep({ handleNext, initialData }) {
             {/* Bottom Button */}
             <div className="sticky bottom-0 left-0 right-0 bg-black bg-opacity-50 backdrop-blur-sm z-30 m-0">
                 <div className="px-0 py-7 w-full flex justify-between">
-                    <LabelButton
+                    {initialData?.id && <LabelButton
                         onClick={handleDeleteClick}
                         variant="danger"
                         fullWidth
                     >
                         Delete Theme
-                    </LabelButton>
+                    </LabelButton>}
                     <LabelButton
                         onClick={() => handleNext({ factors, groups, values })}
                         variant="info"

@@ -43,7 +43,7 @@ function ThemeConfiguratorWrapper({ initialTheme, setTheme, componentId, setDefa
             values: []
         });
         if (resp.status === 201) {
-            setTheme(resp.data);
+            setTheme({ ...resp.data, etag: resp.etag });
             const searchParams = new URLSearchParams({
                 c: componentId,
                 t: resp.data.id

@@ -23,7 +23,11 @@ function handelError(error) {
 function handleSuccess(response) {
   const data = response.data || {};
   const responseData = isJson(data) ? JSON.parse(data) : data;
-  return { status: response.status, data: responseData };
+  return {
+    status: response.status,
+    data: responseData,
+    etag: response.headers?.etag ?? null,
+  };
 }
 const isJson = (str) => {
   try {
@@ -199,10 +203,11 @@ export async function deleteUser() {
     .catch((error) => handelError(error));
 }
 
-export async function deleteTheme(themeId) {
+export async function deleteTheme(themeId, etag) {
   const options = {
     method: "DELETE",
     url: `${baseUrl}/theme/${themeId}`,
+    headers: { "If-Match": etag },
   };
   return axios(options)
     .then((response) => handleSuccess(response))
@@ -415,11 +420,12 @@ export async function getTheme(themeId) {
     .catch((error) => handelError(error));
 }
 
-export async function insertTheme(data) {
+export async function insertTheme(data, etag) {
   const options = {
     method: "POST",
     url: `${baseUrl}/theme/insert`,
     data,
+    ...(data?.id && data.id !== "null" ? { headers: { "If-Match": etag } } : {}),
   };
   return axios(options)
     .then((response) => handleSuccess(response))

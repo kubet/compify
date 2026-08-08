@@ -20,7 +20,8 @@ async function bootstrap() {
   app.enableCors({
     origin: process.env.FRONTEND_URL,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-    allowedHeaders: ['Content-Type', 'Accept', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Accept', 'Authorization', 'If-Match'],
+    exposedHeaders: ['ETag'],
     credentials: true,
   });
 

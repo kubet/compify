@@ -17,6 +17,7 @@ const ThemeContent = () => {
     const t = useRef(null)
     const c = useRef(null)
     const [themeId, setThemeId] = useState(null)
+    const themeEtag = useRef(null)
 
     const fetchTheme = useCallback(async (themeIdToFetch) => {
         if (themeIdToFetch) {
@@ -24,11 +25,13 @@ const ThemeContent = () => {
             try {
                 const response = await getTheme(themeIdToFetch)
                 if (response.status === 200) {
-                    setThemeData(response.data)
+                    setThemeData({ ...response.data, etag: response.etag })
+                    themeEtag.current = response.etag
                     setCurrentStep('custom')
                 } else {
                     setThemeData(null)
                     setThemeId(null)
+                    themeEtag.current = null
                 }
             } catch (error) {
                 setToastMsg({ text: 'Failed to load theme', type: 'error' })
@@ -53,13 +56,20 @@ const ThemeContent = () => {
                 id: themeId
             }
 
-            const response = await insertTheme(data)
+            const response = await insertTheme(data, themeEtag.current)
 
             if (response.status === 201) {
                 setToastMsg({ text: themeId ? 'Theme updated successfully' : 'Theme created successfully', type: 'success' })
+                themeEtag.current = response.etag
+                setThemeData({ ...response.data, etag: response.etag })
                 await router.push(`/theme?t=${response.data.id}&c=${c.current}`)
                 setThemeId(response.data.id)
-                await fetchTheme(response.data.id) // Fetch the updated theme directly
+            } else if (response.status === 409) {
+                setToastMsg({ text: 'This theme changed in another tab. Reload the page before saving again.', type: 'error' })
+            } else if (response.status === 404) {
+                setToastMsg({ text: 'This theme no longer exists or you no longer have access. Return to the component and create a new theme.', type: 'error' })
+            } else if (response.status === 428) {
+                setToastMsg({ text: 'This editor is out of date. Reload the page before saving.', type: 'error' })
             } else {
                 setToastMsg({ text: 'Failed to save theme', type: 'error' })
             }
