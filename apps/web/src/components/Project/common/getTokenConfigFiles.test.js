@@ -22,10 +22,11 @@ describe('theme config emitter', () => {
         });
 
         expect(emitted['/theme.css'].code).toContain('--palette-primary: #123456;');
-        expect(emitted['/theme.css'].code).not.toContain('--primary: #123456;');
+        expect(emitted['/theme.css'].code).toContain('--primary: #123456;');
         expect(JSON.parse(emitted['/theme.json'].code)).toEqual({
             background: '#fff',
             'palette-primary': '#123456',
+            primary: '#123456',
         });
     });
 
@@ -53,11 +54,35 @@ describe('theme config emitter', () => {
         })).toThrow('Duplicate exported design token name: "palette-primary"');
     });
 
+    test('rejects ambiguous legacy aliases shared by public groups', () => {
+        expect(() => emitThemeConfigFiles({
+            groups: {
+                palette: { isPublic: true, options: [{ key: 'primary', c: '#000' }] },
+                brand: { isPublic: true, options: [{ key: 'primary', c: '#fff' }] },
+            },
+        })).toThrow('Duplicate exported design token name: "primary"');
+    });
+
     test('rejects unsafe CSS custom-property names', () => {
         expect(() => emitThemeConfigFiles({
             values: [{ key: 'bad; } body', c: 'red' }],
             groups: {},
         })).toThrow('Unsafe design token name');
+    });
+
+    test('rejects declaration and rule injection through token values', () => {
+        expect(() => emitThemeConfigFiles({
+            values: [{ key: 'primary', c: 'red; } body { display: none' }],
+            groups: {},
+        })).toThrow('Unsafe design token value for "primary"');
+    });
+
+    test('preserves semicolons inside a balanced CSS function', () => {
+        const emitted = emitThemeConfigFiles({
+            values: [{ key: 'asset', c: 'url(data:image/svg+xml;utf8,safe)' }],
+            groups: {},
+        });
+        expect(emitted['/theme.css'].code).toContain('--asset: url(data:image/svg+xml;utf8,safe);');
     });
 
     test('serializes reserved object keys as data without prototype mutation', () => {

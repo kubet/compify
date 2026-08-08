@@ -5,6 +5,7 @@ import {
   IsString,
   MaxLength,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class InsertThemeDto {
   @IsString()
@@ -17,6 +18,9 @@ export class InsertThemeDto {
   @IsOptional()
   name?: string;
 
+  @Transform(({ value }) =>
+    Array.isArray(value) && value.length === 0 ? {} : value,
+  )
   @IsObject()
   @IsOptional()
   groups?: Record<string, unknown>;

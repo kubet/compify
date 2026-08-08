@@ -2,10 +2,12 @@ import React, { useMemo, useCallback, useEffect } from 'react'
 import keyReplace from '../Project/utils';
 import { applyThemeConfigFiles, emitThemeConfigFiles } from '../Project/common/getTokenConfigFiles';
 
-function ThemeCompiler({ initialTheme, setTheme, setFilesState }) {
+function ThemeCompiler({ initialTheme, setTheme, setFilesState, onExportError }) {
     const factors = useMemo(() => Array.isArray(initialTheme?.factors) ? initialTheme.factors : [], [initialTheme?.factors]);
     const groups = useMemo(() => initialTheme?.groups || {}, [initialTheme?.groups]);
     const values = useMemo(() => Array.isArray(initialTheme?.values) ? initialTheme.values : [], [initialTheme?.values]);
+
+    useEffect(() => () => onExportError?.(null), [onExportError]);
 
     const getAllTokens = useMemo(() => {
         if (!factors || !groups) return [];
@@ -80,9 +82,13 @@ function ThemeCompiler({ initialTheme, setTheme, setFilesState }) {
                 groups: updatedGroups,
             });
             setFilesState(prev => applyThemeConfigFiles(prev, emittedFiles));
+            onExportError?.(null);
         } catch (error) {
+            // Preserve the last known-good files and block saving until the
+            // user fixes the invalid export contract.
+            const message = error instanceof Error ? error.message : String(error);
             console.error('Theme export validation failed:', error);
-            setFilesState(prev => applyThemeConfigFiles(prev, null));
+            onExportError?.(message);
         }
         if (hasChanges) {
             setTheme(prev => ({
@@ -92,7 +98,7 @@ function ThemeCompiler({ initialTheme, setTheme, setFilesState }) {
                 values: updatedValues
             }));
         }
-    }, [updateCompiledValues, setFilesState, setTheme, factors, groups, values]);
+    }, [updateCompiledValues, setFilesState, setTheme, factors, groups, values, onExportError]);
 
     return null;
 }

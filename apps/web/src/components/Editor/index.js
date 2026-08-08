@@ -70,6 +70,7 @@ const Editor = ({
   setPreviewFile,
   previewFile,
   isSetupServer,
+  onThemeExportError,
 }) => {
   const templateFiles = useMemo(
     () =>
@@ -888,6 +889,7 @@ const Editor = ({
           initialTheme={initialTheme}
           setTheme={setTheme}
           setFilesState={setFilesState}
+          onExportError={onThemeExportError}
         />
       )}
       <HelpModal

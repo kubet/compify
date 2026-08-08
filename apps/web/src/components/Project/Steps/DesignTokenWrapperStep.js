@@ -15,7 +15,9 @@ import HelpThemeContent from '@/components/Editor/Elements/BotInputSnackContent/
 function DesignTokenWrapperStep({ handleNext, initialData }) {
     const router = useRouter();
     const [factors, setFactors] = useState(initialData?.factors || []);
-    const [groups, setGroups] = useState(initialData?.groups || []);
+    const [groups, setGroups] = useState(
+        initialData?.groups && !Array.isArray(initialData.groups) ? initialData.groups : {}
+    );
     const [values, setValues] = useState(initialData?.values || []);
     const [showAiInput, setShowAiInput] = useState(false);
     const [prompt, setPrompt] = useState('');

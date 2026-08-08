@@ -2,6 +2,7 @@ import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { uuidToShortId } from 'src/common/short-id';
 import { InsertThemeDto } from 'src/models/theme/insert-theme.dto';
 import { validate } from 'class-validator';
+import { plainToInstance } from 'class-transformer';
 import { ThemeService } from './theme.service';
 
 const user = { id: 'user-a' } as any;
@@ -32,14 +33,21 @@ function service(repos: ReturnType<typeof repositories>) {
 }
 
 describe('ThemeService ownership boundaries', () => {
-  it('rejects malformed top-level token collection shapes', async () => {
-    const dto = Object.assign(new InsertThemeDto(), {
+  it('normalizes the legacy empty groups array but rejects other malformed collections', async () => {
+    const legacy = plainToInstance(InsertThemeDto, {
       groups: [],
+      factors: [],
+      values: [],
+    });
+    expect(await validate(legacy)).toHaveLength(0);
+    expect(legacy.groups).toEqual({});
+
+    const malformed = plainToInstance(InsertThemeDto, {
+      groups: [{ key: 'not-a-group-map' }],
       factors: {},
       values: {},
     });
-
-    const errors = await validate(dto);
+    const errors = await validate(malformed);
     expect(errors.map((error) => error.property).sort()).toEqual([
       'factors',
       'groups',
