@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -119,6 +120,7 @@ export class ThemeService {
     if (!themeData.id) {
       theme.name = themeData.name || 'Default';
       theme.component = authorizedEntity as Component;
+      theme.componentId = theme.component.id;
     } else if (themeData.name != null) {
       theme.name = themeData.name;
     }
@@ -129,7 +131,26 @@ export class ThemeService {
     if (themeData.values != null) theme.values = themeData.values;
     else if (!themeData.id) theme.values = [];
 
-    const savedTheme = await this.themeRepository.save(theme);
+    let savedTheme: Theme;
+    if (themeData.id) {
+      savedTheme = await this.themeRepository.save(theme);
+    } else {
+      try {
+        savedTheme = await this.themeRepository.save(theme);
+      } catch (error) {
+        const driverError = (error as { driverError?: Record<string, string> })
+          ?.driverError;
+        if (
+          driverError?.code === '23505' &&
+          driverError?.constraint === 'UQ_themes_component'
+        ) {
+          throw new ConflictException(
+            'A theme already exists for this component',
+          );
+        }
+        throw error;
+      }
+    }
     return {
       ...savedTheme,
       id: uuidToShortId(savedTheme.id),
