@@ -24,7 +24,12 @@ import { MinioClientService } from '../minio/minio.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import { ConstructImageService } from './construct-image.service';
-import sharp from 'sharp';
+import * as sharpNamespace from 'sharp';
+import type sharpDefault from 'sharp';
+
+const sharp =
+  (sharpNamespace as unknown as { default?: typeof sharpDefault }).default ??
+  (sharpNamespace as unknown as typeof sharpDefault);
 import {
   ForkComponentDto,
   ReportComponentDto,

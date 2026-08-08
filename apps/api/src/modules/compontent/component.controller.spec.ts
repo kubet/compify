@@ -74,6 +74,29 @@ describe('ComponentController animated image validation', () => {
       'capture',
     ]);
   });
+  it('validates and uploads a real WebP under the Node runtime', async () => {
+    const buffer = Buffer.from(
+      'UklGRjwAAABXRUJQVlA4IDAAAADQAQCdASoCAAIAAUAmJaACdLoB+AADsAD+8ut//NgVzXPv9//S4P0uD9Lg/9KQAAA=',
+      'base64',
+    );
+    componentService.checkIfUserIsOwnerOrThrow403.mockResolvedValue(undefined);
+    minioService.uploadFile.mockResolvedValue(undefined);
+    componentService.updateComponentImageUploaded.mockResolvedValue(undefined);
+
+    await expect(
+      controller.uploadFile(
+        {
+          buffer,
+          size: buffer.length,
+          mimetype: 'image/webp',
+        } as Express.Multer.File,
+        'component-id',
+        { id: 'owner' } as any,
+      ),
+    ).resolves.toEqual({ message: 'File uploaded successfully' });
+    expect(minioService.uploadFile).toHaveBeenCalled();
+  });
+
   it('forwards domain checks with the authenticated user boundary', async () => {
     const user = { id: 'user-id', username: 'alice' } as any;
     componentService.checkDomain.mockResolvedValue({ available: true });
