@@ -1,3 +1,8 @@
+---
+title: Polaris a982763 offline replay result
+description: Negative technical result from a preregistered public-source styling-contract replay.
+---
+
 # Polaris `a982763` offline replay result
 
 **Result: technical kill gate triggered.** This is a public OSS historical
