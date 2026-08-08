@@ -418,7 +418,7 @@ const BotInput = ({
         if (!theme.id) {
             const resp = await insertTheme({ factors: theme?.factors, groups: theme?.groups, values: theme?.values, componentId: componentId });
             if (resp.status === 201) {
-                setTheme(resp.data);
+                setTheme({ ...resp.data, etag: resp.etag });
             }
         }
     }

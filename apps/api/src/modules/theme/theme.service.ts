@@ -94,12 +94,41 @@ export class ThemeService {
     return this.findOwnedComponent(componentId, user);
   }
 
-  async delete(id: string, user: User) {
-    const theme = (await this.checkIfUserCanDoAction(id, user)) as Theme;
-    return this.themeRepository.remove(theme);
+  private ownedThemeWhere(): string {
+    return `"id" = :id AND "componentId" IN (
+      SELECT "id" FROM "component"
+      WHERE "userId" = :userId AND "deletedAt" IS NULL
+    )`;
   }
 
-  async createOrUpdate(themeData: InsertThemeDto, user: User) {
+  private async throwCasMiss(id: string, user: User): Promise<never> {
+    await this.findOwnedTheme(id, user);
+    throw new ConflictException(
+      'This theme changed in another tab. Reload it before saving again.',
+    );
+  }
+
+  async delete(id: string, user: User, expectedVersion: number) {
+    const parsedId = this.parseId(id);
+    const result = await this.themeRepository
+      .createQueryBuilder()
+      .delete()
+      .from(Theme)
+      .where(this.ownedThemeWhere(), { id: parsedId, userId: user.id })
+      .andWhere(`"version" = :expectedVersion`, { expectedVersion })
+      .execute();
+
+    if (!result.affected) {
+      await this.throwCasMiss(id, user);
+    }
+    return { id: uuidToShortId(parsedId) };
+  }
+
+  async createOrUpdate(
+    themeData: InsertThemeDto,
+    user: User,
+    expectedVersion?: number,
+  ) {
     if (themeData?.id === 'null') {
       delete themeData.id;
     }
@@ -116,40 +145,72 @@ export class ThemeService {
       );
     }
 
-    const theme = themeData.id ? (authorizedEntity as Theme) : new Theme();
-    if (!themeData.id) {
-      theme.name = themeData.name || 'Default';
-      theme.component = authorizedEntity as Component;
-      theme.componentId = theme.component.id;
-    } else if (themeData.name != null) {
-      theme.name = themeData.name;
+    if (themeData.id) {
+      if (expectedVersion == null) {
+        throw new BadRequestException('An expected theme version is required');
+      }
+      const theme = authorizedEntity as Theme;
+      const changes: Record<string, unknown> = {
+        version: () => `"version" + 1`,
+        updatedAt: () => 'CURRENT_TIMESTAMP',
+      };
+      if (themeData.name != null) changes.name = themeData.name;
+      if (themeData.groups != null) changes.groups = themeData.groups;
+      if (themeData.factors != null) changes.factors = themeData.factors;
+      if (themeData.values != null) changes.values = themeData.values;
+
+      const result = await this.themeRepository
+        .createQueryBuilder()
+        .update(Theme)
+        .set(changes)
+        .where(this.ownedThemeWhere(), {
+          id: theme.id,
+          userId: user.id,
+        })
+        .andWhere(`"version" = :expectedVersion`, { expectedVersion })
+        .returning('*')
+        .execute();
+      if (!result.affected) {
+        await this.throwCasMiss(themeData.id, user);
+      }
+
+      const row = result.raw[0] as Record<string, unknown>;
+      return {
+        ...theme,
+        name: row.name,
+        groups: row.groups,
+        factors: row.factors,
+        values: row.values,
+        version: Number(row.version),
+        createdAt: (row.created_at ?? row.createdAt) as Date,
+        updatedAt: (row.updated_at ?? row.updatedAt) as Date,
+        id: uuidToShortId(theme.id),
+      };
     }
-    if (themeData.groups != null) theme.groups = themeData.groups;
-    else if (!themeData.id) theme.groups = {};
-    if (themeData.factors != null) theme.factors = themeData.factors;
-    else if (!themeData.id) theme.factors = [];
-    if (themeData.values != null) theme.values = themeData.values;
-    else if (!themeData.id) theme.values = [];
+
+    const theme = new Theme();
+    theme.name = themeData.name || 'Default';
+    theme.component = authorizedEntity as Component;
+    theme.componentId = theme.component.id;
+    theme.groups = themeData.groups ?? {};
+    theme.factors = themeData.factors ?? [];
+    theme.values = themeData.values ?? [];
 
     let savedTheme: Theme;
-    if (themeData.id) {
+    try {
       savedTheme = await this.themeRepository.save(theme);
-    } else {
-      try {
-        savedTheme = await this.themeRepository.save(theme);
-      } catch (error) {
-        const driverError = (error as { driverError?: Record<string, string> })
-          ?.driverError;
-        if (
-          driverError?.code === '23505' &&
-          driverError?.constraint === 'UQ_themes_component'
-        ) {
-          throw new ConflictException(
-            'A theme already exists for this component',
-          );
-        }
-        throw error;
+    } catch (error) {
+      const driverError = (error as { driverError?: Record<string, string> })
+        ?.driverError;
+      if (
+        driverError?.code === '23505' &&
+        driverError?.constraint === 'UQ_themes_component'
+      ) {
+        throw new ConflictException(
+          'A theme already exists for this component',
+        );
       }
+      throw error;
     }
     return {
       ...savedTheme,

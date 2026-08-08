@@ -116,7 +116,16 @@ function EditComponent() {
             setIsShared(response.data.isShared || false);
             setDescription(response.data.description || '');
             setPrivacy(response.data.visibility || 'public');
-            setInitialTheme(response.data.theme);
+            if (response.data.theme?.id) {
+                const themeResponse = await getTheme(response.data.theme.id);
+                if (themeResponse.status === 200) {
+                    setInitialTheme({ ...themeResponse.data, etag: themeResponse.etag });
+                } else {
+                    setInitialTheme(response.data.theme);
+                }
+            } else {
+                setInitialTheme(null);
+            }
             setPreviewSettings(response.data.pageSettings || initSettings)
             setIsOwner(response.data.isOwner || false);
             setUsedUiFrameworks(response.data.usedUiFrameworks || []);
@@ -282,8 +291,15 @@ function EditComponent() {
         } else {
             setToastMessage(response.data.message || 'Failed to save component');
             setToastType('error');
+            setShowToast(true);
+            setPublishModalOpen(false);
+            return false;
         }
-        await handleThemeSave();
+        const themeSaved = await handleThemeSave();
+        if (!themeSaved) {
+            setPublishModalOpen(false);
+            return false;
+        }
         handleUploadImage();
         handleSaveGif();
         setShowToast(true);
@@ -352,18 +368,28 @@ function EditComponent() {
         setPendingSave(true);
     }
     const handleThemeSave = async () => {
-        if (!initialTheme?.id) return;
-        const response = await insertTheme({ id: initialTheme.id, factors: initialTheme.factors, groups: initialTheme.groups, values: initialTheme.values });
-        if (response.status !== 201) {
-            setToastMessage('Failed to save theme');
-            setToastType('error');
-            setShowToast(true);
+        if (!initialTheme?.id) return true;
+        const response = await insertTheme({ id: initialTheme.id, factors: initialTheme.factors, groups: initialTheme.groups, values: initialTheme.values }, initialTheme.etag);
+        if (response.status === 201) {
+            setInitialTheme({ ...response.data, etag: response.etag });
+            return true;
         }
+        if (response.status === 409) {
+            setToastMessage('This theme changed in another tab. Reload it before saving again.');
+        } else if (response.status === 404) {
+            setToastMessage('This theme no longer exists or you no longer have access. Reload the component.');
+        } else {
+            setToastMessage('Failed to save theme. Reload the component and try again.');
+        }
+        setToastType('error');
+        setShowToast(true);
+        return false;
     }
     const handleLoadTheme = async () => {
+        if (!initialTheme?.id) return;
         const response = await getTheme(initialTheme.id);
         if (response.status === 200) {
-            setInitialTheme(response.data);
+            setInitialTheme({ ...response.data, etag: response.etag });
         }
     }
     useEffect(() => {
