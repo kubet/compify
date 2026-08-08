@@ -85,15 +85,15 @@ describe('theme config emitter', () => {
         expect(emitted['/theme.css'].code).toContain('--asset: url(data:image/svg+xml;utf8,safe);');
     });
 
-    test('serializes reserved object keys as data without prototype mutation', () => {
-        const emitted = emitThemeConfigFiles({
+    test('rejects reserved object keys and overlong names', () => {
+        expect(() => emitThemeConfigFiles({
             values: [{ key: '__proto__', c: 'safe-data' }],
             groups: {},
-        });
-
-        const parsed = JSON.parse(emitted['/theme.json'].code);
-        expect(Object.keys(parsed)).toEqual(['__proto__']);
-        expect(parsed.__proto__).toBe('safe-data');
+        })).toThrow('Unsafe design token name');
+        expect(() => emitThemeConfigFiles({
+            values: [{ key: 'a'.repeat(65), c: 'safe-data' }],
+            groups: {},
+        })).toThrow('Unsafe design token name');
     });
 
     test('removes stale generated files when no exports remain', () => {

@@ -4,9 +4,10 @@ import ValueTokens from './DesignToken/ValueTokens';
 import GroupTokens from './DesignToken/GroupTokens';
 import { motion } from 'framer-motion';
 import FactorTokens from './DesignToken/FactorTokens';
-import { DELETE_CONFIGS } from './DesignToken/utils';
+import { DELETE_CONFIGS, findPublicGroupAliasCollision, findThemeTokenReferences, getPublicGroupTokenAliases, hasThemeTokenNameCollision, isValidTokenKey, rewriteThemeTokenReferences } from './DesignToken/utils';
 const DesignTokens = ({ factors, groups, values, setFactors, setGroups, setValues }) => {
     const [expandedGroups, setExpandedGroups] = useState({});
+    const [integrityError, setIntegrityError] = useState('');
     const [deleteConfirmation, setDeleteConfirmation] = useState({
         isOpen: false,
         type: null,
@@ -24,17 +25,75 @@ const DesignTokens = ({ factors, groups, values, setFactors, setGroups, setValue
         return [...factorTokens, ...groupTokens, ...values];
     }, [factors, groups, values]);
 
-    const updateFactor = useCallback((index, updatedFactor) => {
-        setFactors(prev => {
-            const newFactors = [...prev];
-            newFactors[index] = updatedFactor;
-            return newFactors;
-        });
-    }, [setFactors]);
+    const publicGroupAliases = getPublicGroupTokenAliases(groups);
+
+    const rejectInvalidRename = (_oldKey, newKey) => {
+        if (!isValidTokenKey(newKey)) {
+            setIntegrityError('Token names must start with a letter or underscore, use at most 64 letters, numbers, underscores, or hyphens, and cannot be __proto__, prototype, or constructor.');
+            return true;
+        }
+        if (hasThemeTokenNameCollision({ factors, groups, values }, newKey)) {
+            setIntegrityError(`Cannot rename to "${newKey}" because that token name or public group alias already exists.`);
+            return true;
+        }
+        return false;
+    };
+
+    const applyTheme = useCallback((theme) => {
+        setFactors(theme.factors);
+        setGroups(theme.groups);
+        setValues(theme.values);
+    }, [setFactors, setGroups, setValues]);
+
+    const updateFactor = (index, updatedFactor) => {
+        const oldKey = factors[index].key;
+        if (oldKey !== updatedFactor.key && rejectInvalidRename(oldKey, updatedFactor.key)) return;
+        const nextFactors = factors.map((factor, itemIndex) => itemIndex === index ? updatedFactor : factor);
+        const nextTheme = { factors: nextFactors, groups, values };
+        setIntegrityError('');
+        applyTheme(oldKey !== updatedFactor.key
+            ? rewriteThemeTokenReferences(nextTheme, { [oldKey]: updatedFactor.key })
+            : nextTheme);
+    };
 
     const handleDelete = (type, groupKey = null, index = null) => {
         const isGroupItem = type === 'group' && index !== null;
         const config = DELETE_CONFIGS[isGroupItem ? 'groupItem' : type];
+        const theme = { factors, groups, values };
+        let tokenKeys = [];
+        let remainingTheme = theme;
+
+        if (type === 'factor') {
+            tokenKeys = [factors[index].key];
+            remainingTheme = { ...theme, factors: factors.filter((_, itemIndex) => itemIndex !== index) };
+        } else if (type === 'value') {
+            tokenKeys = [values[index].key];
+            remainingTheme = { ...theme, values: values.filter((_, itemIndex) => itemIndex !== index) };
+        } else if (isGroupItem) {
+            tokenKeys = [`${groupKey}-${groups[groupKey].options[index].key}`];
+            remainingTheme = {
+                ...theme,
+                groups: {
+                    ...groups,
+                    [groupKey]: {
+                        ...groups[groupKey],
+                        options: groups[groupKey].options.filter((_, itemIndex) => itemIndex !== index)
+                    }
+                }
+            };
+        } else if (type === 'group') {
+            tokenKeys = groups[groupKey].options.map(option => `${groupKey}-${option.key}`);
+            const { [groupKey]: _removed, ...remainingGroups } = groups;
+            remainingTheme = { ...theme, groups: remainingGroups };
+        }
+
+        const references = findThemeTokenReferences(remainingTheme, tokenKeys);
+        if (references.length) {
+            const owners = [...new Set(references.map(reference => reference.owner))].join(', ');
+            setIntegrityError(`Cannot delete because ${owners} ${references.length === 1 ? 'references' : 'reference'} the token.`);
+            return;
+        }
+        setIntegrityError('');
 
         setDeleteConfirmation({
             isOpen: true,
@@ -109,13 +168,32 @@ const DesignTokens = ({ factors, groups, values, setFactors, setGroups, setValue
     };
 
     const updateGroup = (groupKey, index, updatedItem) => {
-        setGroups(prev => ({
-            ...prev,
-            [groupKey]: {
-                ...prev[groupKey],
-                options: prev[groupKey].options.map((item, i) => i === index ? updatedItem : item)
+        const oldItem = groups[groupKey].options[index];
+        const oldTokenKey = `${groupKey}-${oldItem.key}`;
+        const newTokenKey = `${groupKey}-${updatedItem.key}`;
+        if (oldItem.key !== updatedItem.key) {
+            if (!isValidTokenKey(updatedItem.key)) {
+                setIntegrityError('Token names must start with a letter or underscore, use at most 64 letters, numbers, underscores, or hyphens, and cannot be __proto__, prototype, or constructor.');
+                return;
             }
-        }));
+            if (rejectInvalidRename(oldTokenKey, newTokenKey)) return;
+            if (groups[groupKey].isPublic &&
+                rejectInvalidRename(oldItem.key, updatedItem.key)) return;
+        }
+        const nextGroups = {
+            ...groups,
+            [groupKey]: {
+                ...groups[groupKey],
+                options: groups[groupKey].options.map((item, itemIndex) => itemIndex === index ? updatedItem : item)
+            }
+        };
+        const nextTheme = { factors, groups: nextGroups, values };
+        setIntegrityError('');
+        applyTheme(oldItem.key !== updatedItem.key
+            ? rewriteThemeTokenReferences(nextTheme, {
+                [oldTokenKey]: newTokenKey
+            })
+            : nextTheme);
     };
 
     const addGroup = (groupKey = null, type, groupName, isPublic = false) => {
@@ -145,11 +223,14 @@ const DesignTokens = ({ factors, groups, values, setFactors, setGroups, setValue
     };
 
     const updateValue = (index, updatedToken) => {
-        setValues(prev => {
-            const newValues = [...prev];
-            newValues[index] = updatedToken;
-            return newValues;
-        });
+        const oldKey = values[index].key;
+        if (oldKey !== updatedToken.key && rejectInvalidRename(oldKey, updatedToken.key)) return;
+        const nextValues = values.map((value, itemIndex) => itemIndex === index ? updatedToken : value);
+        const nextTheme = { factors, groups, values: nextValues };
+        setIntegrityError('');
+        applyTheme(oldKey !== updatedToken.key
+            ? rewriteThemeTokenReferences(nextTheme, { [oldKey]: updatedToken.key })
+            : nextTheme);
     };
 
 
@@ -190,35 +271,56 @@ const DesignTokens = ({ factors, groups, values, setFactors, setGroups, setValue
     const updateGroupName = (oldKey, newKey, type, isPublic) => {
         if (oldKey === newKey &&
             type === groups[oldKey].type &&
-            isPublic === groups[oldKey].isPublic) return; // No change if all properties are the same
+            isPublic === groups[oldKey].isPublic) return;
 
-        setGroups(prev => {
-            const entries = Object.entries(prev);
-            const index = entries.findIndex(([key]) => key === oldKey);
+        if (!isValidTokenKey(newKey)) {
+            setIntegrityError('Token names must start with a letter or underscore, use at most 64 letters, numbers, underscores, or hyphens, and cannot be __proto__, prototype, or constructor.');
+            return;
+        }
+        if (oldKey !== newKey && Object.prototype.hasOwnProperty.call(groups, newKey)) {
+            setIntegrityError(`Cannot rename the group to "${newKey}" because that group already exists.`);
+            return;
+        }
+        const oldGroupTokenKeys = new Set(groups[oldKey].options.map(option => `${oldKey}-${option.key}`));
+        const collidingKey = groups[oldKey].options
+            .map(option => `${newKey}-${option.key}`)
+            .find(key =>
+                getAllTokens.some(token => token.key === key && !oldGroupTokenKeys.has(token.key)) ||
+                publicGroupAliases.some(alias => alias.key === key));
+        if (collidingKey) {
+            setIntegrityError(`Cannot rename the group because token "${collidingKey}" already exists.`);
+            return;
+        }
 
-            if (index === -1) return prev;
-
-            const groupData = prev[oldKey];
-
-            const newEntries = [
-                ...entries.slice(0, index),
-                [newKey, {
-                    ...groupData,
-                    type,
-                    isPublic
-                }],
-                ...entries.slice(index + 1)
-            ];
-
-            return Object.fromEntries(newEntries);
-        });
+        const entries = Object.entries(groups);
+        const index = entries.findIndex(([key]) => key === oldKey);
+        if (index === -1) return;
+        const groupData = groups[oldKey];
+        const nextGroups = Object.fromEntries([
+            ...entries.slice(0, index),
+            [newKey, { ...groupData, type, isPublic }],
+            ...entries.slice(index + 1)
+        ]);
+        const aliasCollision = findPublicGroupAliasCollision({ factors, groups: nextGroups, values }, newKey);
+        if (aliasCollision) {
+            setIntegrityError(`Cannot make this group public because alias "${aliasCollision}" already exists.`);
+            return;
+        }
+        const renames = Object.fromEntries(groupData.options.map(option => [
+            `${oldKey}-${option.key}`,
+            `${newKey}-${option.key}`
+        ]));
+        setIntegrityError('');
+        applyTheme(oldKey === newKey
+            ? { factors, groups: nextGroups, values }
+            : rewriteThemeTokenReferences({ factors, groups: nextGroups, values }, renames));
 
         setExpandedGroups(prev => {
-            const newExpanded = { ...prev };
-            const isExpanded = newExpanded[oldKey];
-            delete newExpanded[oldKey];
-            newExpanded[newKey] = isExpanded;
-            return newExpanded;
+            const nextExpanded = { ...prev };
+            const isExpanded = nextExpanded[oldKey];
+            delete nextExpanded[oldKey];
+            nextExpanded[newKey] = isExpanded;
+            return nextExpanded;
         });
     };
 
@@ -229,6 +331,11 @@ const DesignTokens = ({ factors, groups, values, setFactors, setGroups, setValue
 
     return (
         <div className="space-y-8">
+            {integrityError && (
+                <p role="alert" aria-live="assertive" className="text-sm text-yellow-500">
+                    {integrityError}
+                </p>
+            )}
 
             <FactorTokens
                 factors={factors}

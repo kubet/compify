@@ -39,3 +39,128 @@ export const isValidColorValue = (color) => {
     const colorValue = constructColorValue(color);
     return isValidColor(colorValue) || isValidColor(color);
 };
+
+
+const DIRECT_TOKEN_REFERENCE = /--[A-Za-z_][A-Za-z0-9_-]{0,63}(?![A-Za-z0-9_-])/g;
+const META_TOKEN_REFERENCE = /\$\{(--)?([A-Za-z_][A-Za-z0-9_-]{0,63})\}/g;
+
+const getThemeTokenKeys = (theme) => new Set([
+    ...theme.factors.map(factor => factor.key),
+    ...Object.entries(theme.groups).flatMap(([groupKey, group]) =>
+        group.options.map(option => `${groupKey}-${option.key}`)),
+    ...theme.values.map(value => value.key),
+]);
+
+export const getPublicGroupTokenAliases = (groups) =>
+    Object.entries(groups).flatMap(([groupKey, group]) =>
+        group.isPublic
+            ? group.options.map((option, optionIndex) => ({ key: option.key, groupKey, optionIndex }))
+            : []
+    );
+
+export const hasThemeTokenNameCollision = (theme, key) =>
+    getThemeTokenKeys(theme).has(key) ||
+    getPublicGroupTokenAliases(theme.groups).some(alias => alias.key === key);
+
+export const findPublicGroupAliasCollision = (theme, groupKey) => {
+    const group = theme.groups[groupKey];
+    if (!group?.isPublic) return null;
+    const occupied = getThemeTokenKeys(theme);
+    getPublicGroupTokenAliases(theme.groups)
+        .filter(alias => alias.groupKey !== groupKey)
+        .forEach(alias => occupied.add(alias.key));
+    const seen = new Set();
+    return group.options.map(option => option.key).find(key => {
+        const collision = seen.has(key) || occupied.has(key);
+        seen.add(key);
+        return collision;
+    }) || null;
+};
+
+const resolveDirectReferenceKey = (key, knownKeys) => {
+    if (!knownKeys || knownKeys.has(key)) return key;
+    const suffix = key.match(/^(.*)-(\d+)$/);
+    return suffix && knownKeys.has(suffix[1]) ? suffix[1] : key;
+};
+
+const RESERVED_TOKEN_KEYS = new Set(['__proto__', 'prototype', 'constructor']);
+
+export const isValidTokenKey = (key) =>
+    typeof key === 'string' &&
+    /^[A-Za-z_][A-Za-z0-9_-]{0,63}$/.test(key) &&
+    !RESERVED_TOKEN_KEYS.has(key);
+
+/**
+ * Rewrites only complete token references. In particular, renaming `space` does
+ * not alter `--space-large`, plain text, or another token's name.
+ */
+export const replaceExactTokenReferences = (value, renames, knownKeys = null) => {
+    if (typeof value !== 'string') return value;
+    const renameMap = renames instanceof Map ? renames : new Map(Object.entries(renames));
+
+    const metaReplaced = value.replace(META_TOKEN_REFERENCE, (match, prefix = '', key) => {
+        const replacement = renameMap.get(key);
+        return replacement === undefined ? match : `\${${prefix}${replacement}}`;
+    });
+
+    return metaReplaced.replace(DIRECT_TOKEN_REFERENCE, (match) => {
+        const fullKey = match.slice(2);
+        const key = resolveDirectReferenceKey(fullKey, knownKeys);
+        if (!renameMap.has(key)) return match;
+        return `--${renameMap.get(key)}${fullKey.slice(key.length)}`;
+    });
+};
+
+export const rewriteThemeTokenReferences = (theme, renames) => {
+    const renameMap = renames instanceof Map ? renames : new Map(Object.entries(renames));
+    const knownKeys = getThemeTokenKeys(theme);
+    renameMap.forEach((_newKey, oldKey) => knownKeys.add(oldKey));
+    return {
+        factors: theme.factors.map(factor => ({
+            ...factor,
+            value: replaceExactTokenReferences(factor.value, renameMap, knownKeys)
+        })),
+        groups: Object.fromEntries(Object.entries(theme.groups).map(([groupKey, group]) => [
+            groupKey,
+            {
+                ...group,
+                options: group.options.map(option => ({
+                    ...option,
+                    value: replaceExactTokenReferences(option.value, renameMap, knownKeys)
+                }))
+            }
+        ])),
+        values: theme.values.map(value => ({
+            ...value,
+            value: replaceExactTokenReferences(value.value, renameMap, knownKeys)
+        }))
+    };
+};
+
+export const findThemeTokenReferences = (theme, tokenKeys) => {
+    const keys = tokenKeys instanceof Set ? tokenKeys : new Set(tokenKeys);
+    const references = [];
+    const knownKeys = getThemeTokenKeys(theme);
+    keys.forEach(key => knownKeys.add(key));
+    const inspect = (value, owner) => {
+        if (typeof value !== 'string') return;
+        const found = new Set();
+        value.replace(META_TOKEN_REFERENCE, (_match, _prefix, key) => {
+            if (keys.has(key)) found.add(key);
+            return _match;
+        });
+        value.replace(DIRECT_TOKEN_REFERENCE, (match) => {
+            const key = resolveDirectReferenceKey(match.slice(2), knownKeys);
+            if (keys.has(key)) found.add(key);
+            return match;
+        });
+        found.forEach(key => references.push({ key, owner }));
+    };
+
+    theme.factors.forEach(factor => inspect(factor.value, `factor "${factor.key}"`));
+    Object.entries(theme.groups).forEach(([groupKey, group]) => {
+        group.options.forEach(option => inspect(option.value, `group option "${groupKey}-${option.key}"`));
+    });
+    theme.values.forEach(value => inspect(value.value, `value "${value.key}"`));
+    return references;
+};

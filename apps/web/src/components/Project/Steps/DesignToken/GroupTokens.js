@@ -20,6 +20,7 @@ export default function GroupTokens({ groups,
     checkTokenNameExists,
     updateGroupName }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [modalError, setModalError] = useState('');
     const [modalState, setModalState] = useState({
         selectedOption: null,
         name: '',
@@ -78,24 +79,26 @@ export default function GroupTokens({ groups,
             const newType = modalState.selectedOption.value;
 
             if (oldKey !== newKey && groups[newKey]) {
-                alert('A group with this name already exists');
+                setModalError('A group with this name already exists');
                 return;
             }
 
             updateGroupName(oldKey, newKey, newType, modalState.isPublic);
         } else {
             if (groups[modalState.name]) {
-                alert('A group with this name already exists');
+                setModalError('A group with this name already exists');
                 return;
             }
             addGroup(null, modalState.selectedOption.value, modalState.name, modalState.isPublic);
         }
 
+        setModalError('');
         setIsModalOpen(false);
         resetForm();
     };
 
     const resetForm = () => {
+        setModalError('');
         setModalState({
             selectedOption: null,
             name: '',
@@ -165,6 +168,9 @@ export default function GroupTokens({ groups,
                                                 errorMessage={checkDuplicateName(item.key, 'groups', groupKey) ? 'Name already exist' : ''}
                                                 errorColor='#eab208'
                                             />
+                                            {checkDuplicateName(item.key, 'groups', groupKey) && (
+                                                <span role="alert" className="sr-only">Group option name already exists</span>
+                                            )}
                                         </div>
                                         <div className="w-1/2">
                                             <InputControl
@@ -241,7 +247,10 @@ export default function GroupTokens({ groups,
                                     <UtilityInput
                                         value={modalState.name}
                                         placeholder="Enter group name..."
-                                        onChange={(e) => setModalState(prev => ({ ...prev, name: e.target.value }))}
+                                        onChange={(e) => {
+                                            setModalError('');
+                                            setModalState(prev => ({ ...prev, name: e.target.value }));
+                                        }}
                                         isNumber={false}
                                         className="w-full"
                                         errorMessage={
@@ -252,6 +261,11 @@ export default function GroupTokens({ groups,
                                         errorColor='#eab208'
                                     />
                                 </div>
+                                {modalError && (
+                                    <p role="alert" aria-live="assertive" className="text-sm text-yellow-500">
+                                        {modalError}
+                                    </p>
+                                )}
 
                                 <div>
                                     <RadioButton
