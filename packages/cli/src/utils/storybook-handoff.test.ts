@@ -4,6 +4,7 @@ import os from "os";
 import path from "path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
+  DEFAULT_CONSUMER_SNAPSHOT_LIMITS,
   runStorybookHandoff,
   SHADCN_HANDOFF_VERSION,
   snapshotConsumer,
@@ -141,6 +142,7 @@ describe("Storybook handoff", () => {
     expect(receiptDigest).toBe(
       crypto.createHash("sha256").update(canonical(unsigned)).digest("hex")
     );
+    expect(parsed.schemaVersion).toBe(2);
     expect(parsed.source.stories).toEqual(["Primary"]);
     const stylePath = path.join(source, ".compify", "button.style-contract.json");
     expect(parsed.styleContract).toMatchObject({
@@ -201,6 +203,24 @@ describe("Storybook handoff", () => {
       )
     ).toThrow(/Refusing to overwrite/);
     expect(fs.existsSync(receipt)).toBe(false);
+  });
+
+  it("aborts a snapshot when a child directory is replaced before recursion", () => {
+    const consumer = consumerProject();
+    const child = path.join(consumer, "child");
+    const replacement = path.join(consumer, "replacement");
+    const displaced = path.join(consumer, "displaced");
+    fs.mkdirSync(child);
+    fs.mkdirSync(replacement);
+    fs.writeFileSync(path.join(child, "original.txt"), "original");
+    fs.writeFileSync(path.join(replacement, "replacement.txt"), "replacement");
+    expect(() => snapshotConsumer(consumer, DEFAULT_CONSUMER_SNAPSHOT_LIMITS, {
+      beforeDescend: directory => {
+        if (path.basename(directory) !== "child") return;
+        fs.renameSync(child, displaced);
+        fs.renameSync(replacement, child);
+      },
+    })).toThrow(/changed before traversal/);
   });
 
   it("bounds consumer traversal before running native commands", () => {

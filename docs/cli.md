@@ -97,7 +97,7 @@ Handoff also writes `.compify/<name>.style-contract.json` before reporting
 success; `--style-contract-output <file>` selects another path. The sidecar adds
 bounded, pre-install consumer definition candidates only for variables used by
 the selected bundle. Bundled and consumer definitions remain lexical candidates,
-not proof that a value reaches the component. The handoff receipt commits to the
+not proof that a value reaches the component. The version 2 handoff receipt commits to the
 sidecar's exact SHA-256 and source bundle digest, while registry, publish, and
 bundle wire formats remain unchanged. This makes later sidecar edits detectable;
 it does not turn static observation into signed runtime or visual evidence.

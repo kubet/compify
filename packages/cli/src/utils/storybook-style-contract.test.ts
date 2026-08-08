@@ -6,7 +6,9 @@ import { afterEach, describe, expect, it } from "vitest"
 import { inspectStyleContract, scanConsumerStyleCandidates } from "./storybook-style-contract"
 
 const roots: string[] = []
-afterEach(() => { for (const root of roots.splice(0)) fs.rmSync(root, { recursive: true, force: true }) })
+afterEach(() => {
+  for (const root of roots.splice(0)) fs.rmSync(root, { recursive: true, force: true })
+})
 
 describe("static CSS custom-property evidence", () => {
   it("reports literal uses, literal fallbacks, and definitions with deterministic file evidence", () => {
@@ -56,6 +58,23 @@ describe("static CSS custom-property evidence", () => {
       { name: "--needed", file: "theme.css", line: 2, column: 3 },
       { name: "--already", file: "theme.css", line: 3, column: 3 },
     ])
+  })
+
+  it("aborts when a child directory is replaced before recursion", () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "compify-style-race-")); roots.push(root)
+    const child = path.join(root, "child")
+    const replacement = path.join(root, "replacement")
+    const displaced = path.join(root, "displaced")
+    fs.mkdirSync(child); fs.mkdirSync(replacement)
+    fs.writeFileSync(path.join(child, "original.css"), `:root { --original: 1 }`)
+    fs.writeFileSync(path.join(replacement, "replacement.css"), `:root { --replacement: 1 }`)
+    expect(() => scanConsumerStyleCandidates(root, {
+      beforeDescend: directory => {
+        if (path.basename(directory) !== "child") return
+        fs.renameSync(child, displaced)
+        fs.renameSync(replacement, child)
+      },
+    })).toThrow(/changed before traversal/)
   })
 
   it("finds sorted consumer candidates without following symlinks", () => {

@@ -102,7 +102,10 @@ export function inspectStyleContract(files: Record<string, string>, consumerProv
 }
 
 /** Read stylesheet text only. Symlinks and ignored/generated trees are never followed. */
-export function scanConsumerStyleCandidates(root: string): StyleContractDefinition[] {
+export function scanConsumerStyleCandidates(
+  root: string,
+  hooks: { beforeDescend?: (directory: string) => void } = {}
+): StyleContractDefinition[] {
   const realRoot = fs.realpathSync(root)
   const ignored = new Set([".git", "node_modules", ".next", "dist", "build", "coverage", "storybook-static"])
   const result: StyleContractDefinition[] = []
@@ -111,9 +114,11 @@ export function scanConsumerStyleCandidates(root: string): StyleContractDefiniti
     const relative = path.relative(realRoot, target)
     return relative === "" || (!relative.startsWith(`..${path.sep}`) && relative !== ".." && !path.isAbsolute(relative))
   }
-  const walk = (directory: string) => {
+  const walk = (directory: string, expectedIdentity?: { dev: number, ino: number }) => {
     const expectedDirectory = path.resolve(directory)
     const directoryInitial = fs.lstatSync(expectedDirectory)
+    if (expectedIdentity && (directoryInitial.dev !== expectedIdentity.dev || directoryInitial.ino !== expectedIdentity.ino))
+      throw new Error("Consumer style evidence directory changed before traversal")
     const directoryReal = fs.realpathSync(expectedDirectory)
     if (!directoryInitial.isDirectory() || directoryInitial.isSymbolicLink() ||
         directoryReal !== expectedDirectory || !contained(directoryReal))
@@ -126,7 +131,13 @@ export function scanConsumerStyleCandidates(root: string): StyleContractDefiniti
       const absolute = path.join(directory, item.name)
       const initial = fs.lstatSync(absolute)
       if (initial.isSymbolicLink()) continue
-      if (initial.isDirectory()) { if (!ignored.has(item.name)) walk(absolute); continue }
+      if (initial.isDirectory()) {
+        if (!ignored.has(item.name)) {
+          hooks.beforeDescend?.(absolute)
+          walk(absolute, { dev: initial.dev, ino: initial.ino })
+        }
+        continue
+      }
       // Sockets, FIFOs, devices, and all other special files are never opened.
       if (!initial.isFile() || !STYLE_EXTENSIONS.has(path.extname(item.name).toLowerCase())) continue
       if (++files > 500) throw new Error("Consumer style evidence exceeded 500 stylesheet files")

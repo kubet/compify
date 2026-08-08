@@ -56,8 +56,8 @@ lexical evidence and pre-install consumer definition candidates to
 `.compify/<name>.style-contract.json` (override with `--style-contract-output`).
 Bundled and consumer definitions are lexical candidates; neither proves cascade
 or runtime availability. The sidecar stays outside registry, publish, and bundle
-wire formats, while the handoff receipt commits to its exact SHA-256 and source
-bundle digest so later edits are detectable.
+wire formats, while the version 2 handoff receipt commits to its exact SHA-256
+and source bundle digest so later edits are detectable.
 
 Export follows supported local text imports from the component entry, records
 runtime dependencies and provenance, and refuses unresolved or unsafe input.

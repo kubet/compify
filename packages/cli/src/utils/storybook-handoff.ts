@@ -23,7 +23,7 @@ export interface HandoffOptions extends BuildStoryOptions {
 }
 
 export interface HandoffReceipt {
-  schemaVersion: 1;
+  schemaVersion: 2;
   kind: "compify.storybook.handoff";
   evidenceLevel: "installed" | "built";
   source: {
@@ -131,7 +131,8 @@ export const DEFAULT_CONSUMER_SNAPSHOT_LIMITS: ConsumerSnapshotLimits = {
  * abort the snapshot instead of returning evidence from another tree. */
 export function snapshotConsumer(
   root: string,
-  limits: ConsumerSnapshotLimits = DEFAULT_CONSUMER_SNAPSHOT_LIMITS
+  limits: ConsumerSnapshotLimits = DEFAULT_CONSUMER_SNAPSHOT_LIMITS,
+  hooks: { beforeDescend?: (directory: string) => void } = {}
 ): Map<string, string> {
   if (
     !Number.isSafeInteger(limits.maxEntries) ||
@@ -147,13 +148,23 @@ export function snapshotConsumer(
   const rootReal = fs.realpathSync(root);
   let entries = 0;
   let bytes = 0;
-  const walk = (directory: string, depth: number) => {
+  const walk = (
+    directory: string,
+    depth: number,
+    expectedIdentity?: { dev: number; ino: number }
+  ) => {
     if (depth > limits.maxDepth)
       throw new Error(
         `Consumer snapshot exceeded maximum depth (${limits.maxDepth})`
       );
     const expectedDirectory = path.resolve(directory);
     const directoryInitial = fs.lstatSync(expectedDirectory);
+    if (
+      expectedIdentity &&
+      (directoryInitial.dev !== expectedIdentity.dev ||
+        directoryInitial.ino !== expectedIdentity.ino)
+    )
+      throw new Error("Consumer snapshot directory changed before traversal");
     const directoryReal = fs.realpathSync(expectedDirectory);
     if (
       !directoryInitial.isDirectory() ||
@@ -189,7 +200,10 @@ export function snapshotConsumer(
       if (stats.isSymbolicLink()) {
         continue;
       } else if (stats.isDirectory()) {
-        if (!SNAPSHOT_IGNORES.has(item.name)) walk(absolute, depth + 1);
+        if (!SNAPSHOT_IGNORES.has(item.name)) {
+          hooks.beforeDescend?.(absolute);
+          walk(absolute, depth + 1, { dev: stats.dev, ino: stats.ino });
+        }
       } else if (stats.isFile()) {
         bytes += stats.size;
         if (bytes > limits.maxBytes)
@@ -432,7 +446,7 @@ export function runStorybookHandoff(
     writeOwnedFileExclusive(styleContractPath, styleContractJson);
 
     const unsigned = {
-      schemaVersion: 1 as const,
+      schemaVersion: 2 as const,
       kind: "compify.storybook.handoff" as const,
       evidenceLevel: build ? ("built" as const) : ("installed" as const),
       source: {
