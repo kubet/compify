@@ -69,7 +69,10 @@ actions, sitemap entries are catalog pages, and issues are individual reports.
 Compify's legacy editor can create component-scoped factors, groups, semantic
 values, CSS variables, and flat JSON. That implementation is not evidence that
 teams want another theme editor, token platform, or AI palette generator. The
-only adjacent business hypothesis consistent with Compify's authority boundary
+internal shape audit and package stop gate are recorded in
+[`theme-contract-evaluation.md`](theme-contract-evaluation.md); they are schema
+evidence, not demand evidence. The only adjacent business hypothesis consistent
+with Compify's authority boundary
 is **Theme Release Assurance**: before a team releases an already-authored token
 or theme change, identify the statically observable component dependencies,
 run the checks the team already trusts in named destinations, and retain a

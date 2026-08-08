@@ -99,7 +99,7 @@ describePostgres('Theme CAS (PostgreSQL 16, two connections)', () => {
   async function resetOwnerTheme() {
     await first.query(
       `INSERT INTO "themes" ("id", "name", "factors", "groups", "values", "version", "updated_at", "componentId")
-       VALUES ($1, 'Owner', '[{"key":"hue","value":"10"}]', '{"palette":{"options":[]}}', '[{"key":"primary","value":"red"}]', 1, '2000-01-01T00:00:00Z', $2)
+       VALUES ($1, 'Owner', '[{"key":"hue","type":"hue","value":"10"}]', '{"palette":{"type":"palette","options":[]}}', '[{"key":"primary","value":"red"}]', 1, '2000-01-01T00:00:00Z', $2)
        ON CONFLICT ("id") DO UPDATE SET
          "name"=EXCLUDED."name", "factors"=EXCLUDED."factors", "groups"=EXCLUDED."groups",
          "values"=EXCLUDED."values", "version"=1, "updated_at"=EXCLUDED."updated_at"`,
@@ -249,8 +249,8 @@ describePostgres('Theme CAS (PostgreSQL 16, two connections)', () => {
     );
     expect(row).toMatchObject({
       name: 'Partial',
-      factors: [{ key: 'hue', value: '10' }],
-      groups: { palette: { options: [] } },
+      factors: [{ key: 'hue', type: 'hue', value: '10' }],
+      groups: { palette: { type: 'palette', options: [] } },
       values: [{ key: 'primary', value: 'red' }],
       version: 2,
     });

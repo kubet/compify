@@ -25,6 +25,11 @@ import { Theme } from 'src/entities/project/theme.entity';
 import { ExternalComponent } from 'src/entities/project/externalComponent.entity';
 import { Report, ReportItemType } from 'src/entities/common/report.entity';
 import { Upvote, UpvoteStatus } from 'src/entities/project/upvote.entity';
+import {
+  projectThemeContent,
+  themeContentBytes,
+  THEME_CONTENT_MAX_BYTES,
+} from 'src/common/theme-content';
 @Injectable()
 export class ComponentService {
   constructor(
@@ -286,55 +291,127 @@ export class ComponentService {
     ) {
       throw new ForbiddenException('Only public components can be forked');
     }
-    await this.limiterService.componentUsage(user);
+    const sourceObject = await this.minioService.getFile(
+      'components',
+      originalComponent.id,
+    );
+    if (!sourceObject) {
+      throw new BadRequestException('Component source is unavailable');
+    }
+    const originalCode = sourceObject.buffer.toString();
+    try {
+      const parsed: unknown = JSON.parse(originalCode);
+      // Component source is an opaque Sandpack map. Existing web/CLI writers
+      // legitimately use both string entries and `{ code, ... }` objects, often
+      // under leading-slash keys, so fork checks only the persisted outer shape.
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+        throw new Error('not a file map');
+      }
+    } catch {
+      throw new BadRequestException('Component code must be a JSON file map');
+    }
 
-    const originalCode =
-      (
-        await this.minioService.getFile('components', originalComponent.id)
-      )?.buffer.toString() || '{}';
+    // Validate and sanitize every source theme before consuming quota or
+    // creating any fork metadata. A malformed source must never partially fork.
+    const projectedThemes = (originalComponent.themes || []).map((theme) => {
+      const source = {
+        factors: theme.factors,
+        groups: theme.groups,
+        values: theme.values,
+      };
+      if (themeContentBytes(source) > THEME_CONTENT_MAX_BYTES) {
+        throw new BadRequestException(
+          `Theme size exceeds the maximum allowed limit (${THEME_CONTENT_MAX_BYTES} bytes)`,
+        );
+      }
+      try {
+        const content = projectThemeContent(source);
+        if (themeContentBytes(content) > THEME_CONTENT_MAX_BYTES) {
+          throw new BadRequestException(
+            `Theme size exceeds the maximum allowed limit (${THEME_CONTENT_MAX_BYTES} bytes)`,
+          );
+        }
+        return { name: theme.name, content };
+      } catch (error) {
+        if (error instanceof BadRequestException) throw error;
+        throw new BadRequestException(
+          error instanceof Error ? error.message : 'Invalid theme content',
+        );
+      }
+    });
+
+    await this.limiterService.componentUsage(user);
 
     // Create new component object
     const newComponent = this.componentRepository.create({
-      ...originalComponent,
-      id: undefined,
-      user: user,
       name: `${originalComponent.name} (Fork)`,
+      description: originalComponent.description,
+      activeFile: originalComponent.activeFile,
+      previewFile: originalComponent.previewFile,
+      language: originalComponent.language,
+      pageSettings: originalComponent.pageSettings,
+      usedDeps: originalComponent.usedDeps,
+      usedUiFrameworks: originalComponent.usedUiFrameworks,
+      isSetup: originalComponent.isSetup,
       isShared: false,
+      imageUploaded: false,
+      publishingDomain: null,
       upvotesCount: 0,
       visibility: ComponentVisibility.DRAFT,
-      createdAt: undefined,
-      updatedAt: undefined,
-      deletedAt: undefined,
+      user,
       themes: [],
     });
 
-    // Save new component
+    // Save the database rows first, but compensate them if either the related
+    // theme write or cross-store source copy fails. The fork stays DRAFT until
+    // the method has both durable parts.
     const savedComponent = await this.componentRepository.save(newComponent);
-
-    // If original component had themes, duplicate them
-    if (originalComponent?.themes?.length > 0) {
-      const newThemes = originalComponent.themes.map((theme) => ({
-        ...theme,
-        id: undefined,
-        component: savedComponent,
-        createdAt: undefined,
-        updatedAt: undefined,
-        deletedAt: undefined,
-      }));
-      await this.themeRepository.save(newThemes);
-    }
-
-    // Save the code file
     const objectName = `${savedComponent.id}`;
-    await this.minioService.uploadFile(
-      objectName,
-      {
-        buffer: Buffer.from(originalCode),
-        size: originalCode?.length,
-        mimetype: 'text/plain',
-      },
-      'components',
-    );
+    let uploadStarted = false;
+    try {
+      // Create fresh rows rather than spreading source persistence identity and
+      // version fields into the fork.
+      if (projectedThemes.length > 0) {
+        const newThemes = projectedThemes.map(({ name, content }) => {
+          const theme = new Theme();
+          theme.name = name || 'Default';
+          theme.component = savedComponent;
+          theme.componentId = savedComponent.id;
+          theme.version = 1;
+          theme.factors = content.factors;
+          theme.groups = content.groups;
+          theme.values = content.values;
+          return theme;
+        });
+        await this.themeRepository.save(newThemes);
+      }
+
+      uploadStarted = true;
+      await this.minioService.uploadFile(
+        objectName,
+        {
+          buffer: Buffer.from(originalCode),
+          size: Buffer.byteLength(originalCode),
+          mimetype: 'text/plain',
+        },
+        'components',
+      );
+    } catch (error) {
+      if (uploadStarted) {
+        try {
+          await this.minioService.deleteFile('components', objectName);
+        } catch {
+          // Preserve the originating failure; orphan-object cleanup is best effort.
+        }
+      }
+      try {
+        // The production FK cascades any theme rows already written for this fork.
+        await this.componentRepository.delete(savedComponent.id);
+      } catch {
+        // Preserve the originating failure rather than hiding it with compensation.
+      }
+      throw error;
+    }
 
     return {
       ...savedComponent,

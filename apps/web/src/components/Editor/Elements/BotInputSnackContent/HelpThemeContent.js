@@ -156,7 +156,11 @@ function HelpThemeContent() {
                                         </li>
                                         <li className="flex items-start gap-2">
                                             <ChevronRight className="w-4 h-4 text-blue-400 mt-1 flex-shrink-0" />
-                                            <span>Enable &quot;Make whole group available&quot; to expose in JSON</span>
+                                            <span>Enable &quot;Make whole group available&quot; to export canonical group-option names in CSS and JSON</span>
+                                        </li>
+                                        <li className="flex items-start gap-2">
+                                            <ChevronRight className="w-4 h-4 text-blue-400 mt-1 flex-shrink-0" />
+                                            <span>Unprefixed public option names are temporary compatibility aliases and are rejected when they collide</span>
                                         </li>
                                     </ul>
                                     <CodeExample
@@ -169,7 +173,7 @@ function HelpThemeContent() {
                             <FeatureSection title="Values" icon={Box}>
                                 <div className="space-y-4 text-gray-400">
                                     <p className="text-sm">
-                                        Application values are automatically available in CSS and JSON theme files:
+                                        Application values are automatically available in CSS and JSON theme files. Compiled previews are derived from authored values and are not stored as authored input:
                                     </p>
                                     <CodeExample
                                         code="--background: --palette-light-background;"
@@ -184,11 +188,11 @@ function HelpThemeContent() {
                         <div className="space-y-6">
                             <FeatureSection title="Token References" icon={Code2}>
                                 <div className="space-y-4 text-gray-400">
-                                    <p className="text-sm">Use tokens directly with their -- prefix:</p>
+                                    <p className="text-sm">Inside token value fields, reference known tokens directly with their -- prefix. Generated CSS contains the resolved value; this is not general CSS var() syntax:</p>
                                     <CodeExample
-                                        code="background-color: --background;
-color: --palette-light-text;"
-                                        description="Direct token usage in CSS without var()"
+                                        code="background value: --palette-light-background
+text value: --palette-light-text"
+                                        description="References are authored in Compify token value fields and resolved before export"
                                     />
                                 </div>
                             </FeatureSection>
@@ -196,7 +200,7 @@ color: --palette-light-text;"
                             <FeatureSection title="Meta Tokens" icon={Braces}>
                                 <div className="space-y-4 text-gray-400">
                                     <p className="text-sm">
-                                        Meta tokens can dynamically construct token names using \${--token - name}:
+                                        Meta tokens can dynamically construct token names using \${--token-name}:
                                     </p>
                                     <CodeExample
                                         code="--dynamic-bg: --palette-${--theme}-background;"

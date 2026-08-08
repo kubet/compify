@@ -21,8 +21,8 @@ export default function FactorTokens({ factors, updateFactor, removeFactor, addF
         setModalState(prev => ({
             ...prev,
             selectedOption: option.value === prev.selectedOption?.value ? null : option,
-            min: option.min || 0,
-            max: option.max || 100
+            min: option.min ?? 0,
+            max: option.max ?? 100
         }));
     };
 

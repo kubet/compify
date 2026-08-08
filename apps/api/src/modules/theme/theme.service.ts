@@ -14,6 +14,11 @@ import {
   ComponentVisibility,
 } from 'src/entities/project/component.entity';
 import { shortIdToUuid, uuidToShortId } from 'src/common/short-id';
+import {
+  projectThemeContent,
+  themeContentBytes,
+  THEME_CONTENT_MAX_BYTES,
+} from 'src/common/theme-content';
 
 @Injectable()
 export class ThemeService {
@@ -137,27 +142,55 @@ export class ThemeService {
       user,
       themeData.componentId,
     );
-    const dtoSize = Buffer.from(JSON.stringify(themeData)).length;
-    const maxSize = 1 * 1024 * 1024;
-    if (dtoSize > maxSize) {
+    const existingTheme = themeData.id
+      ? (authorizedEntity as Theme)
+      : undefined;
+    if (existingTheme) {
+      if (expectedVersion == null) {
+        throw new BadRequestException('An expected theme version is required');
+      }
+      if (expectedVersion !== existingTheme.version) {
+        throw new ConflictException(
+          'This theme changed in another tab. Reload it before saving again.',
+        );
+      }
+    }
+    const prospectiveContent = {
+      factors: themeData.factors ?? existingTheme?.factors ?? [],
+      groups: themeData.groups ?? existingTheme?.groups ?? {},
+      values: themeData.values ?? existingTheme?.values ?? [],
+    };
+    if (themeContentBytes(prospectiveContent) > THEME_CONTENT_MAX_BYTES) {
       throw new BadRequestException(
-        `Theme size exceeds the maximum allowed limit (${maxSize} bytes)`,
+        `Theme size exceeds the maximum allowed limit (${THEME_CONTENT_MAX_BYTES} bytes)`,
+      );
+    }
+    let content;
+    try {
+      content = projectThemeContent(prospectiveContent);
+    } catch (error) {
+      throw new BadRequestException(
+        error instanceof Error ? error.message : 'Invalid theme content',
+      );
+    }
+    if (themeContentBytes(content) > THEME_CONTENT_MAX_BYTES) {
+      throw new BadRequestException(
+        `Theme size exceeds the maximum allowed limit (${THEME_CONTENT_MAX_BYTES} bytes)`,
       );
     }
 
     if (themeData.id) {
-      if (expectedVersion == null) {
-        throw new BadRequestException('An expected theme version is required');
-      }
       const theme = authorizedEntity as Theme;
       const changes: Record<string, unknown> = {
         version: () => `"version" + 1`,
         updatedAt: () => 'CURRENT_TIMESTAMP',
       };
       if (themeData.name != null) changes.name = themeData.name;
-      if (themeData.groups != null) changes.groups = themeData.groups;
-      if (themeData.factors != null) changes.factors = themeData.factors;
-      if (themeData.values != null) changes.values = themeData.values;
+      // Always rewrite every collection so legacy compiler-derived fields are
+      // removed even when the HTTP patch changes only metadata.
+      changes.groups = content.groups;
+      changes.factors = content.factors;
+      changes.values = content.values;
 
       const result = await this.themeRepository
         .createQueryBuilder()
@@ -192,9 +225,9 @@ export class ThemeService {
     theme.name = themeData.name || 'Default';
     theme.component = authorizedEntity as Component;
     theme.componentId = theme.component.id;
-    theme.groups = themeData.groups ?? {};
-    theme.factors = themeData.factors ?? [];
-    theme.values = themeData.values ?? [];
+    theme.groups = content.groups;
+    theme.factors = content.factors;
+    theme.values = content.values;
 
     let savedTheme: Theme;
     try {
