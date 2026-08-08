@@ -1,24 +1,36 @@
-import { IsOptional } from 'class-validator';
-import { IsString } from 'class-validator';
+import {
+  IsArray,
+  IsObject,
+  IsOptional,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 
 export class InsertThemeDto {
   @IsString()
+  @MaxLength(64)
   @IsOptional()
   id?: string;
 
   @IsString()
+  @MaxLength(100)
   @IsOptional()
   name?: string;
 
+  @IsObject()
   @IsOptional()
-  groups?: any;
+  groups?: Record<string, unknown>;
 
+  @IsArray()
   @IsOptional()
-  factors?: any;
+  factors?: unknown[];
 
+  @IsArray()
   @IsOptional()
-  values?: any;
+  values?: unknown[];
 
+  @IsString()
+  @MaxLength(64)
   @IsOptional()
   componentId?: string;
 }

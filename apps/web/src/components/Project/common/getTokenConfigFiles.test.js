@@ -1,0 +1,89 @@
+import { describe, expect, test } from 'bun:test';
+import {
+    applyThemeConfigFiles,
+    emitThemeConfigFiles,
+    getExportedThemeTokens,
+} from './getTokenConfigFiles';
+
+describe('theme config emitter', () => {
+    test('exports public group options with canonical group-prefixed names', () => {
+        const emitted = emitThemeConfigFiles({
+            values: [{ key: 'background', c: '#fff' }],
+            groups: {
+                palette: {
+                    isPublic: true,
+                    options: [{ key: 'primary', c: '#123456' }],
+                },
+                privatePalette: {
+                    isPublic: false,
+                    options: [{ key: 'secret', c: '#000' }],
+                },
+            },
+        });
+
+        expect(emitted['/theme.css'].code).toContain('--palette-primary: #123456;');
+        expect(emitted['/theme.css'].code).not.toContain('--primary: #123456;');
+        expect(JSON.parse(emitted['/theme.json'].code)).toEqual({
+            background: '#fff',
+            'palette-primary': '#123456',
+        });
+    });
+
+    test('emits deterministically regardless of input ordering', () => {
+        const tokens = getExportedThemeTokens({
+            values: [
+                { key: 'z-index', c: '1' },
+                { key: 'background', c: '#fff' },
+            ],
+            groups: {},
+        });
+
+        expect(tokens.map(token => token.key)).toEqual(['background', 'z-index']);
+    });
+
+    test('rejects collisions instead of silently overwriting JSON keys', () => {
+        expect(() => emitThemeConfigFiles({
+            values: [{ key: 'palette-primary', c: '#fff' }],
+            groups: {
+                palette: {
+                    isPublic: true,
+                    options: [{ key: 'primary', c: '#000' }],
+                },
+            },
+        })).toThrow('Duplicate exported design token name: "palette-primary"');
+    });
+
+    test('rejects unsafe CSS custom-property names', () => {
+        expect(() => emitThemeConfigFiles({
+            values: [{ key: 'bad; } body', c: 'red' }],
+            groups: {},
+        })).toThrow('Unsafe design token name');
+    });
+
+    test('serializes reserved object keys as data without prototype mutation', () => {
+        const emitted = emitThemeConfigFiles({
+            values: [{ key: '__proto__', c: 'safe-data' }],
+            groups: {},
+        });
+
+        const parsed = JSON.parse(emitted['/theme.json'].code);
+        expect(Object.keys(parsed)).toEqual(['__proto__']);
+        expect(parsed.__proto__).toBe('safe-data');
+    });
+
+    test('removes stale generated files when no exports remain', () => {
+        const files = {
+            '/App.js': { code: 'export default function App() {}' },
+            '/theme.css': { code: ':root { --old: red; }', hidden: false },
+            '/theme.json': { code: '{"old":"red"}', hidden: false },
+        };
+
+        const emitted = emitThemeConfigFiles({ values: [], groups: {} });
+        const updated = applyThemeConfigFiles(files, emitted);
+
+        expect(emitted).toBeNull();
+        expect(updated['/theme.css']).toBeUndefined();
+        expect(updated['/theme.json']).toBeUndefined();
+        expect(updated['/App.js']).toEqual(files['/App.js']);
+    });
+});

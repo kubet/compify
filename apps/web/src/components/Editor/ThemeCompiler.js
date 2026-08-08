@@ -1,6 +1,6 @@
 import React, { useMemo, useCallback, useEffect } from 'react'
 import keyReplace from '../Project/utils';
-import { getCssVariables, getJSONConfig } from '../Project/common/getTokenConfigFiles';
+import { applyThemeConfigFiles, emitThemeConfigFiles } from '../Project/common/getTokenConfigFiles';
 
 function ThemeCompiler({ initialTheme, setTheme, setFilesState }) {
     const factors = useMemo(() => Array.isArray(initialTheme?.factors) ? initialTheme.factors : [], [initialTheme?.factors]);
@@ -74,29 +74,15 @@ function ThemeCompiler({ initialTheme, setTheme, setFilesState }) {
             JSON.stringify(updatedFactors) !== JSON.stringify(factors) ||
             JSON.stringify(updatedGroups) !== JSON.stringify(groups) ||
             JSON.stringify(updatedValues) !== JSON.stringify(values);
-        if (updatedValues.length > 0 || Object.values(updatedGroups).some(group => group.isPublic)) {
-            // Get all public group options
-            const publicGroupOptions = Object.values(updatedGroups)
-                .filter(group => group.isPublic)
-                .flatMap(group => group.options || []);
-
-            // Combine updatedValues with public group options
-            const allValues = [...updatedValues, ...publicGroupOptions];
-
-            const cssContent = getCssVariables(allValues);
-            const jsonContent = JSON.stringify(getJSONConfig(allValues), null, 2);
-
-            setFilesState(prev => ({
-                ...prev,
-                '/theme.css': {
-                    code: cssContent,
-                    hidden: false
-                },
-                '/theme.json': {
-                    code: jsonContent,
-                    hidden: false
-                }
-            }));
+        try {
+            const emittedFiles = emitThemeConfigFiles({
+                values: updatedValues,
+                groups: updatedGroups,
+            });
+            setFilesState(prev => applyThemeConfigFiles(prev, emittedFiles));
+        } catch (error) {
+            console.error('Theme export validation failed:', error);
+            setFilesState(prev => applyThemeConfigFiles(prev, null));
         }
         if (hasChanges) {
             setTheme(prev => ({

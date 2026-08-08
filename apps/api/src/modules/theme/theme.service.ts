@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Theme } from '../../entities/project/theme.entity';
@@ -19,105 +23,116 @@ export class ThemeService {
     private componentRepository: Repository<Component>,
   ) {}
 
-  async findOne(id: string, user: User) {
+  private parseId(id: string): string {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      id,
+    )
+      ? id.toLowerCase()
+      : shortIdToUuid(id);
+  }
+
+  private async findOwnedComponent(componentId: string, user: User) {
+    const component = await this.componentRepository.findOne({
+      where: { id: this.parseId(componentId), user: { id: user.id } },
+    });
+    if (!component) {
+      throw new NotFoundException('Component not found');
+    }
+    return component;
+  }
+
+  private async findOwnedTheme(id: string, user: User) {
     const theme = await this.themeRepository.findOne({
-      where: { id: shortIdToUuid(id) },
+      where: {
+        id: this.parseId(id),
+        component: { user: { id: user.id } },
+      },
       relations: ['component'],
     });
+    if (!theme) {
+      throw new NotFoundException('Theme not found');
+    }
+    return theme;
+  }
+
+  async findOne(id: string, user: User) {
+    const theme = await this.themeRepository.findOne({
+      where: { id: this.parseId(id) },
+      relations: ['component'],
+    });
+    if (!theme) {
+      throw new NotFoundException('Theme not found');
+    }
 
     if (
-      theme?.component?.visibility !== ComponentVisibility.PUBLIC &&
-      theme?.component?.visibility !== ComponentVisibility.FREE
+      theme.component?.visibility !== ComponentVisibility.PUBLIC &&
+      theme.component?.visibility !== ComponentVisibility.FREE
     ) {
-      await this.checkIfUserCanDoAction(id, user);
+      await this.findOwnedTheme(id, user);
     }
     return {
       ...theme,
-      id: uuidToShortId(theme?.id),
+      id: uuidToShortId(theme.id),
     };
   }
 
   async checkIfUserCanDoAction(id: string, user: User, componentId?: string) {
-    if (!id) {
-      if (!componentId) {
-        return; // No ID to check against
-      }
-
-      // Check if componentId is already a UUID
-      const compId = componentId.includes('-')
-        ? componentId
-        : shortIdToUuid(componentId);
-
-      const component = await this.componentRepository
-        .createQueryBuilder('component')
-        .leftJoinAndSelect('component.user', 'user')
-        .where('component.id = :componentId', { componentId: compId })
-        .andWhere('user.id = :userId', { userId: user.id })
-        .getOne();
-      if (component?.user?.id !== user?.id) {
+    if (id) {
+      const theme = await this.findOwnedTheme(id, user);
+      if (componentId && this.parseId(componentId) !== theme.component?.id) {
         throw new BadRequestException(
-          'You are not allowed to modify this theme',
+          'A theme cannot be moved to another component',
         );
       }
-      return;
+      return theme;
     }
 
-    // Check if id is already a UUID
-    const themeId = id.includes('-') ? id : shortIdToUuid(id);
-    const theme = await this.themeRepository
-      .createQueryBuilder('theme')
-      .leftJoinAndSelect('theme.component', 'component')
-      .leftJoinAndSelect('component.user', 'user')
-      .where('theme.id = :id', { id: themeId })
-      .andWhere('user.id = :userId', { userId: user.id })
-      .getOne();
-    if (theme?.component?.user?.id !== user?.id) {
-      throw new BadRequestException('You are not allowed to modify this theme');
+    if (!componentId) {
+      throw new BadRequestException('componentId is required');
     }
+    return this.findOwnedComponent(componentId, user);
   }
 
   async delete(id: string, user: User) {
-    await this.checkIfUserCanDoAction(id, user);
-    const theme = await this.themeRepository.findOne({
-      where: { id: shortIdToUuid(id) },
-    });
-    return await this.themeRepository.remove(theme);
+    const theme = (await this.checkIfUserCanDoAction(id, user)) as Theme;
+    return this.themeRepository.remove(theme);
   }
 
   async createOrUpdate(themeData: InsertThemeDto, user: User) {
     if (themeData?.id === 'null') {
       delete themeData.id;
     }
-    await this.checkIfUserCanDoAction(
+    const authorizedEntity = await this.checkIfUserCanDoAction(
       themeData.id,
       user,
-      themeData?.componentId,
+      themeData.componentId,
     );
-    const dtoSize = Buffer.from(JSON.stringify(themeData))?.length;
+    const dtoSize = Buffer.from(JSON.stringify(themeData)).length;
     const maxSize = 1 * 1024 * 1024;
     if (dtoSize > maxSize) {
       throw new BadRequestException(
-        `Theme size exceeds the maximum allowed limit (${maxSize}MB)`,
+        `Theme size exceeds the maximum allowed limit (${maxSize} bytes)`,
       );
     }
-    const theme = new Theme();
-    if (themeData.id) {
-      theme.id = shortIdToUuid(themeData.id);
-    }
-    theme.name = themeData?.name || 'Default';
-    if (themeData?.componentId) {
-      theme.component = {
-        id: shortIdToUuid(themeData?.componentId),
-      } as Component;
-    }
-    theme.groups = themeData?.groups;
-    theme.factors = themeData?.factors;
-    theme.values = themeData?.values;
-    const savedTheme = await this.themeRepository.save(theme);
 
+    const theme = themeData.id ? (authorizedEntity as Theme) : new Theme();
+    if (!themeData.id) {
+      theme.name = themeData.name || 'Default';
+      theme.component = authorizedEntity as Component;
+    } else if (themeData.name != null) {
+      theme.name = themeData.name;
+    }
+    if (themeData.groups != null) theme.groups = themeData.groups;
+    else if (!themeData.id) theme.groups = {};
+    if (themeData.factors != null) theme.factors = themeData.factors;
+    else if (!themeData.id) theme.factors = [];
+    if (themeData.values != null) theme.values = themeData.values;
+    else if (!themeData.id) theme.values = [];
+
+    const savedTheme = await this.themeRepository.save(theme);
     return {
       ...savedTheme,
-      id: uuidToShortId(savedTheme?.id),
+      id: uuidToShortId(savedTheme.id),
     };
   }
 }
