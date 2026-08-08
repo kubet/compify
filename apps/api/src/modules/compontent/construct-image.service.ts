@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { MinioClientService } from '../minio/minio.service';
-import sharp from 'sharp';
+import * as sharpNamespace from 'sharp';
+import type sharpDefault from 'sharp';
+
+const sharp =
+  (sharpNamespace as unknown as { default?: typeof sharpDefault }).default ??
+  (sharpNamespace as unknown as typeof sharpDefault);
 import * as path from 'path';
 import * as fs from 'fs/promises';
 import { Image } from 'node-webpmux';
