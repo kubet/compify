@@ -72,11 +72,15 @@ async function bootstrap() {
   );
   app.use(urlencoded({ limit: '10mb', extended: true }));
 
-  await app.listen(process.env.PORT || 3009, () => {
-    if (process.send) {
-      process.send('ready');
-    }
-  });
+  await app.listen(
+    process.env.PORT || 3009,
+    process.env.HOST || '0.0.0.0',
+    () => {
+      if (process.send) {
+        process.send('ready');
+      }
+    },
+  );
 
   process.on('SIGINT', async () => {
     await app.close();
