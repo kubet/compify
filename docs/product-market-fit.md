@@ -93,18 +93,42 @@ digest. Runtime, visual, accessibility, build, and static evidence remain
 separate. Retention requires a second distinct production theme change by the
 same team within 45 days without founder operation.
 
-Run this as a paid concierge study before building a theme product: ten
-30-day pilots at a fixed **$1,500** scope (one token repository, up to three
-modes, 25 critical stories, and two apps). Ask for a real order rather than a
-pricing opinion. For successful pilots, test **$199/month per protected library**
-for a team offer and **$599/month** for longer evidence retention and approval
-policy. These are willingness-to-pay experiments, not published plans.
+Run this as a paid concierge study before building a theme product: offer at
+most ten 30-day pilot slots at a fixed **$1,500** scope (one token repository,
+up to three modes, 25 critical stories, and two apps). Ask for a real order
+rather than a pricing opinion. The experiment clock starts only after an owner
+explicitly approves outbound recruitment. During its first 42 days, make at
+most 40 individually researched invitations to maintainers who appear to meet
+the qualification criteria; do not bulk-message or post on their behalf.
 
-Kill or reduce this adjacency to an open policy/receipt module if fewer than
-three pilots pay, fewer than two renew, fewer than five complete a second real
-release, static mapping covers less than 70% of the declared cohort, or seven of
-ten teams demonstrate that their existing package CI plus token/visual tools
-already solves the job. Do not build Figma sync, a token marketplace, visual
+Record one immutable funnel row per organization: `invited` means a named
+maintainer received the bounded offer; `qualified` means the maintainer confirmed
+all criteria above; `enrolled` means the scope and kickoff were accepted; `paid`
+means the $1,500 order cleared; `VTR` means activation met the definition above;
+`repeat` means a second production release met it within 45 days; and `renewed`
+means any paid continuation was ordered within 45 days after the pilot. Every
+paid pilot remains in the repeat and renewal denominators, including pilots that
+do not activate. Coverage is calculated across the 25 critical stories each paid
+team declares at kickoff: the numerator is stories that the static graph can
+classify as impacted or not impacted for the release, and `unknown` stories stay
+in the denominator. Report both per-team coverage and the aggregate
+story-release numerator and denominator; never discard failed pilots.
+
+After a VTR, test **$199/month per protected library** for a team offer and
+**$599/month** for longer evidence retention and approval policy. These are
+willingness-to-pay experiments, not published plans. Stop recruitment on day 42
+and finish already-paid 30-day pilots plus their 45-day repeat/renewal window;
+do not extend the clock because results are weak.
+
+Kill or reduce this adjacency to an open policy/receipt module if, after 40
+invitation attempts or day 42 (whichever comes first), fewer than three pilots
+pay; if fewer than two of all paid pilots renew; if fewer than five of all paid
+pilots complete a second real release; if aggregate static mapping covers less
+than 70% of declared story-release pairs; or if seven of the first ten qualified
+teams demonstrate that their existing package CI plus token/visual tools already
+solves the job. Failure to recruit or qualify enough teams by the deadline is a
+negative result, not permission to defer the decision. Do not build Figma sync,
+a token marketplace, visual
 regression, generic transformations, enterprise administration, or AI theme
 creation from interview compliments. DTCG import, token dependency graphs, and
 signed release evidence become candidates only after repeated real-release
