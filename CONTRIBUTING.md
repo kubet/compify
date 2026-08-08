@@ -28,10 +28,14 @@ application dependency work that maintainers apply with Bun.
 
 ## Validation
 
-CI runs frozen Bun installs, builds, tests, dependency and secret audits,
-CodeQL, migration checks, and a real Docker Compose product smoke test. Hosted
-Compify production deployment is intentionally maintained outside this public
-repository.
+The repository retains workflows for frozen Bun installs, builds, tests,
+dependency and secret audits, CodeQL, migration checks, and a real Docker
+Compose product smoke test. Hosted GitHub Actions execution is currently
+disabled for cost control, so contributors must run the relevant workflow
+commands locally and include the results in their PR. Maintainers must
+explicitly re-enable Actions before relying on a hosted check or trusted npm
+publication. Hosted Compify production deployment is intentionally maintained
+outside this public repository.
 
 ## Inbound licensing
 

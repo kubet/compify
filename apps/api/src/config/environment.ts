@@ -1,3 +1,4 @@
+import { isIP } from 'node:net';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 
 const required = [
@@ -79,6 +80,9 @@ export function validateEnvironment(config: Record<string, unknown>) {
   validatePort(config, 'PORT', errors);
   validatePort(config, 'DB_PORT', errors);
   validatePort(config, 'MINIO_PORT', errors);
+  if (config.HOST !== undefined && !isIP(String(config.HOST))) {
+    errors.push('HOST must be a valid IPv4 or IPv6 address');
+  }
   if (config.TRUST_PROXY_HOPS !== undefined && config.TRUST_PROXY_HOPS !== '') {
     const hops = Number(config.TRUST_PROXY_HOPS);
     if (!Number.isInteger(hops) || hops < 0 || hops > 10) {

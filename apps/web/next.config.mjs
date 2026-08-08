@@ -45,6 +45,7 @@ for (const variableName of publicUrlVariables) {
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  poweredByHeader: false,
   // Bun links the local package to repository source, so Turbopack needs the
   // monorepo root (this also lets Fumadocs consume the canonical /docs files).
   turbopack: {
@@ -75,6 +76,11 @@ const nextConfig = {
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "X-Frame-Options", value: "DENY" },
+          {
+            key: "Permissions-Policy",
+            value:
+              "camera=(), geolocation=(), microphone=(), payment=(), usb=()",
+          },
           {
             key: "Strict-Transport-Security",
             value: "max-age=31536000; includeSubDomains",

@@ -56,6 +56,15 @@ describe('environment configuration', () => {
     ).toThrow(/GOOGLE_OAUTH_ENABLED must be either true or false/);
   });
 
+  it('validates the optional bind address', () => {
+    expect(validateEnvironment({ ...valid(), HOST: '127.0.0.1' })).toEqual(
+      expect.objectContaining({ HOST: '127.0.0.1' }),
+    );
+    expect(() =>
+      validateEnvironment({ ...valid(), HOST: 'localhost' }),
+    ).toThrow(/HOST must be a valid IPv4 or IPv6 address/);
+  });
+
   it('validates the trusted reverse-proxy hop count', () => {
     const config = { ...valid(), TRUST_PROXY_HOPS: '1' };
     expect(validateEnvironment(config)).toBe(config);
