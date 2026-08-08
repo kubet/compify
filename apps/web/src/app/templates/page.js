@@ -1,5 +1,5 @@
 'use client'
-import { cdnUrl, siteUrl } from '@/constains';
+import { cdnUrl } from '@/constains';
 import React from 'react'
 import Image from 'next/image'
 import { Button } from '@/components/Elements'
@@ -62,15 +62,6 @@ const TemplateCard = ({ template }) => {
 
                         <div className="flex space-x-4 ml-auto">
                             <a
-                                href={template.demoUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-sm text-gray-500 hover:text-white transition-colors"
-                            >
-                                Demo
-                            </a>
-
-                            <a
                                 href={template.githubUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
@@ -95,7 +86,6 @@ function TemplatesPage() {
             "description": "A sleek, performance-optimized NextJS template with dark mode aesthetics and clean energy vibes. Features Notion-powered blog, fluid animations, and enterprise-ready architecture.",
             "imageUrl": `${cdnUrl}/templates/dark-saas-demo.gif`,
             "githubUrl": "https://github.com/kubet/compify/tree/main/packages/templates/dark-solar-saas",
-            "demoUrl": siteUrl,
             "tags": ["NextJS 15", "TailwindCSS 4", "TypeScript", "Framer Motion", "Notion Blog API"]
         },
 

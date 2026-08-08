@@ -17,11 +17,13 @@ import { UserUsedComponents } from 'src/entities/user/user-used-components.entit
 import { Upvote } from 'src/entities/project/upvote.entity';
 import { Subscription } from 'src/entities/subscription/subscription.entity';
 import { CliToken } from 'src/entities/cli/cli-tokens.entity';
+import { ComponentRevision } from 'src/entities/project/component-revision.entity';
 @Module({
   imports: [
     ConfigModule,
     TypeOrmModule.forFeature([
       Component,
+      ComponentRevision,
       User,
       Theme,
       ExternalComponent,

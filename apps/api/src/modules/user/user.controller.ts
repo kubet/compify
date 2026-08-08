@@ -24,6 +24,7 @@ import { GetUser } from 'src/common/get-user.decorator';
 import { ChangeNameDto } from 'src/models/user/change-name.dto';
 import { Response } from 'express';
 import { clearAuthCookie, setAuthCookie } from 'src/common/auth-cookie';
+import { ChangeEmailVerifyDto, EmailDto } from 'src/models/user/email.dto';
 
 @ApiTags('Users')
 @Controller('user')
@@ -58,19 +59,15 @@ export class UserController {
   @ApiBrowserOrBearerAuth()
   @UseGuards(JwtUserGuard)
   @Post('/change-email')
-  changeSendEmail(@Body('email') email: string) {
-    return this.userService.changeSendEmail(email);
+  changeSendEmail(@Body() body: EmailDto) {
+    return this.userService.changeSendEmail(body.email);
   }
 
   @ApiBrowserOrBearerAuth()
   @UseGuards(JwtUserGuard)
   @Post('/change-email/verify')
-  changeVerifyEmail(
-    @Body('token') token: string,
-    @Body('email') email: string,
-    @GetUser() user: User,
-  ) {
-    return this.userService.changeVerifyEmail(email, token, user);
+  changeVerifyEmail(@Body() body: ChangeEmailVerifyDto, @GetUser() user: User) {
+    return this.userService.changeVerifyEmail(body.email, body.token, user);
   }
 
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
@@ -87,8 +84,8 @@ export class UserController {
 
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @Post('resend/password')
-  resendPasswordEmail(@Body('email') email: string) {
-    return this.userService.resetPasswordUser(email);
+  resendPasswordEmail(@Body() body: EmailDto) {
+    return this.userService.resetPasswordUser(body.email);
   }
   @ApiBrowserOrBearerAuth()
   @UseGuards(JwtUserGuard)

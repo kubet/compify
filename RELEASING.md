@@ -50,8 +50,10 @@ release** workflow accepts only `cli-v<package-version>` or
 `storybook-v<package-version>` refs, always performs a dry run, and publishes
 only after explicit `publish=true` approval in the protected `npm-release`
 environment. Configure each npm package as a trusted publisher for that workflow;
-do not use long-lived npm tokens. Publish from a clean, tagged checkout only after the
-packed-package validation passes. Record the npm URL and integrity/provenance in
+do not use long-lived npm tokens. Both jobs check out the immutable dispatch SHA, and
+the protected job must reproduce the validated tarball SHA-256 before it can publish.
+Publish from a clean, tagged checkout only after the packed-package validation passes.
+Record the npm URL and integrity/provenance in
 the GitHub release. If trusted publishing is not configured, leave the package
 unpublished rather than weakening the release process.
 

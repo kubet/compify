@@ -21,11 +21,14 @@ function ForgotPassword() {
             setMsg({ text: 'Invalid email address', status: 'error' });
             return;
         }
+        if (isLoading) return;
+        setIsLoading(true);
         const res = await resetPassword(email);
+        setIsLoading(false);
         if (res.status === 201) {
             setMsg({ text: 'Reset link sent to your email', status: 'success' });
         } else {
-            setMsg({ text: res.data.message, status: 'error' });
+            setMsg({ text: res.data?.message || 'Unable to send a reset link. Please try again.', status: 'error' });
         }
     }
 
@@ -77,6 +80,7 @@ function ForgotPassword() {
                             variant="full"
                             onClick={handleResetPassword}
                             fullWidth={true}
+                            disabled={isLoading}
                         />
                     </div>
                 </div>

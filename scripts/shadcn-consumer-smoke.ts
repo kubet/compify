@@ -32,16 +32,25 @@ try {
   await Bun.write(join(consumer, "components.json"), `${JSON.stringify(components, null, 2)}
 `);
   const artifact = join(temp, "button.registry.json");
+  const receiptPath = join(temp, "button.handoff.json");
 
   run(["bun", "run", "build"], join(root, "packages/cli"));
-  run([
-    "bun", join(root, "packages/cli/dist/index.js"), "storybook", "export",
-    "src/Button.stories.tsx", "--story", "Primary",
-    "--cwd", join(root, "examples/storybook-button"), "--output", artifact,
-  ]);
   run(["bun", "install", "--frozen-lockfile"], consumer);
-  // Pin the verified client: `latest` would make release evidence non-reproducible.
-  run(["bunx", "shadcn@4.16.2", "add", artifact, "--yes"], consumer);
+  run([
+    "bun", join(root, "packages/cli/dist/index.js"), "storybook", "handoff",
+    "src/Button.stories.tsx", "--story", "Primary",
+    "--cwd", join(root, "examples/storybook-button"), "--consumer", consumer,
+    "--output", artifact, "--receipt", receiptPath,
+    "--build-command", "bun", "--build-arg", "run", "--build-arg", "build",
+  ], root, { NEXT_TELEMETRY_DISABLED: "1" });
+
+  const receipt = JSON.parse(readFileSync(receiptPath, "utf8"));
+  if (receipt.kind !== "compify.storybook.handoff" || receipt.evidenceLevel !== "built") {
+    throw new Error("handoff did not emit a built-evidence receipt");
+  }
+  if (!receipt.changes.some((change: { path: string }) => change.path.endsWith("Button.tsx"))) {
+    throw new Error("handoff receipt did not identify the installed component change");
+  }
 
   const component = join(consumer, "src/components/Button.tsx");
   const stylesheet = join(consumer, "src/components/button.module.css");
@@ -51,8 +60,37 @@ try {
   if (!readFileSync(component, "utf8").includes('./button.module.css')) {
     throw new Error("shadcn installation broke the component's relative stylesheet import");
   }
-  run(["bun", "run", "build"], consumer, { NEXT_TELEMETRY_DISABLED: "1" });
-  console.log("Compify export installed with shadcn 4.16.2 and passed a clean Next.js production build.");
+  const aliasConsumer = join(temp, "alias-consumer");
+  cpSync(join(root, "examples/consumer-next-ts"), aliasConsumer, {
+    recursive: true,
+    filter: (source) => !["node_modules", ".next", ".env"].includes(source.split("/").at(-1) || ""),
+  });
+  await Bun.write(join(aliasConsumer, "components.json"), `${JSON.stringify(components, null, 2)}
+`);
+  run(["bun", "install", "--frozen-lockfile"], aliasConsumer);
+  const aliasRoot = join(root, "packages/cli/test-fixtures/storybook-aliases");
+  const aliasReceipt = join(temp, "alias.handoff.json");
+  run([
+    "bun", join(root, "packages/cli/dist/index.js"), "storybook", "handoff",
+    "src/components/Button.stories.tsx", "--story", "Primary",
+    "--component-entry", "src/components/Button.tsx", "--cwd", aliasRoot,
+    "--consumer", aliasConsumer, "--output", join(temp, "alias.registry.json"),
+    "--receipt", aliasReceipt, "--build-command", "bun", "--build-arg", "run",
+    "--build-arg", "build",
+  ], root, { NEXT_TELEMETRY_DISABLED: "1" });
+  const aliasButton = join(aliasConsumer, "src/components/Button.tsx");
+  const aliasUtils = join(aliasConsumer, "src/lib/utils.ts");
+  if (!existsSync(aliasButton) || !existsSync(aliasUtils)) {
+    throw new Error("shadcn did not install the rewritten exact-alias graph");
+  }
+  if (!readFileSync(aliasButton, "utf8").includes('../lib/utils')) {
+    throw new Error("handoff did not rewrite the package import to a consumer-usable relative path");
+  }
+  if (JSON.parse(readFileSync(aliasReceipt, "utf8")).evidenceLevel !== "built") {
+    throw new Error("exact-alias handoff did not produce built evidence");
+  }
+
+  console.log("Compify handoff produced built receipts for relative and exact-alias graphs in clean Next.js consumers.");
 } finally {
   rmSync(temp, { recursive: true, force: true });
 }

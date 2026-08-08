@@ -19,6 +19,7 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [showBanner, setShowBanner] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const checkBrowserAndDevice = () => {
     if (typeof window !== "undefined") {
@@ -40,30 +41,37 @@ const LoginPage = () => {
   }, []);
 
   const handleLogin = async () => {
+    if (isSubmitting) return;
     if (email === "" || password === "") {
       setErrorMsg("Please enter your email and password");
       return;
     }
+    setIsSubmitting(true);
     const resp = await loginUser({ email, password });
     if (resp.status === 201) {
       const usr = await whoAmI();
-      setUser(usr.data);
-      const afterLoginForwardLink = localStorage.getItem(
-        "afterLoginForwardLink"
-      );
-      if (afterLoginForwardLink) {
+      if (usr.status === 200 && usr.data?.email) {
+        setUser(usr.data);
+        const afterLoginForwardLink = localStorage.getItem(
+          "afterLoginForwardLink"
+        );
         localStorage.removeItem("afterLoginForwardLink");
-        router.push(afterLoginForwardLink);
+        if (/^\/(?!\/)/.test(afterLoginForwardLink || "")) {
+          router.push(afterLoginForwardLink);
+        } else {
+          router.push("/profile");
+        }
       } else {
-        router.push("/profile");
+        setErrorMsg("Signed in, but the session could not be loaded. Please try again.");
+        setIsSubmitting(false);
       }
     } else {
-      if (resp.data.message === "Please verify your email first.") {
-        console.log(email);
+      if (resp.data?.message === "Please verify your email first.") {
         router.push(`/verify/email?a=${email}`);
       } else {
-        setErrorMsg(resp.data.message);
+        setErrorMsg(resp.data?.message || "Unable to sign in. Please try again.");
       }
+      setIsSubmitting(false);
     }
   };
 
@@ -98,12 +106,14 @@ const LoginPage = () => {
                 desktop.
               </p>
             </div>
-            <div
+            <button
+              type="button"
               className="cursor-pointer p-2"
               onClick={() => setShowBanner(false)}
+              aria-label="Dismiss browser recommendation"
             >
-              <X size={18} className="text-gray-200" />
-            </div>
+              <X size={18} className="text-gray-200" aria-hidden="true" />
+            </button>
           </div>
         </motion.div>
       )}
@@ -194,6 +204,7 @@ const LoginPage = () => {
               variant="full"
               onClick={handleLogin}
               fullWidth={true}
+              disabled={isSubmitting}
             />
 
             {googleOAuthEnabled && (

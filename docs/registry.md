@@ -11,10 +11,10 @@ hosted registry. Substitute the origin of the API you operate.
 
 ```bash
 # self-hosted HTTPS origin
-bunx shadcn@latest add https://registry.example.com/r/glass-3d-text.json
+bunx shadcn@4.16.2 add https://registry.example.com/r/glass-3d-text.json
 
 # local Compose API
-bunx shadcn@latest add http://localhost:3009/r/glass-3d-text.json
+bunx shadcn@4.16.2 add http://localhost:3009/r/glass-3d-text.json
 ```
 
 ## Configure a namespace
@@ -93,6 +93,21 @@ item can contain:
 - `files` — component source selected for distribution;
 - `dependencies` — required external packages; and
 - `docs` / `meta` — descriptive and provenance metadata.
+
+## Latest and immutable revision addresses
+
+A successful v2 publish returns two install surfaces:
+
+- `registryUrl`, the latest reviewed revision for the publishing domain; and
+- `immutableRegistryUrl`, shaped as
+  `/r/<owner>/<name>/<sha256>.json`, which resolves only that digest.
+
+Republishing the same owned name with a new digest appends a revision rather than
+failing on the occupied domain. Repeating an identical digest is idempotent.
+Historical revisions retain their visibility snapshot, so an immutable private
+URL still requires its owner's current Bearer token and becomes inaccessible
+after token revocation. Immutability covers the canonical registry-item object,
+not original request whitespace or a third-party transparency log.
 
 Generated files are derived outputs. Review them and test installation in a
 consumer project rather than assuming Storybook runtime behavior was captured.

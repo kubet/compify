@@ -39,6 +39,15 @@ compify storybook export src/components/Button.stories.tsx \
   --output .compify/button.registry.json
 ```
 
+For a machine-verifiable local install into a separate initialized consumer:
+
+```bash
+compify storybook handoff src/components/Button.stories.tsx --story Primary \
+  --consumer ../consumer-app --build-command bun --build-arg run --build-arg build
+```
+
+This uses pinned native `shadcn@4.16.2`, never publishes, and writes a digest-signed receipt. A receipt is `built` evidence only when an explicit build command succeeds; otherwise it records `installed` evidence.
+
 Inspection parses source without importing or executing the story module.
 Export follows supported local text imports from the component entry, records
 runtime dependencies and provenance, and refuses unresolved or unsafe input.

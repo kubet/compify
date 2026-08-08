@@ -15,7 +15,8 @@ const InputField = forwardRef(({ value,
     blurBackground = false,
     disableEnter = false,
     iconClassName = 'text-gray-400',
-    autoComplete = "off" }, ref) => {
+    autoComplete = "off",
+    ariaLabel }, ref) => {
     const [isHovered, setIsHovered] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
     const containerRef = useRef(null);
@@ -57,7 +58,7 @@ const InputField = forwardRef(({ value,
     };
 
     const handleKeyDown = (e) => {
-        if (e.key === 'Enter' && !disableEnter) {
+        if (e.key === 'Enter' && !disableEnter && onSubmit) {
             onSubmit();
         }
     };
@@ -124,7 +125,7 @@ const InputField = forwardRef(({ value,
                 )}
                 {Icon && (
                     <div className="h-full flex items-center mr-2">
-                        <Icon className={iconClassName} size={16} />
+                        <Icon className={iconClassName} size={16} aria-hidden="true" />
                     </div>
                 )}
             </div>
@@ -140,6 +141,7 @@ const InputField = forwardRef(({ value,
                 placeholder={placeholder}
                 autoComplete={autoComplete}
                 name={type}
+                aria-label={ariaLabel || placeholder}
                 className={`flex-grow h-full bg-transparent text-white font-medium focus:outline-none z-10 px-2 ${isNumber ? 'cursor-ns-resize' : ''}`}
                 style={{
                     paddingLeft: StartElement || Icon ? '2.5rem' : '0.75rem',
@@ -148,7 +150,9 @@ const InputField = forwardRef(({ value,
             />
             {showButton && (
                 <motion.button
+                    type="button"
                     onClick={onSubmit}
+                    aria-label={ariaLabel ? `${ariaLabel} action` : `${placeholder || "Input"} action`}
                     className="flex items-center justify-center w-8 h-8 bg-[#18181b] rounded-xl z-20 mr-2"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}

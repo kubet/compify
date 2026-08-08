@@ -1,6 +1,6 @@
 import React from 'react'
 import './google.css'
-function GoogleButton({ onClick }) {
+function GoogleButton({ onClick, label = 'Continue with Google' }) {
     return (
         <button className="gsi-material-button" onClick={onClick} style={{ width: '100%' }}>
             <div className="gsi-material-button-state"></div>
@@ -14,8 +14,8 @@ function GoogleButton({ onClick }) {
                         <path fill="none" d="M0 0h48v48H0z"></path>
                     </svg>
                 </div>
-                <span className="gsi-material-button-contents">Sign up with Google</span>
-                <span style={{ display: 'none' }}>Sign up with Google</span>
+                <span className="gsi-material-button-contents">{label}</span>
+                <span style={{ display: 'none' }}>{label}</span>
             </div>
         </button>
     )

@@ -17,6 +17,18 @@ export interface StoryInfo {
   args?: unknown
   portable: boolean
 }
+export type SourceMediaKind = "typescript" | "javascript" | "stylesheet" | "json" | "svg" | "markdown" | "text"
+export interface SourceFileEvidence { sha256: string; mediaKind: SourceMediaKind }
+export interface SourceImportEdge {
+  from: string
+  to: string | null
+  specifier: string
+  resolutionReason: "exact" | "extension" | "directory-index" | "alias" | "package" | "node-builtin" | "external-url" | "package-import" | "unresolved-local" | "absolute-local"
+}
+export interface SourceGraphEvidence {
+  files: Record<string, SourceFileEvidence>
+  imports: SourceImportEdge[]
+}
 export interface StoryBundle {
   schemaVersion: 1
   name: string
@@ -31,11 +43,13 @@ export interface StoryBundle {
   provenance: { storyPath: string; gitCommit?: string; gitRemote?: string }
   digest: string
   diagnostics: PortabilityDiagnostic[]
+  /** Deterministic inspection sidecar. Deliberately excluded from digest and registry wire payloads. */
+  sourceGraph: SourceGraphEvidence
 }
 
 const SOURCE_EXTENSIONS = [".tsx", ".ts", ".jsx", ".js", ".mjs", ".cjs"]
 const TEXT_EXTENSIONS = [...SOURCE_EXTENSIONS, ".css", ".scss", ".sass", ".less", ".json", ".svg", ".md"]
-const MAX_FILES = 100
+const MAX_FILES = 500
 const MAX_FILE_BYTES = 256 * 1024
 const MAX_TOTAL_BYTES = 5 * 1024 * 1024
 const IGNORED_DIRS = new Set(["node_modules", ".git", "dist", "build", "coverage", ".next"])
@@ -93,29 +107,51 @@ function unwrap(node: any): any {
   while (node && ["TSAsExpression", "TSSatisfiesExpression", "TSNonNullExpression", "TypeCastExpression", "ParenthesizedExpression"].includes(node.type)) node = node.expression
   return node
 }
-function staticValue(node: any): { ok: true; value: any } | { ok: false } {
+type StaticResult = { ok: true; value: any } | { ok: false }
+function staticValue(node: any, values?: Map<string, any>, seen = new Set<string>()): StaticResult {
   node = unwrap(node)
   if (!node) return { ok: false }
-  if (node.type === "StringLiteral" || node.type === "NumericLiteral" || node.type === "BooleanLiteral") return { ok: true, value: node.value }
+  if (node.type === "Identifier" && values?.has(node.name) && !seen.has(node.name)) {
+    const nextSeen = new Set(seen); nextSeen.add(node.name)
+    return staticValue(values.get(node.name), values, nextSeen)
+  }
+  if (node.type === "StringLiteral" || node.type === "BooleanLiteral") return { ok: true, value: node.value }
+  if (node.type === "NumericLiteral") return Number.isFinite(node.value) ? { ok: true, value: node.value } : { ok: false }
   if (node.type === "NullLiteral") return { ok: true, value: null }
   if (node.type === "TemplateLiteral" && node.expressions.length === 0) return { ok: true, value: node.quasis[0].value.cooked ?? node.quasis[0].value.raw }
   if (node.type === "UnaryExpression" && ["-", "+", "!"].includes(node.operator)) {
-    const v = staticValue(node.argument); if (!v.ok) return v
+    const v = staticValue(node.argument, values, seen); if (!v.ok) return v
     return { ok: true, value: node.operator === "-" ? -v.value : node.operator === "+" ? +v.value : !v.value }
   }
   if (node.type === "ArrayExpression") {
     const result: any[] = []
-    for (const child of node.elements) { const v = staticValue(child); if (!v.ok) return v; result.push(v.value) }
+    for (const child of node.elements) {
+      if (child?.type === "SpreadElement") {
+        const spread = staticValue(child.argument, values, seen)
+        if (!spread.ok || !Array.isArray(spread.value)) return { ok: false }
+        result.push(...spread.value)
+      } else {
+        const v = staticValue(child, values, seen); if (!v.ok) return v; result.push(v.value)
+      }
+    }
     return { ok: true, value: result }
   }
   if (node.type === "ObjectExpression") {
     const result: Record<string, any> = {}
     for (const prop of node.properties) {
+      if (prop.type === "SpreadElement") {
+        const spread = staticValue(prop.argument, values, seen)
+        if (!spread.ok || !spread.value || typeof spread.value !== "object" || Array.isArray(spread.value)) return { ok: false }
+        Object.defineProperties(result, Object.getOwnPropertyDescriptors(spread.value))
+        continue
+      }
       if (prop.type !== "ObjectProperty" || prop.computed) return { ok: false }
       const key = prop.key.name ?? prop.key.value
-      if (typeof key !== "string") return { ok: false }
-      const v = staticValue(prop.value); if (!v.ok) return v
-      result[key] = v.value
+      if (typeof key !== "string" && typeof key !== "number") return { ok: false }
+      const v = staticValue(prop.value, values, seen); if (!v.ok) return v
+      // defineProperty keeps special JSON keys such as __proto__ as own data
+      // instead of mutating the evaluator object's prototype.
+      Object.defineProperty(result, String(key), { value: v.value, enumerable: true, configurable: true, writable: true })
     }
     return { ok: true, value: result }
   }
@@ -170,7 +206,13 @@ function csfFactoryMeta(ast: any): { binding: string; node: any } | undefined {
 function defaultMeta(ast: any): any {
   const values = declarations(ast)
   const statement = ast.program.body.find((item: any) => item.type === "ExportDefaultDeclaration")
-  return statement ? resolveAlias(statement.declaration, values) : csfFactoryMeta(ast)?.node
+  if (statement) return resolveAlias(statement.declaration, values)
+  // Babel represents `export { meta as default }` as a named export.
+  for (const item of ast.program.body) if (item.type === "ExportNamedDeclaration" && !item.source) {
+    const specifier = item.specifiers.find((s: any) => s.type === "ExportSpecifier" && (s.exported.name ?? s.exported.value) === "default")
+    if (specifier?.local?.name) return resolveAlias({ type: "Identifier", name: specifier.local.name }, values)
+  }
+  return csfFactoryMeta(ast)?.node
 }
 function unwrapCsfFactoryStory(node: any, metaBinding: string | undefined): any {
   node = unwrap(node); const callee = unwrap(node?.callee)
@@ -194,34 +236,55 @@ function inferComponentSpecifier(ast: any): string | undefined {
   return undefined
 }
 function inspectStories(ast: any, file: string, diagnostics: PortabilityDiagnostic[]): StoryInfo[] {
-  const candidates = new Map<string, any>()
+  const values = declarations(ast)
+  const candidates = new Map<string, { node: any; localName: string }>()
   const assignments = new Map<string, any>()
   const meta = defaultMeta(ast)
   const factoryMeta = csfFactoryMeta(ast)
   for (const statement of ast.program.body) {
     if (statement.type === "ExportNamedDeclaration") {
       const d = statement.declaration
-      if (d?.type === "VariableDeclaration") for (const decl of d.declarations) if (decl.id.type === "Identifier") candidates.set(decl.id.name, unwrap(decl.init))
-      if (d?.type === "FunctionDeclaration" && d.id) candidates.set(d.id.name, d)
+      if (d?.type === "VariableDeclaration") for (const decl of d.declarations) if (decl.id.type === "Identifier") candidates.set(decl.id.name, { node: unwrap(decl.init), localName: decl.id.name })
+      if (d?.type === "FunctionDeclaration" && d.id) candidates.set(d.id.name, { node: d, localName: d.id.name })
+      // CSF permits locally declared stories exported through an export list,
+      // including aliases (`export { primary as Primary }`).
+      if (!statement.source && statement.exportKind !== "type") for (const specifier of statement.specifiers) {
+        if (specifier.type !== "ExportSpecifier" || specifier.exportKind === "type" || specifier.local?.type !== "Identifier") continue
+        const exportName = specifier.exported.name ?? specifier.exported.value
+        if (typeof exportName === "string" && exportName !== "default" && values.has(specifier.local.name)) {
+          candidates.set(exportName, { node: unwrap(values.get(specifier.local.name)), localName: specifier.local.name })
+        }
+      }
     }
     if (statement.type === "ExpressionStatement" && statement.expression.type === "AssignmentExpression") {
       const left = statement.expression.left
       if (left.type === "MemberExpression" && !left.computed && left.object.type === "Identifier" && ["args", "storyName"].includes(left.property.name)) assignments.set(`${left.object.name}.${left.property.name}`, statement.expression.right)
     }
   }
-  const exclude = staticValue(objectProperty(meta, "excludeStories")); const include = staticValue(objectProperty(meta, "includeStories"))
-  const allowed = (n: string) => !(exclude.ok && Array.isArray(exclude.value) && exclude.value.includes(n)) && !(include.ok && Array.isArray(include.value) && !include.value.includes(n))
+  const matchesFilter = (node: any, exportName: string): boolean | undefined => {
+    node = unwrap(node)
+    const literal = staticValue(node, values)
+    if (literal.ok && Array.isArray(literal.value)) return literal.value.includes(exportName)
+    if (node?.type === "RegExpLiteral") {
+      try { return new RegExp(node.pattern, node.flags.replace(/[gy]/g, "")).test(exportName) } catch { return undefined }
+    }
+    return undefined
+  }
+  const excludeNode = objectProperty(meta, "excludeStories")
+  const includeNode = objectProperty(meta, "includeStories")
+  const allowed = (name: string) => matchesFilter(excludeNode, name) !== true && matchesFilter(includeNode, name) !== false
   const stories: StoryInfo[] = []
-  for (const [exportName, rawValue] of candidates) {
+  for (const [exportName, candidate] of candidates) {
     if (!allowed(exportName) || exportName.startsWith("_") || exportName === "meta") continue
+    const rawValue = candidate.node
     const value = unwrapCsfFactoryStory(rawValue, factoryMeta?.binding)
     if (value === rawValue && rawValue?.type === "CallExpression" && rawValue.callee?.type === "MemberExpression" && rawValue.callee.property?.name === "extend") {
       diagnostics.push({ severity: "error", code: "CSF_FACTORY_EXTEND_UNSUPPORTED", message: "CSF factory Story.extend() inheritance is not statically supported", file, exportName })
     }
-    const argsNode = objectProperty(value, "args") ?? assignments.get(`${exportName}.args`)
-    const nameNode = objectProperty(value, "name") ?? assignments.get(`${exportName}.storyName`)
-    const nameValue = staticValue(nameNode)
-    const argsValue = staticValue(argsNode)
+    const argsNode = objectProperty(value, "args") ?? assignments.get(`${candidate.localName}.args`)
+    const nameNode = objectProperty(value, "name") ?? assignments.get(`${candidate.localName}.storyName`)
+    const nameValue = staticValue(nameNode, values)
+    const argsValue = staticValue(argsNode, values)
     let portable = true
     let args: unknown
     if (argsNode && argsValue.ok) args = argsValue.value
@@ -242,24 +305,24 @@ function literalModuleTarget(node: any): string | undefined {
   if (node?.type === "TemplateLiteral" && node.expressions.length === 0) return node.quasis[0].value.cooked ?? node.quasis[0].value.raw
   return undefined
 }
-function importSources(ast: any, file: string, diagnostics: PortabilityDiagnostic[]): string[] {
-  const found = new Set<string>()
+function importSources(ast: any, file: string, diagnostics: PortabilityDiagnostic[]): ModuleSource[] {
+  const found = new Map<string, ModuleSource>()
   const reportDynamic = (kind: string) => diagnostics.push({ severity: "error", code: "DYNAMIC_IMPORT_UNRESOLVED", file, message: `${kind} target must be a static string literal so its source can be bundled` })
+  const add = (node: any) => {
+    const target = literalModuleTarget(node)
+    if (target !== undefined && typeof node.start === "number" && typeof node.end === "number") found.set(`${node.start}:${node.end}`, { specifier: target, start: node.start, end: node.end })
+    return target
+  }
   const visit = (node: any): void => {
     if (!node || typeof node !== "object") return
-    if (["ImportDeclaration", "ExportNamedDeclaration", "ExportAllDeclaration"].includes(node.type) && node.source) {
-      const target = literalModuleTarget(node.source); if (target !== undefined) found.add(target)
-    }
+    if (["ImportDeclaration", "ExportNamedDeclaration", "ExportAllDeclaration"].includes(node.type) && node.source) add(node.source)
     if (node.type === "ImportExpression") {
-      const target = literalModuleTarget(node.source)
-      if (target === undefined) reportDynamic("import()")
-      else found.add(target)
+      if (add(node.source) === undefined) reportDynamic("import()")
     }
     if (node.type === "CallExpression" && (node.callee?.type === "Import" || (node.callee?.type === "Identifier" && node.callee.name === "require"))) {
       const kind = node.callee.type === "Import" ? "import()" : "require()"
-      const target = node.arguments?.length === 1 ? literalModuleTarget(node.arguments[0]) : undefined
-      if (target === undefined) reportDynamic(kind)
-      else found.add(target)
+      const targetNode = node.arguments?.length === 1 ? node.arguments[0] : undefined
+      if (!targetNode || add(targetNode) === undefined) reportDynamic(kind)
     }
     for (const [key, value] of Object.entries(node)) {
       if (["loc", "start", "end", "extra", "comments", "tokens"].includes(key)) continue
@@ -268,18 +331,196 @@ function importSources(ast: any, file: string, diagnostics: PortabilityDiagnosti
     }
   }
   visit(ast.program)
-  return [...found]
+  return [...found.values()]
+}
+interface ModuleSource { specifier: string; start: number; end: number }
+interface AliasConfig {
+  root: string
+  baseDir?: string
+  hasBaseUrl?: boolean
+  paths: Record<string, unknown>
+  imports: Record<string, unknown>
+}
+
+function parseJsonConfig(filename: string): any {
+  const raw = fs.readFileSync(filename)
+  if (raw.byteLength > 256 * 1024) throw new Error(`Configuration exceeds 262144 byte limit: ${filename}`)
+  const text = raw.toString("utf8")
+  let clean = ""; let quoted = false; let escaped = false
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i]; const next = text[i + 1]
+    if (quoted) {
+      clean += char
+      if (escaped) escaped = false
+      else if (char === "\\") escaped = true
+      else if (char === '"') quoted = false
+    } else if (char === '"') { quoted = true; clean += char }
+    else if (char === "/" && next === "/") { while (i < text.length && text[i] !== "\n") i++; clean += "\n" }
+    else if (char === "/" && next === "*") {
+      const end = text.indexOf("*/", i + 2)
+      if (end < 0) throw new Error(`Invalid unterminated comment in ${filename}`)
+      clean += " ".repeat(end + 2 - i); i = end + 1
+    } else clean += char
+  }
+  // JSONC permits trailing commas; remove them without touching string data.
+  let json = ""; quoted = false; escaped = false
+  for (let i = 0; i < clean.length; i++) {
+    const char = clean[i]
+    if (quoted) {
+      json += char
+      if (escaped) escaped = false
+      else if (char === "\\") escaped = true
+      else if (char === '"') quoted = false
+    } else if (char === '"') { quoted = true; json += char }
+    else if (char === ",") {
+      let next = i + 1
+      while (/\s/.test(clean[next] || "")) next++
+      if (clean[next] !== "}" && clean[next] !== "]") json += char
+    } else json += char
+  }
+  try { return JSON.parse(json) }
+  catch (error) { throw new Error(`Could not statically parse ${filename}: ${error instanceof Error ? error.message : String(error)}`) }
+}
+function findTsconfig(storyPath: string, root: string): string | undefined {
+  let current = path.dirname(storyPath)
+  for (;;) {
+    const candidate = path.join(current, "tsconfig.json")
+    if (fs.existsSync(candidate)) {
+      const real = fs.realpathSync(candidate)
+      if (!contained(root, real) || real !== path.resolve(candidate)) throw new Error("tsconfig.json escapes the package root through a symlink")
+      return real
+    }
+    if (current === root) return undefined
+    const parent = path.dirname(current)
+    if (parent === current || !contained(root, parent)) return undefined
+    current = parent
+  }
+}
+function loadAliasConfig(storyPath: string, root: string, pkg: any): AliasConfig {
+  const config: AliasConfig = { root, paths: {}, imports: pkg.imports && typeof pkg.imports === "object" && !Array.isArray(pkg.imports) ? pkg.imports : {} }
+  const filename = findTsconfig(storyPath, root)
+  if (!filename) return config
+  const parsed = parseJsonConfig(filename)
+  if (parsed?.extends !== undefined) throw new Error("tsconfig extends is not supported; inherited configuration is outside the bounded static alias contract")
+  const compiler = parsed?.compilerOptions
+  if (compiler !== undefined && (!compiler || typeof compiler !== "object" || Array.isArray(compiler))) throw new Error("tsconfig compilerOptions must be a static object")
+  if (compiler?.paths !== undefined && (!compiler.paths || typeof compiler.paths !== "object" || Array.isArray(compiler.paths))) throw new Error("tsconfig compilerOptions.paths must be a static object")
+  config.paths = compiler?.paths || {}
+  if (compiler?.baseUrl !== undefined && typeof compiler.baseUrl !== "string") throw new Error("tsconfig compilerOptions.baseUrl must be a static string")
+  const base = path.resolve(path.dirname(filename), compiler?.baseUrl || ".")
+  if (!contained(root, base)) throw new Error("tsconfig baseUrl escapes the package root")
+  config.baseDir = base
+  config.hasBaseUrl = compiler?.baseUrl !== undefined
+  return config
+}
+function wildcardMatches(pattern: string, specifier: string): boolean {
+  const first = pattern.indexOf("*")
+  if (first < 0) return false
+  return specifier.startsWith(pattern.slice(0, first)) && specifier.endsWith(pattern.slice(first + 1))
+}
+function resolveFromBase(base: string, specifier: string): string {
+  return resolveLocal(path.join(base, "__compify_alias__.ts"), `./${specifier.replace(/^\.\//, "")}`)
+}
+function configuredLocal(specifier: string, config: AliasConfig): string | undefined {
+  let target: unknown
+  let kind: "package.json imports" | "tsconfig paths" | undefined
+  if (specifier.startsWith("#")) {
+    if (Object.prototype.hasOwnProperty.call(config.imports, specifier)) { target = config.imports[specifier]; kind = "package.json imports" }
+    else {
+      const wildcard = Object.keys(config.imports).find(key => wildcardMatches(key, specifier))
+      if (wildcard) throw new Error(`Wildcard package.json imports alias ${JSON.stringify(wildcard)} is not portable`)
+      throw new Error(`Package import ${JSON.stringify(specifier)} is not an exact static package.json imports alias`)
+    }
+  } else if (Object.prototype.hasOwnProperty.call(config.paths, specifier)) {
+    target = config.paths[specifier]; kind = "tsconfig paths"
+  } else {
+    const wildcard = Object.keys(config.paths).find(key => wildcardMatches(key, specifier))
+    if (wildcard) throw new Error(`Wildcard tsconfig paths alias ${JSON.stringify(wildcard)} is not portable`)
+    if (config.baseDir && config.hasBaseUrl) {
+      try { return resolveFromBase(config.baseDir, specifier) }
+      catch (error) { if (!(error instanceof Error) || !error.message.startsWith("Could not resolve local import")) throw error }
+    }
+    return undefined
+  }
+  if (kind === "tsconfig paths") {
+    if (!Array.isArray(target) || target.length !== 1 || typeof target[0] !== "string") throw new Error(`Alias ${JSON.stringify(specifier)} in tsconfig paths must have exactly one static target`)
+    target = target[0]
+  } else if (typeof target !== "string") {
+    throw new Error(`Alias ${JSON.stringify(specifier)} in package.json imports must have one unconditional string target`)
+  }
+  if (!target || target.includes("*") || target.includes("\\") || /[?#]/.test(target) || /^[A-Za-z][A-Za-z+.-]*:/.test(target) || path.isAbsolute(target) || (kind === "package.json imports" && !target.startsWith("./"))) {
+    throw new Error(`Alias ${JSON.stringify(specifier)} has an external, absolute, wildcard, or non-portable target`)
+  }
+  const base = kind === "package.json imports" ? config.root : config.baseDir!
+  const resolved = resolveFromBase(base, target)
+  if (!contained(config.root, resolved)) throw new Error(`Alias ${JSON.stringify(specifier)} resolves outside its package root`)
+  let boundary = path.dirname(resolved)
+  while (boundary !== config.root) {
+    if (fs.existsSync(path.join(boundary, "package.json"))) throw new Error(`Alias ${JSON.stringify(specifier)} crosses into a nested package root`)
+    const parent = path.dirname(boundary)
+    if (parent === boundary) throw new Error(`Alias ${JSON.stringify(specifier)} resolves outside its package root`)
+    boundary = parent
+  }
+  return resolved
+}
+function portableRelative(from: string, target: string): string {
+  let relative = path.relative(path.dirname(from), target).split(path.sep).join("/")
+  if (SOURCE_EXTENSIONS.includes(path.extname(relative))) relative = relative.slice(0, -path.extname(relative).length)
+  if (!relative.startsWith(".")) relative = `./${relative}`
+  return relative
+}
+function rewriteModuleSources(source: string, references: ModuleSource[], replacements: Map<string, string>): string {
+  const edits = references.filter(ref => replacements.has(`${ref.start}:${ref.end}`)).sort((a, b) => b.start - a.start)
+  let result = source
+  for (const ref of edits) result = result.slice(0, ref.start) + JSON.stringify(replacements.get(`${ref.start}:${ref.end}`)) + result.slice(ref.end)
+  return result
 }
 function barePackage(specifier: string): string {
   const parts = specifier.split("/")
   return specifier.startsWith("@") ? parts.slice(0, 2).join("/") : parts[0]
 }
-function resolveLocal(from: string, specifier: string): string {
+function stylesheetSources(source: string): string[] {
+  // Follow quoted stylesheet module edges without pretending arbitrary url()
+  // assets are UTF-8 source. This covers CSS imports, Sass use/forward, Less
+  // imports, and CSS Modules composition.
+  const clean = source.replace(/\/\*[\s\S]*?\*\//g, "")
+  const found = new Set<string>()
+  const directives = /@(import|use|forward)\s+(?:url\(\s*)?["']([^"']+)["']/g
+  const composes = /\bcomposes\s*:[^;]*?\bfrom\s+["']([^"']+)["']/g
+  for (const pattern of [directives, composes]) {
+    let match: RegExpExecArray | null
+    while ((match = pattern.exec(clean))) found.add(match[2] ?? match[1])
+  }
+  return [...found]
+}
+function resolveLocalWithReason(from: string, specifier: string): { path: string; reason: "exact" | "extension" | "directory-index" } {
   const base = path.resolve(path.dirname(from), specifier)
-  const options = [base, ...TEXT_EXTENSIONS.map(e => base + e), ...TEXT_EXTENSIONS.map(e => path.join(base, `index${e}`))]
-  const hit = options.find(p => fs.existsSync(p) && fs.statSync(p).isFile())
+  const options: Array<{ path: string; reason: "exact" | "extension" | "directory-index" }> = [
+    { path: base, reason: "exact" },
+    ...TEXT_EXTENSIONS.map(extension => ({ path: base + extension, reason: "extension" as const })),
+    ...TEXT_EXTENSIONS.map(extension => ({ path: path.join(base, `index${extension}`), reason: "directory-index" as const })),
+  ]
+  const hit = options.find(candidate => fs.existsSync(candidate.path) && fs.statSync(candidate.path).isFile())
   if (!hit) throw new Error(`Could not resolve local import ${JSON.stringify(specifier)} from ${from}`)
-  return fs.realpathSync(hit)
+  const real = fs.realpathSync(hit.path)
+  // A registry JSON cannot reproduce filesystem symlinks. Bundling the real
+  // target while retaining the source import would create a broken artifact;
+  // this also catches case-only import mismatches on case-insensitive hosts.
+  if (path.resolve(hit.path) !== real) throw new Error(`Local import escapes the package root through a symlink or has mismatched path casing: ${specifier}`)
+  return { path: real, reason: hit.reason }
+}
+function resolveLocal(from: string, specifier: string): string {
+  return resolveLocalWithReason(from, specifier).path
+}
+function sourceMediaKind(filename: string): SourceMediaKind {
+  const extension = path.extname(filename).toLowerCase()
+  if ([".ts", ".tsx"].includes(extension)) return "typescript"
+  if ([".js", ".jsx", ".mjs", ".cjs"].includes(extension)) return "javascript"
+  if ([".css", ".scss", ".sass", ".less"].includes(extension)) return "stylesheet"
+  if (extension === ".json") return "json"
+  if (extension === ".svg") return "svg"
+  if (extension === ".md") return "markdown"
+  return "text"
 }
 function likelySecretKind(text: string): string | undefined {
   const patterns: Array<[string, RegExp]> = [
@@ -341,6 +582,7 @@ export function buildStoryBundle(input?: string, options: BuildStoryOptions = {}
   if (!contained(root, storyPath)) throw new Error("Story entry escapes its package root")
   const storyRel = posixRelative(root, storyPath)
   const storyRaw = fs.readFileSync(storyPath); assertSafeText(storyRel, storyRaw)
+  if (storyRaw.byteLength > MAX_FILE_BYTES) throw new Error(`Story entry exceeds ${MAX_FILE_BYTES} byte limit: ${storyRel}`)
   const storySource = storyRaw.toString("utf8").replace(/\r\n?/g, "\n")
   const storyAst = parseSource(storySource, storyRel)
   const diagnostics: PortabilityDiagnostic[] = []
@@ -357,6 +599,8 @@ export function buildStoryBundle(input?: string, options: BuildStoryOptions = {}
     }
   }
 
+  const pkg = parseJsonConfig(path.join(root, "package.json"))
+  const aliases = loadAliasConfig(storyPath, root, pkg)
   let componentPath: string | undefined
   if (options.componentEntry) {
     const requested = path.resolve(options.cwd || process.cwd(), options.componentEntry)
@@ -365,17 +609,18 @@ export function buildStoryBundle(input?: string, options: BuildStoryOptions = {}
     if (!contained(root, componentPath)) throw new Error("Component entry escapes the story package root (including through a symlink)")
   } else {
     const specifier = inferComponentSpecifier(storyAst)
-    if (specifier?.startsWith(".")) {
-      try { componentPath = resolveLocal(storyPath, specifier) }
-      catch (error) { diagnostics.push({ severity: "error", code: "COMPONENT_ENTRY_UNRESOLVED", message: error instanceof Error ? error.message : String(error), file: storyRel }) }
-    } else {
-      diagnostics.push({
-        severity: "error", code: "COMPONENT_ENTRY_UNRESOLVED", file: storyRel,
-        message: specifier
-          ? `CSF meta component resolves to non-local import ${JSON.stringify(specifier)}; pass --component-entry <path>`
-          : "Could not infer a local component source from default meta.component; pass --component-entry <path>",
-      })
-    }
+    if (specifier) {
+      try {
+        componentPath = specifier.startsWith(".") ? resolveLocal(storyPath, specifier) : configuredLocal(specifier, aliases)
+        if (!componentPath) diagnostics.push({ severity: "error", code: "COMPONENT_ENTRY_UNRESOLVED", file: storyRel, message: `CSF meta component resolves to non-local import ${JSON.stringify(specifier)}; pass --component-entry <path>` })
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error)
+        // Missing entries are inspectable portability diagnostics; unsafe or
+        // ambiguous alias configuration must fail closed.
+        if (!specifier.startsWith(".") || !message.startsWith("Could not resolve local import")) throw error
+        diagnostics.push({ severity: "error", code: "COMPONENT_ENTRY_UNRESOLVED", message, file: storyRel })
+      }
+    } else diagnostics.push({ severity: "error", code: "COMPONENT_ENTRY_UNRESOLVED", file: storyRel, message: "Could not infer a local component source from default meta.component; pass --component-entry <path>" })
   }
   if (componentPath && !contained(root, componentPath)) throw new Error("Inferred component entry escapes the package root (including through a symlink)")
   if (componentPath && (!SOURCE_EXTENSIONS.includes(path.extname(componentPath)) || /\.stories\./.test(path.basename(componentPath)))) {
@@ -383,33 +628,75 @@ export function buildStoryBundle(input?: string, options: BuildStoryOptions = {}
     componentPath = undefined
   }
 
-  const pkg = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8"))
   const versions = { ...pkg.devDependencies, ...pkg.peerDependencies, ...pkg.optionalDependencies, ...pkg.dependencies }
-  const files = new Map<string, string>(); const dependencyNames = new Set<string>(); const queue = componentPath ? [componentPath] : []
+  const files = new Map<string, string>()
+  const dependencyNames = new Set<string>()
+  const graphEdges: SourceImportEdge[] = []
+  const queue = componentPath ? [componentPath] : []
   let total = 0
   while (queue.length) {
     const current = queue.shift()!; const rel = posixRelative(root, current)
     if (files.has(rel)) continue
     if (!contained(root, current)) throw new Error(`Local import escapes package root: ${current}`)
     const raw = fs.readFileSync(current); assertSafeText(rel, raw)
-    const normalized = raw.toString("utf8").replace(/\r\n?/g, "\n")
+    let normalized = raw.toString("utf8").replace(/\r\n?/g, "\n")
+    const extension = path.extname(current).toLowerCase()
+    let references: ModuleSource[] = []
+    if (SOURCE_EXTENSIONS.includes(extension)) {
+      const ast = parseSource(normalized, rel)
+      references = importSources(ast, rel, diagnostics)
+    } else if ([".css", ".scss", ".sass", ".less"].includes(extension)) {
+      references = stylesheetSources(normalized).map(specifier => ({ specifier, start: -1, end: -1 }))
+    }
+    const replacements = new Map<string, string>()
+    for (const reference of [...references].sort((a, b) => a.specifier.localeCompare(b.specifier))) {
+      const source = reference.specifier
+      if (source.startsWith("/")) {
+        graphEdges.push({ from: rel, to: null, specifier: source, resolutionReason: "absolute-local" })
+        diagnostics.push({ severity: "error", code: "ABSOLUTE_LOCAL_IMPORT", message: `Absolute local import is not portable: ${source}`, file: rel })
+      } else if (source.startsWith(".")) {
+        try {
+          const resolved = resolveLocalWithReason(current, source)
+          if (!contained(root, resolved.path)) throw new Error(`Local import escapes package root (including through a symlink): ${source}`)
+          const to = posixRelative(root, resolved.path)
+          graphEdges.push({ from: rel, to, specifier: source, resolutionReason: resolved.reason })
+          queue.push(resolved.path)
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error)
+          if (!message.startsWith("Could not resolve local import")) throw error
+          graphEdges.push({ from: rel, to: null, specifier: source, resolutionReason: "unresolved-local" })
+          diagnostics.push({ severity: "error", code: "LOCAL_IMPORT_UNRESOLVED", message, file: rel })
+        }
+      } else if (source.startsWith("node:")) {
+        graphEdges.push({ from: rel, to: source, specifier: source, resolutionReason: "node-builtin" })
+      } else if (/^(?:data:|https?:|sass:)/.test(source)) {
+        graphEdges.push({ from: rel, to: source, specifier: source, resolutionReason: "external-url" })
+      } else {
+        const resolved = configuredLocal(source, aliases)
+        if (resolved) {
+          const to = posixRelative(root, resolved)
+          graphEdges.push({ from: rel, to, specifier: source, resolutionReason: "alias" })
+          queue.push(resolved)
+          if (reference.start >= 0) replacements.set(`${reference.start}:${reference.end}`, portableRelative(current, resolved))
+          else throw new Error(`Aliases in stylesheets are not supported because they cannot be rewritten safely: ${source}`)
+        } else if (source.startsWith("#")) {
+          graphEdges.push({ from: rel, to: source, specifier: source, resolutionReason: "package-import" })
+        } else {
+          const dependency = barePackage(source)
+          graphEdges.push({ from: rel, to: dependency, specifier: source, resolutionReason: "package" })
+          dependencyNames.add(dependency)
+        }
+      }
+    }
+    normalized = rewriteModuleSources(normalized, references, replacements)
     const fileBytes = Buffer.byteLength(normalized, "utf8")
     if (fileBytes > MAX_FILE_BYTES) throw new Error(`File exceeds ${MAX_FILE_BYTES} byte limit: ${rel}`)
     total += fileBytes
     if (total > MAX_TOTAL_BYTES) throw new Error(`Component bundle exceeds ${MAX_TOTAL_BYTES} byte limit`)
     files.set(rel, normalized)
     if (files.size > MAX_FILES) throw new Error(`Component bundle exceeds ${MAX_FILES} file limit`)
-    if (!SOURCE_EXTENSIONS.includes(path.extname(current))) continue
-    const ast = parseSource(normalized, rel)
-    for (const source of importSources(ast, rel, diagnostics)) {
-      if (source.startsWith(".") || source.startsWith("/")) {
-        if (source.startsWith("/")) throw new Error(`Absolute local import is not portable: ${source}`)
-        const resolved = resolveLocal(current, source)
-        if (!contained(root, resolved)) throw new Error(`Local import escapes package root (including through a symlink): ${source}`)
-        queue.push(resolved)
-      } else if (!source.startsWith("node:")) dependencyNames.add(barePackage(source))
-    }
   }
+
   const sortedFiles = Object.fromEntries([...files].sort(([a], [b]) => a.localeCompare(b)))
   const lower = new Map<string, string>(); for (const key of Object.keys(sortedFiles)) { const old = lower.get(key.toLowerCase()); if (old && old !== key) throw new Error(`Case-colliding paths are not portable: ${old} and ${key}`); lower.set(key.toLowerCase(), key) }
   const dependencies: Record<string, string> = {}
@@ -431,7 +718,49 @@ export function buildStoryBundle(input?: string, options: BuildStoryOptions = {}
   // Server contract: lowercase SHA-256 hex of stable, recursively key-sorted JSON
   // for the complete publish request, with only the top-level digest omitted.
   const digest = crypto.createHash("sha256").update(canonical(unsigned), "utf8").digest("hex")
-  return { ...unsigned, digest, diagnostics }
+  const evidenceFiles: Record<string, SourceFileEvidence> = {}
+  for (const [filePath, content] of Object.entries(sortedFiles)) {
+    evidenceFiles[filePath] = {
+      sha256: crypto.createHash("sha256").update(content, "utf8").digest("hex"),
+      mediaKind: sourceMediaKind(filePath),
+    }
+  }
+  graphEdges.sort((a, b) => canonical(a) < canonical(b) ? -1 : canonical(a) > canonical(b) ? 1 : 0)
+  const sourceGraph = { files: evidenceFiles, imports: graphEdges }
+  // sourceGraph is inspection evidence, not publish content. Keeping it out of
+  // unsigned preserves the established wire digest semantics deliberately.
+  return { ...unsigned, digest, diagnostics, sourceGraph }
+}
+
+/** Return the deterministic local-import chain from the component entry to a
+ * bundled path. An empty chain means the requested path is the entry. */
+export function explainInclusion(bundle: StoryBundle, requestedPath: string): SourceImportEdge[] | undefined {
+  const target = requestedPath.replace(/\\/g, "/").replace(/^\.\//, "")
+  if (!target || target === bundle.entry) return target === bundle.entry ? [] : undefined
+  if (!Object.prototype.hasOwnProperty.call(bundle.sourceGraph.files, target)) return undefined
+  const local = bundle.sourceGraph.imports.filter(edge => edge.to !== null && Object.prototype.hasOwnProperty.call(bundle.sourceGraph.files, edge.to))
+  const queue: Array<{ file: string; chain: SourceImportEdge[] }> = [{ file: bundle.entry, chain: [] }]
+  const visited = new Set<string>([bundle.entry])
+  while (queue.length) {
+    const current = queue.shift()!
+    for (const edge of local.filter(candidate => candidate.from === current.file)) {
+      if (edge.to === target) return [...current.chain, edge]
+      if (edge.to && !visited.has(edge.to)) {
+        visited.add(edge.to)
+        queue.push({ file: edge.to, chain: [...current.chain, edge] })
+      }
+    }
+  }
+  return undefined
+}
+
+function registryFileType(entry: string, filePath: string): "registry:component" | "registry:lib" | "registry:hook" | "registry:ui" {
+  if (filePath === entry) return "registry:component"
+  const normalized = `/${filePath.replace(/^\/+/, "")}`
+  if (/\/components\/ui\//.test(normalized)) return "registry:ui"
+  if (/\/hooks?\//.test(normalized)) return "registry:hook"
+  if (/\/lib\//.test(normalized)) return "registry:lib"
+  return "registry:component"
 }
 
 export function toRegistryItem(bundle: StoryBundle) {
@@ -441,12 +770,31 @@ export function toRegistryItem(bundle: StoryBundle) {
     type: "registry:component",
     ...(bundle.description ? { description: bundle.description } : {}),
     dependencies: Object.keys(bundle.dependencies),
-    files: Object.entries(bundle.files).map(([filePath, content]) => ({ path: filePath, type: "registry:component", content })),
+    files: Object.entries(bundle.files).map(([filePath, content]) => ({
+      path: filePath,
+      type: registryFileType(bundle.entry, filePath),
+      content,
+    })),
     meta: { compify: { schemaVersion: 1, entry: bundle.entry, stories: bundle.stories, provenance: bundle.provenance, digest: bundle.digest, dependencyVersions: bundle.dependencies } },
   }
 }
 
-export function publishPayload(bundle: StoryBundle): Omit<StoryBundle, "diagnostics"> {
-  const { diagnostics: _diagnostics, ...payload } = bundle
-  return payload
+/** Build the v2 publish envelope. The registry item is the source of truth so
+ * every shadcn field survives API storage and registry reads without lossy
+ * reconstruction. Registry-item files are deliberately text-only: binary
+ * assets must be hosted externally and referenced by source. */
+export function publishPayload(bundle: StoryBundle) {
+  const unsigned = {
+    schemaVersion: 2 as const,
+    publishingName: bundle.publishingName,
+    visibility: bundle.visibility,
+    language: bundle.language,
+    entry: bundle.entry,
+    dependencyVersions: bundle.dependencies,
+    stories: bundle.stories,
+    provenance: bundle.provenance,
+    registryItem: toRegistryItem(bundle),
+  }
+  const digest = crypto.createHash("sha256").update(canonical(unsigned), "utf8").digest("hex")
+  return { ...unsigned, digest }
 }

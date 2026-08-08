@@ -69,7 +69,7 @@ It also recognizes the narrow CSF Next factory form
 `const meta = preview.meta({ component })` where `preview` is imported, followed
 by `export const Name = meta.story({ ...static metadata... })`. It never imports
 or executes that preview. `Story.extend`, `Story.input`, `Story.composed`,
-computed factory inputs, and imported/spread configuration remain unsupported;
+computed factory inputs and imported/dynamic configuration remain unsupported;
 real Storybook 9/10 fixtures are still required before this is a broad claim.
 
 It currently recognizes:
@@ -78,12 +78,31 @@ It currently recognizes:
 - CSF3 named variable exports;
 - CSF2 named function exports, including static `.args` and `.storyName`
   assignments;
-- JSON-static story `args` and static story names;
-- static `includeStories` and `excludeStories` arrays;
+- JSON-static story `args` and static story names, including bounded local const
+  aliases and static object/array spreads;
+- static `includeStories` / `excludeStories` arrays or regular expressions;
+- local export-list aliases such as `export { primary as Primary }`;
 - a local component import referenced by default meta `component`, including a
   default-meta variable alias, or an explicit `--component-entry`; and
 - static local imports/re-exports, string-literal `import()` and `require()`
-  targets, and bare dependencies reachable from that component entry.
+  targets, and bare dependencies reachable from that component entry; and
+- exact, package-local aliases from the nearest in-package `tsconfig.json`
+  (`compilerOptions.baseUrl` and one-target `paths` entries) or the package
+  root's exact string-valued `package.json#imports` entries.
+
+Alias configuration is parsed as bounded JSON/JSONC text and is never imported
+or executed. Compify does not follow `tsconfig extends`. Wildcard keys or
+targets, multiple fallback targets, conditional/array package imports, absolute
+or external targets, symlink targets, and targets outside the story's package
+root fail closed when relevant (an `extends` entry always fails closed). The
+resolver only searches from an explicitly configured `baseUrl`; merely having a
+`tsconfig.json` does not turn bare package imports into local paths.
+
+Because shadcn consumers do not inherit the publisher's TypeScript or package
+alias configuration, every accepted JavaScript/TypeScript alias edge is rewritten
+to a deterministic relative specifier in the emitted files. Alias syntax in
+stylesheets is rejected rather than emitted broken. Ordinary relative imports
+are preserved unchanged.
 
 Static literals include strings, numbers, booleans, null, literal arrays and
 objects, expression-free template literals, and simple unary literal values.
@@ -94,8 +113,22 @@ fail instead of emitting or uploading a partially portable artifact.
 
 The exported registry item contains the component entry and its transitive text
 files and runtime dependencies, plus story metadata, source provenance when
-available, and a stable
-SHA-256 digest. Review this derived output before publishing.
+available, and a stable SHA-256 digest. Conventional entry/component, `lib`,
+`hook`, and `components/ui` paths receive native shadcn file types so the pinned
+client maps helpers to the corresponding consumer aliases instead of flattening
+them into the component directory. Arbitrary target policy remains unsupported.
+Review this derived output before publishing.
+
+`inspect --json` includes a deterministic source-graph sidecar with normalized
+file hashes, media kinds, import edges, original specifiers, resolution reasons,
+and unresolved edges. `--explain <path>` prints the inclusion chain for one
+file. This evidence is deliberately outside the registry/publish digest contract
+so adding explanations cannot silently change the install artifact.
+
+For a real cross-app proof, `storybook handoff` exports locally, invokes pinned
+native shadcn without a shell, optionally runs an explicit consumer build, and
+writes a digest-signed receipt. A receipt is `built` evidence only when that
+build succeeds; no publish request is made.
 
 ## Static parsing and security
 
@@ -111,7 +144,7 @@ The bundler also:
 - includes only supported text extensions;
 - refuses likely credential/key files, private-key content, high-confidence
   provider token formats, and binary content;
-- limits a bundle to 100 files, 256 KiB per file, and 5 MiB total UTF-8 component source;
+- limits a bundle to 500 files, 256 KiB per file, and 5 MiB total UTF-8 component source;
 - rejects case-colliding paths; and
 - normalizes line endings and sorts output for deterministic digests.
 
@@ -129,7 +162,8 @@ Compify does not currently promise:
 - evaluation of variables, spreads, functions, computed keys, or imported data
   to recover dynamic args/names;
 - semantic capture of decorators, loaders, play functions, parameters, global
-  configuration, styling/build aliases, or Storybook preview runtime state;
+  configuration, Storybook/bundler aliases, wildcard or inherited TypeScript
+  aliases, stylesheet aliases, or Storybook preview runtime state;
 - asset/binary bundling or arbitrary file types;
 - automatic conversion of a story render function into a reusable component;
 - perfect dependency discovery for runtime or dynamically loaded dependencies;
@@ -170,7 +204,7 @@ const compify = {
   component: "@acme/button",
   registry: "https://registry.example.com/r/acme/button.json",
   installCommand:
-    "bunx shadcn@latest add https://registry.example.com/r/acme/button.json",
+    "bunx shadcn@4.16.2 add https://registry.example.com/r/acme/button.json",
   previewUrl: "https://storybook.example.com/?path=/story/button--primary",
   reasons: ["Reviewed static bundle"],
 } satisfies CompifyParameters;

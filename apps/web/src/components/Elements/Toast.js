@@ -34,6 +34,8 @@ const Toast = ({
         <AnimatePresence>
             {isVisible && (
                 <motion.div
+                    role={type === 'error' ? 'alert' : 'status'}
+                    aria-live={type === 'error' ? 'assertive' : 'polite'}
                     className="fixed bottom-4 right-4 max-w-[20rem] w-fit"
                     initial={{ y: 50, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
@@ -59,8 +61,9 @@ const Toast = ({
                                     onClose();
                                 }}
                                 className=" text-gray-400 hover:text-white transition-colors"
+                                aria-label="Dismiss notification"
                             >
-                                <X size={18} />
+                                <X size={18} aria-hidden="true" />
                             </button>
                         </div>
                     </motion.div>

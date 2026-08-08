@@ -407,26 +407,49 @@ export class UserService {
     return bcrypt.hash(password, salt);
   }
   async changeVerifyEmail(email: string, token: string, user: User) {
-    const latestToken = await this.tokenRepo
-      .createQueryBuilder('token')
-      .where('token.email = :email AND token.token = :token', { email, token })
-      .andWhere('token.type = :type', { type: TokenType.EMAIL_VERIFICATION })
-      .orderBy('token.date', 'DESC')
-      .groupBy('token.id')
-      .getOne();
-    if (!latestToken?.id) {
-      throw new InternalServerErrorException('Token not found');
+    email = email?.trim().toLowerCase();
+    if (!email || !token) {
+      throw new BadRequestException('Email and token are required');
     }
-    user.email = email;
+    const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
     try {
-      return await this.userRepo.save(user);
+      return await this.userRepo.manager.transaction(async (manager) => {
+        // Delete is the authorization check: exactly one concurrent/replayed
+        // request can consume this address-bound, unexpired token.
+        const consumed = await manager
+          .createQueryBuilder()
+          .delete()
+          .from(Token)
+          .where('email = :email', { email })
+          .andWhere('token = :token', { token })
+          .andWhere('type = :type', {
+            type: TokenType.EMAIL_VERIFICATION,
+          })
+          .andWhere('date >= :cutoff', { cutoff })
+          .returning('id')
+          .execute();
+        if (consumed.affected !== 1) {
+          throw new BadRequestException('Invalid or expired email token');
+        }
+
+        const userRepo = manager.getRepository(User);
+        await userRepo.update(
+          { id: user.id },
+          {
+            email,
+            // Other sessions should not survive an account-identity change.
+            sessionVersion: () => '"sessionVersion" + 1',
+          },
+        );
+        return { email, changed: true };
+      });
     } catch (error) {
-      if (error.code === '23505') {
+      if (error instanceof BadRequestException) throw error;
+      if ((error as { code?: string })?.code === '23505') {
         throw new ConflictException('Email already in use.');
-      } else {
-        throw new InternalServerErrorException('Error saving user data.');
       }
+      throw new InternalServerErrorException('Error saving user data.');
     }
   }
   async changeSendEmail(email: string) {
@@ -660,17 +683,27 @@ export class UserService {
   }
 
   async resetPasswordUser(email: string) {
+    email = email?.trim().toLowerCase();
     if (!email) {
       throw new BadRequestException('Email is required');
     }
+    const generic = {
+      message: 'If an account exists, a password reset email has been sent',
+    };
     const user = await this.userRepo
       .createQueryBuilder('user')
       .where('user.email = :email', { email })
       .getOne();
-    if (!user) {
-      throw new NotFoundException('User not found');
+    if (user) {
+      try {
+        await this.sendResetPassword(user.email);
+      } catch (error) {
+        // Cooldowns and mail-provider failures must not become an account
+        // existence oracle. Operators still get the diagnostic server-side.
+        console.error('Password reset delivery was not scheduled:', error);
+      }
     }
-    return await this.sendResetPassword(user.email);
+    return generic;
   }
   async deleteUserComponentFiles(componentIds: string[]): Promise<void> {
     const fileIds = componentIds;

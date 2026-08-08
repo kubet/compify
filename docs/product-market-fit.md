@@ -13,6 +13,26 @@ they own and distribute reviewable source through a shadcn-compatible registry.
 Compify can reduce that work without asking the team to migrate its authoring
 workflow or trust runtime execution of story files.
 
+## Current Compify traction baseline
+
+As of **2026-08-08**, Compify has no demonstrated product-market fit. The
+[first-party GitHub API](https://api.github.com/repos/kubet/compify) reported
+**0 stars and 0 forks** for a repository created on 2026-08-05. The npm downloads
+API reported **12 downloads** for `@compify/cli` during 2026-07-08 through
+2026-08-06; the npm registry still marked **0.1.0** as `latest`, and
+`@compify/storybook` was not published. These figures are a baseline, not a
+failure verdict: the release candidate has not been distributed. They do mean
+that code quality, ecosystem size, downloads of adjacent tools, and synthetic
+E2E fixtures must not be presented as adoption, retention, willingness to pay,
+or PMF.
+
+The next credible evidence is not traffic. It is a **Verified Cross-App Handoff
+(VCH)** from a non-demo external library: intentional story selection, reviewed
+artifact digest, native shadcn installation into a different repository, and a
+successful destination typecheck/build captured in a local receipt. The hard
+retention signal is a second distinct-component VCH by the same qualified team
+within 30 days.
+
 The proposed sequence is deliberately small:
 
 1. start with an existing, intentionally selected React CSF file;
@@ -297,13 +317,15 @@ components.
 
 ## North star and 90-day scorecard
 
-The proposed north star is **Weekly Activated Libraries (WAL)**: the count of
-distinct, non-demo source libraries in a rolling seven-day window where a
-qualified external team (a) successfully inspects an intentionally selected
-Storybook source, (b) opens or reviews the resulting valid registry artifact,
-and (c) installs that artifact into a different application. Count a source
-library at most once per week; exclude employees, templates, CI retries, and
-re-exporting the same artifact.
+The hard activation event is a **Verified Cross-App Handoff (VCH)**: an
+intentional Storybook selection from a non-demo library produces a reviewed
+digest, the native pinned shadcn client installs it into a different repository,
+and that destination's declared typecheck/build exits successfully. A local
+receipt records the inputs, hashes, exact argument vectors, changed files, and
+result without sending telemetry. The rollup north star is **Weekly Activated
+Libraries (WAL)**: distinct external source libraries with at least one VCH in a
+rolling seven-day window. Count a library once per week; exclude employees,
+templates, CI retries, and repeated installation of the same digest.
 
 Track **Weekly Activated Storybooks (WAS)** as the Storybook-specific diagnostic:
 distinct Storybook projects satisfying those same three events. WAL remains the

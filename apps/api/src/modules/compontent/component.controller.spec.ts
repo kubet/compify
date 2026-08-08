@@ -14,7 +14,7 @@ describe('ComponentController animated image validation', () => {
     checkIfUserIsOwnerOrThrow403: jest.fn(),
     updateComponentImageUploaded: jest.fn(),
   };
-  const minioService = { uploadFile: jest.fn() };
+  const minioService = { uploadFile: jest.fn(), getFile: jest.fn() };
   const constructImageService = { constructAnimatedImg: jest.fn() };
   let controller: ComponentController;
 
@@ -72,5 +72,28 @@ describe('ComponentController animated image validation', () => {
     expect(constructImageService.constructAnimatedImg).toHaveBeenCalledWith([
       'capture',
     ]);
+  });
+  it("does not read another user's private component image", async () => {
+    componentService.checkIfUserIsOwnerOrThrow403.mockRejectedValue(
+      new Error('not owner'),
+    );
+    const response = {
+      status: jest.fn(),
+      json: jest.fn(),
+    };
+    response.status.mockReturnValue(response);
+
+    await controller.getImage(
+      'victim-component',
+      { id: 'attacker' } as any,
+      response as any,
+    );
+
+    expect(componentService.checkIfUserIsOwnerOrThrow403).toHaveBeenCalledWith(
+      'victim-component',
+      { id: 'attacker' },
+    );
+    expect((minioService as any).getFile).not.toHaveBeenCalled();
+    expect(response.status).toHaveBeenCalledWith(404);
   });
 });

@@ -1,16 +1,42 @@
-import { ApiBearerAuth, ApiBody, ApiSecurity, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiExtraModels,
+  ApiSecurity,
+  ApiTags,
+  getSchemaPath,
+} from '@nestjs/swagger';
 import { Body, Controller, Get, Headers, Post, Query } from '@nestjs/common';
 import { CliService } from './cli.service';
-import { PublishStoryDto } from 'src/models/cli/publish-story.dto';
+import {
+  PublishStoryDto,
+  PublishStoryV2Dto,
+  RegistryArtifactDto,
+  RegistryArtifactFileDto,
+} from 'src/models/cli/publish-story.dto';
 
 @ApiTags('CLI')
+@ApiExtraModels(
+  PublishStoryDto,
+  PublishStoryV2Dto,
+  RegistryArtifactDto,
+  RegistryArtifactFileDto,
+)
 @Controller('cli')
 export class CliController {
   constructor(private readonly cliService: CliService) {}
 
   @Post('publish-story')
   @ApiBearerAuth('cli-bearer')
-  @ApiBody({ type: PublishStoryDto })
+  @ApiBody({
+    schema: {
+      oneOf: [
+        { $ref: getSchemaPath(PublishStoryDto) },
+        { $ref: getSchemaPath(PublishStoryV2Dto) },
+      ],
+      discriminator: { propertyName: 'schemaVersion' },
+    },
+  })
   publishStory(
     @Body() body: unknown,
     @Headers('authorization') authorization?: string,

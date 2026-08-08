@@ -9,11 +9,45 @@ The repository also contains the existing browser editor, registry API,
 Bun-powered component CLI, Compify MCP server, and self-hosting baseline. See
 [Product direction](PRODUCT.md) for the current/next boundary.
 
+## Prove a cross-app handoff
+
+The release candidate's activation path is local and account-free. After
+[building the CLI from source](packages/cli/README.md#build-from-source), point it
+at one selected story and a **different**, already shadcn-initialized application:
+
+```bash
+compify storybook inspect src/Button.stories.tsx --story Primary --explain src/Button.tsx
+compify storybook handoff src/Button.stories.tsx --story Primary \
+  --consumer ../consumer-app \
+  --build-command bun --build-arg run --build-arg build
+```
+
+`handoff` statically selects the source graph, invokes pinned native
+`shadcn@4.16.2` without a shell, runs the explicit destination build, and writes
+a local digest-signed receipt containing graph/artifact identity, exact argv, and
+consumer file hashes. It never publishes implicitly. Review the artifact and
+receipt before treating the handoff as approved evidence.
+
+## Existing browser editor demo
+
+<details>
+<summary>Watch the 22-second editor demo</summary>
+
+[![Compify browser editor demo](docs/assets/legacy-editor-demo.webp)](docs/assets/demo-video.mp4)
+
+The recording demonstrates the existing optional browser editor: editing React
+source and seeing its preview update. It is not evidence for Storybook graph
+compatibility, shadcn installation, runtime fidelity, or the newer policy-gated
+source-distribution workflow; those claims are backed by the executable evidence
+in [the compatibility matrix](docs/compatibility.md).
+
+</details>
+
 ## Repository layout
 
 | Path | What | Stack |
 | --- | --- | --- |
-| `apps/web` | Browser editor, previews, and documentation | Next.js 16, React 19, Tailwind |
+| `apps/web` | Documentation and optional browser editor (preview bundler is operator-supplied) | Next.js 16, React 19, Tailwind |
 | `apps/api` | REST API for components and registry artifacts | NestJS 11, TypeORM, PostgreSQL, MinIO |
 | `packages/cli` | `compify` CLI, including static Storybook translation | Bun, tsup |
 | `packages/storybook` | Manager-only Storybook portability metadata addon | Storybook, React, tsup |

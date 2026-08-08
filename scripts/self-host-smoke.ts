@@ -69,6 +69,30 @@ function includes(...needles: string[]) {
   };
 }
 
+function canonicalJson(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(",")}]`;
+  if (value && typeof value === "object") {
+    const record = value as Record<string, unknown>;
+    return `{${Object.keys(record)
+      .sort()
+      .map((key) => `${JSON.stringify(key)}:${canonicalJson(record[key])}`)
+      .join(",")}}`;
+  }
+  const encoded = JSON.stringify(value);
+  if (encoded === undefined) throw new Error("smoke payload is not JSON");
+  return encoded;
+}
+
+async function sha256(value: string): Promise<string> {
+  const digest = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(value)
+  );
+  return [...new Uint8Array(digest)]
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
+
 await waitFor("API liveness", `${apiUrl}/health`);
 await waitFor("API dependency readiness", `${apiUrl}/ready`);
 await waitFor("web", webUrl);
@@ -154,6 +178,55 @@ await expectResponse(
     '"persistAuthorization": false'
   )
 );
+await expectResponse(
+  "empty-compatible registry index",
+  `${apiUrl}/r/registry.json`,
+  200,
+  (_response, body) => {
+    const registry = JSON.parse(body);
+    if (
+      registry.$schema !== "https://ui.shadcn.com/schema/registry.json" ||
+      !Array.isArray(registry.items)
+    ) {
+      throw new Error("registry index is not shadcn-compatible");
+    }
+  }
+);
+await expectResponse(
+  "credentialed CORS preflight",
+  `${apiUrl}/user/login`,
+  204,
+  (response) => {
+    if (
+      response.headers.get("access-control-allow-origin") !== webUrl ||
+      response.headers.get("access-control-allow-credentials") !== "true"
+    ) {
+      throw new Error("configured browser origin was not accepted by CORS");
+    }
+  },
+  {
+    method: "OPTIONS",
+    headers: {
+      Origin: webUrl,
+      "Access-Control-Request-Method": "POST",
+      "Access-Control-Request-Headers": "content-type",
+    },
+  }
+);
+await expectResponse(
+  "unconfigured CORS origin",
+  `${apiUrl}/health`,
+  200,
+  (response) => {
+    if (
+      response.headers.get("access-control-allow-origin") ===
+      "https://cross-site.invalid"
+    ) {
+      throw new Error("unconfigured browser origin was accepted by CORS");
+    }
+  },
+  { headers: { Origin: "https://cross-site.invalid" } }
+);
 
 for (const [label, path] of [
   ["JWT component boundary", "/component/my"],
@@ -215,6 +288,110 @@ await expectResponse(
       throw new Error("session belongs to the wrong user");
   },
   { headers: { Cookie: sessionCookie, Origin: webUrl } }
+);
+
+const cliTokenResponse = await fetchWithTimeout(`${apiUrl}/user/cli/token`, {
+  method: "POST",
+  headers: { Cookie: sessionCookie, Origin: webUrl },
+});
+const cliTokenBody = await cliTokenResponse.json();
+if (
+  cliTokenResponse.status !== 201 ||
+  !/^cli_[a-f0-9]{64}$/.test(cliTokenBody.token)
+) {
+  throw new Error(
+    `CLI token creation failed with HTTP ${cliTokenResponse.status}`
+  );
+}
+const cliToken = cliTokenBody.token as string;
+console.log("ok - CLI token creation (201)");
+
+const publishingName = `smoke-button-${Date.now()}`;
+const unsignedArtifact = {
+  schemaVersion: 1,
+  name: "Self-host Smoke Button",
+  description:
+    "Disposable registry artifact created by the self-host smoke test",
+  publishingName,
+  visibility: "public",
+  language: "tsx",
+  entry: "components/smoke-button.tsx",
+  files: {
+    "components/smoke-button.tsx":
+      'export function SmokeButton() { return <button type="button">Smoke</button> }',
+  },
+  dependencies: { react: "^19.0.0" },
+  stories: [{ exportName: "Default", name: "Default", portable: true }],
+  provenance: { storyPath: "components/smoke-button.stories.tsx" },
+};
+const artifact = {
+  ...unsignedArtifact,
+  digest: await sha256(canonicalJson(unsignedArtifact)),
+};
+const publishResponse = await fetchWithTimeout(`${apiUrl}/cli/publish-story`, {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${cliToken}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify(artifact),
+});
+const publishBody = await publishResponse.json();
+if (
+  publishResponse.status !== 201 ||
+  typeof publishBody.registryUrl !== "string" ||
+  !publishBody.registryUrl.startsWith(`${apiUrl}/r/`)
+) {
+  throw new Error(`registry publish failed with HTTP ${publishResponse.status}`);
+}
+console.log("ok - registry publish and object upload (201)");
+
+await expectResponse(
+  "published shadcn registry artifact",
+  publishBody.registryUrl,
+  200,
+  (_response, body) => {
+    const item = JSON.parse(body);
+    if (
+      item.$schema !== "https://ui.shadcn.com/schema/registry-item.json" ||
+      item.type !== "registry:component" ||
+      !item.files?.some(
+        (file: { path?: string; content?: string }) =>
+          file.path === "components/smoke-button.tsx" &&
+          file.content?.includes("SmokeButton")
+      )
+    ) {
+      throw new Error("published item lost its installable file contract");
+    }
+  }
+);
+await expectResponse(
+  "published artifact in registry index",
+  `${apiUrl}/r/registry.json`,
+  200,
+  (_response, body) => {
+    const registry = JSON.parse(body);
+    if (
+      !registry.items?.some((item: { name?: string }) =>
+        item.name?.endsWith(`/${publishingName}`)
+      )
+    ) {
+      throw new Error("published item is absent from registry index");
+    }
+  }
+);
+await expectResponse(
+  "CLI install-source fetch",
+  `${apiUrl}/cli/get?id=${encodeURIComponent(
+    `@${publishBody.publishingDomain}`
+  )}`,
+  200,
+  (_response, body) => {
+    const source = JSON.parse(body);
+    if (source.files?.["components/smoke-button.tsx"] === undefined)
+      throw new Error("CLI fetch did not return the published source");
+  },
+  { headers: { "x-cli-token": cliToken } }
 );
 
 const rejectedCsrf = await fetchWithTimeout(`${apiUrl}/user/change-password`, {

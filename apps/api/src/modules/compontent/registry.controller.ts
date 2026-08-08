@@ -16,6 +16,7 @@ import { MinioClientService } from '../minio/minio.service';
 import { ConfigService } from '@nestjs/config';
 import { isSafeRegistryPath } from 'src/common/registry-path';
 import { CliToken } from 'src/entities/cli/cli-tokens.entity';
+import { ComponentRevision } from 'src/entities/project/component-revision.entity';
 import {
   authenticateCliToken,
   bearerCliToken,
@@ -29,7 +30,7 @@ import {
  *   bunx shadcn@4.16.2 add https://api.compify.app/r/<user>/<name>.json
  * or, with `"@compify": "https://api.compify.app/r/{name}.json"` configured
  * in components.json registries:
- *   bunx shadcn@latest add @compify/<user>/<name>
+ *   bunx shadcn@4.16.2 add @compify/<user>/<name>
  */
 @ApiTags('Registry')
 @Controller('r')
@@ -41,6 +42,8 @@ export class RegistryController {
     private cliTokenRepository: Repository<CliToken>,
     private minioService: MinioClientService,
     private configService: ConfigService,
+    @InjectRepository(ComponentRevision)
+    private componentRevisionRepository?: Repository<ComponentRevision>,
   ) {}
 
   private get frontendUrl(): string {
@@ -104,6 +107,27 @@ export class RegistryController {
     return this.buildItem(`${username}/${name}`, undefined, authorization);
   }
 
+  @Get(':username/:name/:digest.json')
+  @ApiBearerAuth('cli-bearer')
+  async revisionItem(
+    @Param('username') username: string,
+    @Param('name') name: string,
+    @Param('digest') digest: string,
+    @Headers('authorization') authorization?: string,
+  ) {
+    if (!/^[a-f0-9]{64}$/.test(digest)) {
+      throw new NotFoundException(
+        `Component "@${username}/${name}" revision not found`,
+      );
+    }
+    return this.buildItem(
+      `${username}/${name}`,
+      undefined,
+      authorization,
+      digest,
+    );
+  }
+
   @Get(':username/:name')
   @ApiBearerAuth('cli-bearer')
   async itemNoExt(
@@ -122,6 +146,7 @@ export class RegistryController {
     publishingDomain: string,
     displayName?: string,
     authorization?: string,
+    digest?: string,
   ) {
     const component = await this.componentRepository
       .createQueryBuilder('component')
@@ -134,9 +159,25 @@ export class RegistryController {
     if (!component) {
       throw new NotFoundException(`Component "@${publishingDomain}" not found`);
     }
-    if (component.visibility === ComponentVisibility.PRIVATE) {
-      // Private items remain absent from the public index. Standard shadcn
-      // namespace Bearer headers may retrieve an item only for its owner.
+    const revision = this.componentRevisionRepository
+      ? await this.componentRevisionRepository.findOne(
+          digest
+            ? { where: { component: { id: component.id }, digest } }
+            : {
+                where: { component: { id: component.id } },
+                order: { revision: 'DESC' },
+              },
+        )
+      : undefined;
+    if (digest && (!revision || revision.schemaVersion !== 2)) {
+      throw new NotFoundException(
+        `Component "@${publishingDomain}" revision not found`,
+      );
+    }
+    const visibility = revision?.visibility || component.visibility;
+    if (visibility === ComponentVisibility.PRIVATE) {
+      // Private items and private historical revisions remain accessible only
+      // to the owning CLI token, even if a later revision becomes public.
       // Missing or invalid credentials intentionally look like a missing item
       // so callers cannot enumerate private publishing domains.
       try {
@@ -153,10 +194,22 @@ export class RegistryController {
         );
       }
     } else if (
-      component.visibility !== ComponentVisibility.PUBLIC &&
-      component.visibility !== ComponentVisibility.FREE
+      visibility !== ComponentVisibility.PUBLIC &&
+      visibility !== ComponentVisibility.FREE
     ) {
       throw new NotFoundException(`Component "@${publishingDomain}" not found`);
+    }
+
+    if (revision) return revision.registryItem;
+
+    const latestStorybook = (component.pageSettings as any)?.storybook;
+    if (
+      latestStorybook?.schemaVersion === 2 &&
+      latestStorybook.registryItem &&
+      typeof latestStorybook.registryItem === 'object' &&
+      !Array.isArray(latestStorybook.registryItem)
+    ) {
+      return latestStorybook.registryItem;
     }
 
     const raw =
@@ -192,7 +245,7 @@ export class RegistryController {
       }
     }
 
-    const storybook = (component.pageSettings as any)?.storybook;
+    const storybook = latestStorybook;
     if (
       storybook &&
       storybook.schemaVersion === 1 &&

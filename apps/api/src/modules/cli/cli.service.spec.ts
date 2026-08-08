@@ -102,8 +102,37 @@ describe('CliService Storybook publishing', () => {
         .fn()
         .mockResolvedValue({ id: 'short-id', publishingDomain: 'alice/card' }),
     };
+    const persisted = {
+      id: '00000000-0000-4000-8000-000000000001',
+      publishingDomain: 'alice/card',
+      user: { id: 'user-1', username: 'alice' },
+    };
+    const componentQuery: any = {
+      leftJoinAndSelect: jest.fn(),
+      where: jest.fn(),
+      getOne: jest
+        .fn()
+        .mockResolvedValueOnce(null)
+        .mockResolvedValue(persisted),
+    };
+    for (const method of ['leftJoinAndSelect', 'where'])
+      componentQuery[method].mockReturnValue(componentQuery);
+    const revisions: any[] = [];
+    const revisionRepo = {
+      findOne: jest.fn().mockImplementation(async (options) => {
+        const digest = options?.where?.digest;
+        if (digest)
+          return revisions.find((item) => item.digest === digest) || null;
+        return revisions.length ? revisions[revisions.length - 1] : null;
+      }),
+      create: jest.fn().mockImplementation((entity) => entity),
+      save: jest.fn().mockImplementation(async (entity) => {
+        revisions.push(entity);
+        return entity;
+      }),
+    };
     const service = new CliService(
-      {} as any,
+      { createQueryBuilder: () => componentQuery } as any,
       { createQueryBuilder: () => queryBuilder, save: jest.fn() } as any,
       {} as any,
       componentService as any,
@@ -111,8 +140,9 @@ describe('CliService Storybook publishing', () => {
         get: (key: string) =>
           key === 'BACKEND_URL' ? 'https://api.test/' : 'https://web.test/',
       } as any,
+      revisionRepo as any,
     );
-    return { service, componentService };
+    return { service, componentService, revisionRepo, componentQuery };
   }
 
   function request(overrides: Record<string, unknown> = {}) {
@@ -145,6 +175,92 @@ describe('CliService Storybook publishing', () => {
         .digest('hex'),
     };
   }
+
+  function requestV2(overrides: Record<string, unknown> = {}) {
+    const unsigned: any = {
+      schemaVersion: 2,
+      publishingName: 'button',
+      visibility: 'public',
+      language: 'tsx',
+      entry: 'src/Button.tsx',
+      dependencyVersions: { react: '^19.0.0' },
+      stories: [{ exportName: 'Primary', name: 'Primary', portable: true }],
+      provenance: { storyPath: 'src/Button.stories.tsx' },
+      registryItem: {
+        $schema: 'https://ui.shadcn.com/schema/registry-item.json',
+        name: 'button',
+        type: 'registry:block',
+        title: 'Full artifact',
+        dependencies: ['react'],
+        devDependencies: ['vitest'],
+        registryDependencies: ['@acme/theme'],
+        categories: ['ui'],
+        tailwind: { config: { theme: { extend: {} } } },
+        cssVars: { light: { accent: 'blue' } },
+        css: '.x { color: red }',
+        docs: 'Install notes',
+        meta: { vendor: { reviewed: true } },
+        files: [
+          {
+            path: 'src/Button.tsx',
+            type: 'registry:component',
+            target: 'components/Button.tsx',
+            content: 'export const Button = () => null\r\n',
+          },
+        ],
+      },
+      ...overrides,
+    };
+    const normalized: any = normalizePublishStory({
+      ...unsigned,
+      digest: '0'.repeat(64),
+    } as any);
+    delete normalized.digest;
+    return {
+      ...unsigned,
+      digest: createHash('sha256')
+        .update(canonicalJson(normalized))
+        .digest('hex'),
+    };
+  }
+
+  it('stores the complete deterministic v2 registry artifact and editor projection', async () => {
+    const { service, componentService } = harness();
+    const body = requestV2();
+    await expect(
+      service.publishStory(body, `Bearer ${VALID_TOKEN}`),
+    ).resolves.toMatchObject({ digest: body.digest });
+    const dto = componentService.create.mock.calls[0][0];
+    expect(dto.pageSettings.storybook.registryItem).toMatchObject({
+      type: 'registry:block',
+      registryDependencies: ['@acme/theme'],
+      devDependencies: ['vitest'],
+      tailwind: { config: { theme: { extend: {} } } },
+      files: [
+        {
+          target: 'components/Button.tsx',
+          content: 'export const Button = () => null\n',
+        },
+      ],
+    });
+    expect(JSON.parse(dto.code)['src/Button.tsx'].code).toBe(
+      'export const Button = () => null\n',
+    );
+  });
+
+  it('rejects binary/control v2 files and unknown artifact properties', async () => {
+    const { service } = harness();
+    const badFile: any = requestV2();
+    badFile.registryItem.files[0].content = 'bad\u0000data';
+    await expect(
+      service.publishStory(badFile, `Bearer ${VALID_TOKEN}`),
+    ).rejects.toBeInstanceOf(BadRequestException);
+    const unknown: any = requestV2();
+    unknown.registryItem.futureField = true;
+    await expect(
+      service.publishStory(unknown, `Bearer ${VALID_TOKEN}`),
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
 
   it('has a stable normalization digest test vector', () => {
     expect(request().digest).toBe(
@@ -325,5 +441,42 @@ describe('CliService Storybook publishing', () => {
       ),
     ).rejects.toBeInstanceOf(BadRequestException);
     expect(componentService.create).not.toHaveBeenCalled();
+  });
+
+  it('appends immutable v2 revisions and makes a digest retry a no-op', async () => {
+    const { service, componentService, revisionRepo } = harness();
+    const first = requestV2();
+    const firstResponse: any = await service.publishStory(
+      first,
+      `Bearer ${VALID_TOKEN}`,
+    );
+    expect(firstResponse).toMatchObject({
+      revision: 1,
+      immutableRegistryUrl: `https://api.test/r/alice/card/${first.digest}.json`,
+    });
+
+    const retry: any = await service.publishStory(
+      first,
+      `Bearer ${VALID_TOKEN}`,
+    );
+    expect(retry.revision).toBe(1);
+    expect(componentService.create).toHaveBeenCalledTimes(1);
+    expect(revisionRepo.save).toHaveBeenCalledTimes(1);
+
+    const changedItem = {
+      ...first.registryItem,
+      title: 'A genuinely new artifact',
+    };
+    const second = requestV2({ registryItem: changedItem });
+    const secondResponse: any = await service.publishStory(
+      second,
+      `Bearer ${VALID_TOKEN}`,
+    );
+    expect(secondResponse).toMatchObject({
+      revision: 2,
+      digest: second.digest,
+    });
+    expect(componentService.create.mock.calls[1][0].id).toBeDefined();
+    expect(revisionRepo.save).toHaveBeenCalledTimes(2);
   });
 });

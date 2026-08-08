@@ -36,6 +36,58 @@ export class StorybookProvenanceDto {
 
 /** The Storybook CLI wire format. Validation is deliberately performed by
  * CliService so nested records and unknown keys are rejected consistently. */
+export class RegistryArtifactFileDto {
+  @ApiProperty() path: string;
+  @ApiProperty() type: string;
+  @ApiPropertyOptional() target?: string;
+  @ApiProperty() content: string;
+}
+
+/** A deterministic, text-only shadcn registry-item artifact. Binary files are
+ * intentionally unsupported by registry-item consumers and must be hosted
+ * externally and referenced by source instead. */
+export class RegistryArtifactDto {
+  @ApiPropertyOptional() '$schema'?: string;
+  @ApiProperty() name: string;
+  @ApiProperty() type: string;
+  @ApiPropertyOptional() title?: string;
+  @ApiPropertyOptional() description?: string;
+  @ApiPropertyOptional() author?: string;
+  @ApiPropertyOptional({ type: [String] }) dependencies?: string[];
+  @ApiPropertyOptional({ type: [String] }) devDependencies?: string[];
+  @ApiPropertyOptional({ type: [String] }) registryDependencies?: string[];
+  @ApiProperty({ type: () => [RegistryArtifactFileDto] })
+  files: RegistryArtifactFileDto[];
+  @ApiPropertyOptional({ type: 'object', additionalProperties: true })
+  tailwind?: unknown;
+  @ApiPropertyOptional({ type: 'object', additionalProperties: true })
+  cssVars?: unknown;
+  @ApiPropertyOptional() css?: string;
+  @ApiPropertyOptional() docs?: string;
+  @ApiPropertyOptional({ type: [String] }) categories?: string[];
+  @ApiPropertyOptional({ type: 'object', additionalProperties: true })
+  meta?: unknown;
+}
+
+export class PublishStoryV2Dto {
+  @ApiProperty({ enum: [2] }) schemaVersion: 2;
+  @ApiProperty() publishingName: string;
+  @ApiProperty({ enum: ['public', 'private', 'unlisted'] }) visibility:
+    'public' | 'private' | 'unlisted';
+  @ApiProperty({ enum: ['tsx', 'jsx', 'ts', 'js'] }) language:
+    'tsx' | 'jsx' | 'ts' | 'js';
+  @ApiProperty() entry: string;
+  @ApiProperty({ type: 'object', additionalProperties: { type: 'string' } })
+  dependencyVersions: Record<string, string>;
+  @ApiProperty({ type: () => [StorybookStoryDto], minItems: 1, maxItems: 100 })
+  stories: StorybookStoryDto[];
+  @ApiProperty({ type: () => StorybookProvenanceDto })
+  provenance: StorybookProvenanceDto;
+  @ApiProperty({ type: () => RegistryArtifactDto })
+  registryItem: RegistryArtifactDto;
+  @ApiProperty() digest: string;
+}
+
 export class PublishStoryDto {
   @ApiProperty({ enum: [1] })
   schemaVersion: 1;

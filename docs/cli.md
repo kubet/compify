@@ -18,7 +18,7 @@ bun link
 
 ## Storybook commands
 
-All three commands accept an optional story-file argument. When it is omitted,
+All four commands accept an optional story-file argument. When it is omitted,
 the CLI searches under `--cwd` and proceeds only if exactly one matching story
 file exists. Common options are `--cwd`, `--name`, `--description`,
 `--publishing-name`, `--component-entry <path>`, and `--visibility` (`private`,
@@ -56,6 +56,26 @@ compify storybook export src/Button.stories.tsx \
 `-o, --output <file>` chooses the path; otherwise the CLI writes
 `<component-name>.registry.json`. Existing files are refused unless `--force`
 is present.
+
+### `compify storybook handoff [entry]`
+
+Export a selected portable story and install it with native pinned
+`shadcn@4.16.2` into an explicitly separate, already initialized consumer.
+No publish request is made. On success it writes a deterministic, digest-signed
+receipt containing its `installed` or `built` evidence level, exact installer/build argv, and hashes of consumer changes.
+Existing artifact or receipt files are never overwritten.
+
+```bash
+compify storybook handoff src/Button.stories.tsx --story Primary \
+  --consumer ../consumer-app \
+  --build-command bun --build-arg run --build-arg build
+```
+
+The required consumer must be outside the source package tree and contain both
+`package.json` and `components.json`. Build arguments are repeatable argv values;
+commands are never interpreted by a shell. Defaults are
+`.compify/<name>.registry.json` and `.compify/<name>.handoff.json`; override them
+with `--output` and `--receipt`.
 
 ### `compify storybook publish [entry]`
 

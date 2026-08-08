@@ -44,12 +44,15 @@ carries its owner's CLI token as a Bearer header. See [Registry](./registry.md)
 for `components.json` configuration. This does not imply a managed hosted
 endpoint or scoped enterprise authorization.
 
-For CLI-published Storybook artifacts, the registry endpoint now preserves the
-reviewed component paths, dependency set, digest, stories and provenance metadata
-instead of applying the legacy browser editor's path transformation. The server
-still reconstructs JSON from stored source rather than serving immutable uploaded
-bytes; content-addressed revisions and byte-for-byte publication attestations
-remain roadmap work.
+For v2 CLI publications, the reviewed registry-item object is the storage source
+of truth: file type/target, dependency categories, Tailwind/CSS fields, docs,
+metadata, story selection and provenance survive without legacy editor remapping.
+Publishing an owned name again appends a numbered digest-addressed revision;
+repeating the same digest is idempotent. The response includes the mutable latest
+`registryUrl` and an immutable `immutableRegistryUrl`. The server preserves the
+canonical artifact semantics, but it does not preserve the sender's JSON
+whitespace/byte serialization or provide a transparency-log attestation. Retained
+v1 publications still use the documented reconstructed compatibility path.
 
 See [Storybook translation](./storybook.mdx) for supported input and security
 boundaries. Publishing never means that Compify executed the Storybook story or

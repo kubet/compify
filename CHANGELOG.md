@@ -21,6 +21,11 @@ and compatibility contracts.
 - Owner-authenticated private registry items through standard shadcn namespace Bearer headers.
 - Fail-closed static support for the basic CSF Next `preview.meta` / `meta.story` factory form.
 - Published Storybook registry responses preserve the reviewed source paths and Compify digest/provenance metadata instead of applying legacy editor remapping.
+- `storybook handoff` performs a pinned native shadcn install and optional destination build in a separate app, then emits a digest-signed local `installed`/`built` evidence receipt.
+- Deterministic explainable source-graph evidence records normalized file hashes, import edges, resolution reasons, unresolved edges, and inclusion chains without changing artifact digests.
+- Bounded exact in-package tsconfig/baseUrl/path and package-import alias support rewrites accepted specifiers to consumer-usable relative imports; quoted stylesheet module edges are followed.
+- Publish schema v2 preserves the complete text registry-item semantic object and supports repeatable numbered, digest-addressed immutable revisions while retaining the v1 reader path.
+- Real-stack browser, registry lifecycle, private native-shadcn install/build, migration-restart and token-revocation E2E gates.
 
 ### Changed
 
@@ -31,12 +36,15 @@ and compatibility contracts.
 - Password-reset validation and editor file-tab keyboard/accessibility behavior were hardened.
 - The overlapping Compify registry MCP is now compatibility-only and deprecated in favor of official Storybook and shadcn agent surfaces.
 - Unimplemented hard-coded project routes were removed rather than presenting sample state as a working OSS feature.
+- The optional legacy browser-editor recording is labeled separately from the evidence-backed Storybook distribution workflow.
 
 ### Security
 
 - CLI token validation now prevents stored token digests from being replayed as credentials.
 - Storybook publication rejects traversal and symlink escapes, secret-like files, private keys, invalid text, oversized artifacts, case-colliding paths, undeclared runtime dependencies, and nonportable dynamic story arguments.
 - Failed source-object uploads compensate newly created component rows instead of reserving orphaned publishing domains.
+- Private component image/vote IDOR paths, pre-authorization OG mutation, malformed short-ID 500s, password-reset account enumeration, email-change token replay/expiry, poisoned login forwards, and auth-network error handling were hardened.
+- Release CI enforces digest-pinned container images, SHA-pinned Actions, private-package allowlisting, reproducible npm tarballs, protected OIDC provenance and no token fallback.
 - Sandpack provenance is reconstructed and CI-verified against immutable v2.19.8 source; all 14 modified upstream files carry change notices and the internal package is non-publishable.
 
 ## [0.1.0] - 2026-08-07

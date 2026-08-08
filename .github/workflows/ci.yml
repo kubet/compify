@@ -29,6 +29,7 @@ jobs:
         with:
           bun-version: 1.3.9
       - run: bun scripts/release-check.ts
+      - run: bun scripts/supply-chain-check.ts
       - run: bun scripts/verify-sandpack-provenance.ts
       - run: docker compose --env-file deploy/self-host.env.example config --quiet
 
@@ -49,23 +50,30 @@ jobs:
         with:
           filters: |
             web:
+              - '.github/workflows/ci.yml'
               - 'apps/web/**'
               - 'packages/compify-pack/**'
               - 'docs/**'
             api:
+              - '.github/workflows/ci.yml'
               - 'apps/api/**'
             cli:
+              - '.github/workflows/ci.yml'
               - 'packages/cli/**'
               - 'examples/storybook-button/**'
               - 'examples/consumer-next-ts/**'
               - 'scripts/shadcn-consumer-smoke.ts'
             pack:
+              - '.github/workflows/ci.yml'
               - 'packages/compify-pack/**'
             storybook:
+              - '.github/workflows/ci.yml'
               - 'packages/storybook/**'
             template:
+              - '.github/workflows/ci.yml'
               - 'packages/templates/dark-solar-saas/**'
             selfhost:
+              - '.github/workflows/ci.yml'
               - 'apps/api/**'
               - 'apps/web/**'
               - 'packages/compify-pack/**'
@@ -73,6 +81,10 @@ jobs:
               - 'docker-compose.yml'
               - 'deploy/self-host.env.example'
               - 'scripts/self-host-smoke.ts'
+              - 'scripts/distribution-smoke.ts'
+              - 'packages/cli/**'
+              - 'examples/storybook-button/**'
+              - 'examples/consumer-next-ts/**'
 
   web:
     needs: changes
@@ -225,23 +237,38 @@ jobs:
           bun-version: 1.3.9
       - name: Build and start the self-host stack
         run: docker compose up --build -d --wait
-      - name: Verify the running product
+      - name: Build CLI for distribution E2E
+        working-directory: packages/cli
+        run: bun install --frozen-lockfile && bun run build
+      - name: Verify migration startup is idempotent
+        run: |
+          docker compose restart api
+          docker compose up -d --wait api
+      - name: Verify the running product and registry lifecycle
         run: bun scripts/self-host-smoke.ts
+      - name: Install browser E2E dependencies
+        working-directory: apps/web
+        run: bun install --frozen-lockfile && bunx playwright install --with-deps chromium
+      - name: Verify browser registration and login journeys
+        working-directory: apps/web
+        run: bun run test:e2e
+      - name: Verify source distribution workflows
+        run: bun scripts/distribution-smoke.ts
       - name: Install API test dependencies
         working-directory: apps/api
         run: bun install --frozen-lockfile
       - name: Run real-application API E2E tests
         working-directory: apps/api
         env:
-          DB_HOST: localhost
+          DB_HOST: 127.0.0.1
           DB_PORT: 5432
           DB_USERNAME: compify
           DB_PASSWORD: compify-ci-postgres-only
           DB_DATABASE: compify
-          MINIO_ENDPOINT: localhost
+          MINIO_ENDPOINT: 127.0.0.1
           MINIO_PORT: 9000
           MINIO_USE_SSL: "false"
-          MINIO_ACCESS_KEY: compify
+          MINIO_ACCESS_KEY: compify-app
           MINIO_SECRET_KEY: compify-ci-minio-app-only
         run: bun run test:e2e -- --runInBand
       - name: Show service logs after failure
@@ -257,3 +284,31 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Validate Docker Compose configuration
         run: docker compose --env-file deploy/self-host.env.example config --quiet
+
+  required:
+    if: always()
+    needs:
+      - secrets
+      - release-integrity
+      - web
+      - compify-pack
+      - storybook
+      - api
+      - cli
+      - template
+      - self-host-smoke
+      - self-host-config
+    runs-on: ubuntu-latest
+    steps:
+      - name: Reject failed or cancelled CI jobs
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          node -e '
+            const jobs = JSON.parse(process.env.RESULTS);
+            const bad = Object.entries(jobs).filter(([, value]) => !["success", "skipped"].includes(value.result));
+            if (bad.length) {
+              console.error("Failed CI jobs:", bad.map(([name, value]) => `${name}=${value.result}`).join(", "));
+              process.exit(1);
+            }
+          '

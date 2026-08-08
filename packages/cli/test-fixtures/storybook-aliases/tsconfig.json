@@ -1,0 +1,7 @@
+{
+  // Only exact, package-local aliases are portable.
+  "compilerOptions": {
+    "baseUrl": "src",
+    "paths": { "@component": ["components/Button.tsx"], },
+  },
+}

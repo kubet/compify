@@ -1,6 +1,6 @@
 'use client'
 import { resendVerificationEmail } from '@/lib/api';
-import React, { useCallback, useEffect, useState, Suspense } from 'react'
+import React, { useCallback, useState, Suspense } from 'react'
 import { motion } from 'framer-motion';
 import { GradientSpot } from '@/components/Common';
 import { Toast } from '@/components/Elements';
@@ -13,6 +13,7 @@ function VerifyEmailContent() {
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState('');
     const [toastType, setToastType] = useState('success');
+    const [resending, setResending] = useState(false);
 
 
     const handleResendVerificationEmail = useCallback( async () => {
@@ -22,21 +23,20 @@ function VerifyEmailContent() {
             setShowToast(true);
             return;
         }
+        if (resending) return;
+        setResending(true);
         const resp = await resendVerificationEmail(email);
+        setResending(false);
         if (resp.status === 201) {
             setToastMessage('Verification email sent successfully');
             setToastType('success');
             setShowToast(true);
         } else {
-            setToastMessage(resp.data.message);
+            setToastMessage(resp.data?.message || 'Unable to resend verification email. Please try again.');
             setToastType('error');
             setShowToast(true);
         }
-    }, [email]);
-
-    useEffect(() => {
-        handleResendVerificationEmail();
-    }, [email, handleResendVerificationEmail]);
+    }, [email, resending]);
     return (
         <div className="flex bg-black text-white items-center justify-center mx-auto w-full max-w-7xl" style={{ height: 'calc(100vh - 72px)' }}>
             <motion.div
@@ -61,7 +61,15 @@ function VerifyEmailContent() {
                         </h2>
                         <p className="text-gray-400">
                             We&apos;ve sent you an email to verify your account.
-                            Didn&apos;t receive it? <span className="cursor-pointer text-blue-400 hover:underline" onClick={handleResendVerificationEmail}>Click here to resend</span>.
+                            Didn&apos;t receive it?{' '}
+                            <button
+                                type="button"
+                                className="text-blue-400 hover:underline disabled:cursor-not-allowed disabled:opacity-60"
+                                onClick={handleResendVerificationEmail}
+                                disabled={resending}
+                            >
+                                {resending ? 'Sending…' : 'Click here to resend'}
+                            </button>.
                         </p>
                         {toastType === 'error' && <p className="text-red-400">
                             {toastMessage}

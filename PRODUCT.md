@@ -20,12 +20,14 @@ Teams may use either or both.
 
 The repository currently provides:
 
-- a browser editor and preview for React component source;
+- an optional legacy browser editor whose interactive preview requires an
+  operator-configured Sandpack-compatible bundler;
 - public shadcn-compatible registry items and an index;
 - a Bun-powered CLI for installing and managing published Compify components;
 - source/release-candidate CLI commands that statically inspect a React CSF
-  bundle, export a deterministic registry item, and publish it to a configured
-  authenticated self-hosted API built from the current source candidate;
+  bundle, explain its file/import graph, export a deterministic registry item,
+  prove a cross-app native-shadcn install/build with a local evidence receipt,
+  and optionally publish it to an authenticated self-hosted API;
 - the source/release-candidate `@compify/storybook` manager addon, which displays
   author-provided portability and distribution metadata without inspecting or
   publishing source;
@@ -33,9 +35,11 @@ The repository currently provides:
 - a Docker Compose baseline for self-hosting.
 
 The older CLI 0.1.0 exists on npm; the Storybook CLI/addon release candidates
-are not considered published until explicitly announced. The public repository
-does **not** claim a managed hosted deployment, private registry, organization namespace,
-versioned publishing, or general framework conversion.
+are not considered published until explicitly announced. Current-source
+self-hosting supports owner-authenticated private items and immutable v2
+publication revisions. The public repository does **not** claim a managed hosted
+deployment, organization-scoped RBAC, general framework conversion, runtime or
+visual fidelity, or byte-serialization transparency attestations.
 
 ## Next: validate and harden the wedge
 
@@ -47,17 +51,16 @@ not a broader promise:
 1. Test real pilot repositories and expand the explicit compatibility matrix.
    The first pinned shadcn/Next clean-consumer build gate now exists; one fixture
    is evidence for one shape, not general compatibility.
-2. Harden the newly added basic static CSF Next factory support and add resolver capabilities only for
-   patterns repeated across qualified teams. Directional OSS analysis found
-   aliases, re-export catalogs and cross-workspace source—not parser syntax—to
-   be the dominant blockers.
-3. Replace the overloaded “portable” result with staged evidence: analyzed,
-   schema-valid, shadcn-resolved, installed, built, and only then any separate
-   runtime/visual claim. Converge local export and server delivery on the exact
-   same content-addressed bytes.
-4. Add explicit file type/target policy, graph/selection/publication manifests,
-   repeat-publish history and consumer receipts before promising update or
-   governance workflows.
+2. Test the bounded exact in-package alias rewriting and basic static CSF Next
+   support on qualified repositories. Cross-file re-export catalogs and
+   cross-workspace source remain dominant unresolved blockers; expand only from
+   repeated pilot evidence.
+3. Use the shipped analyzed/installed/built evidence and digest-signed handoff
+   receipts in real pilots. Runtime, visual, accessibility and behavioral claims
+   still require separate explicit test phases.
+4. Harden v2 immutable revision concurrency and policy/audit presentation before
+   promising multi-user governance. Canonical registry semantics are preserved;
+   original JSON byte serialization and transparency-log attestations are not.
 5. Keep the addon inert and author-declared until a digest-bound report contract
    exists. Prefer official Storybook tools/MCP for upstream context and official
    shadcn tooling for install; do not expand the overlapping Compify MCP.
@@ -66,11 +69,11 @@ not a broader promise:
    operations, approvals, policy and audit—not for local export.
 
 The boundary remains intentionally narrow: React Component Story Format (CSF),
-static imports, text files, and serializable metadata/args. No story module is
+static text graphs, bounded exact in-package aliases, and serializable metadata/args. No story module is
 executed during discovery. Dynamic configuration, arbitrary render functions,
 decorators, loaders, play functions, and framework-specific runtime behavior
-are not promises of faithful conversion. Export currently operates on a whole
-selected story file, not one named story within it.
+are not promises of faithful conversion. A caller may select one exact named story export, but the CSF file remains the
+authorization/context boundary and story-only runtime modules are not installed.
 
 ## Why this order
 

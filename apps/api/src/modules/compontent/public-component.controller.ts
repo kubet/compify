@@ -14,6 +14,7 @@ import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
 import { MinioClientService } from '../minio/minio.service';
 import { ComponentService } from './component.service';
+import { SearchComponentsDto } from 'src/models/component/component-actions.dto';
 
 @ApiTags('Public components')
 @Controller('c')
@@ -87,7 +88,7 @@ export class PublicComponentController {
   }
 
   @Post('search')
-  async publicSearch(@Body() body: any) {
+  async publicSearch(@Body() body: SearchComponentsDto) {
     return await this.componentService.search(body, null);
   }
 

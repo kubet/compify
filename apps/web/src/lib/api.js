@@ -5,9 +5,18 @@ import axios from "axios";
 axios.defaults.withCredentials = true;
 
 function handelError(error) {
+  const responseData = error?.response?.data;
   return {
-    status: error?.response?.status,
-    data: error?.response?.data,
+    status: error?.response?.status ?? null,
+    data:
+      responseData && typeof responseData === "object"
+        ? responseData
+        : {
+            message:
+              typeof responseData === "string" && responseData.trim()
+                ? responseData
+                : "Unable to reach the service. Please try again.",
+          },
   };
 }
 function handleSuccess(response) {
@@ -74,6 +83,9 @@ export async function whoAmI() {
   const options = {
     method: "GET",
     url: `${baseUrl}/user/whoami`,
+    // Session discovery is expected to return 401 for anonymous visitors.
+    // Protected pages perform their own redirect via withAuth.
+    skipAuthRedirect: true,
   };
   return axios(options)
     .then((response) => handleSuccess(response))
@@ -129,7 +141,6 @@ export async function checkDomain(domain, componentId) {
     .catch((error) => handelError(error));
 }
 export async function getViewComponent(componentId) {
-  console.log("componentId", componentId);
   const slug = Array.isArray(componentId) ? componentId.join("/") : componentId;
   const options = {
     method: "GET",
