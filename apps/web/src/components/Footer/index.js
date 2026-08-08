@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 import { InputField } from '../Elements';
 import { ArrowRight } from 'lucide-react';
 import { subcribeToNewsletter } from '@/lib/api';
-import { baseUrl } from '@/constains';
 
 // Utility function for email validation
 export const isValidEmail = (email) => {
@@ -48,7 +47,7 @@ const Footer = () => {
                 }
             ]
         },
-        { title: 'Resources', items: [{ title: 'Getting started', href: '/docs/getting-started' }, { title: 'CLI reference', href: '/docs/cli' }, { title: 'GitHub', href: 'https://github.com/kubet/compify' }, { title: 'Registry', href: `${baseUrl}/r/registry.json` }] },
+        { title: 'Resources', items: [{ title: 'Blog', href: '/blog' }, { title: 'Docs', href: '/docs' }, { title: 'Registry', href: 'https://api.compify.app/r/registry.json' }] },
         { title: 'Legal', items: [{ title: 'Terms of Service', href: '/terms' }, { title: 'Privacy Policy', href: '/privacy' }] },
     ];
 
@@ -64,7 +63,7 @@ const Footer = () => {
                     <div className="space-y-6">
                         <h3 className="text-3xl font-bold text-white">Compify</h3>
                         <p className="text-base text-gray-400 leading-relaxed max-w-xs">
-                            Package selected React component source into reviewable shadcn registry artifacts.
+                            Find the perfect components for your next big idea.
                         </p>
                     </div>
 
@@ -91,7 +90,7 @@ const Footer = () => {
                         <h4 className="text-xl font-semibold text-white">Subscribe</h4>
                         <div className="space-y-4">
                             <p className="text-base text-gray-400 leading-relaxed">
-                                Follow release notes, compatibility updates, and pilot learnings.
+                                Stay updated with our latest components and features.
                             </p>
                             <div className="space-y-3">
                                 {newsletterMessage ? (
@@ -121,7 +120,7 @@ const Footer = () => {
 
                 <div className="pt-8 border-t border-white/10">
                     <div className="flex flex-col md:flex-row justify-center items-center gap-4">
-                        <p className="text-sm text-gray-400">&copy; 2026 Compify. MIT-licensed source; see repository notices.</p>
+                        <p className="text-sm text-gray-400">&copy; 2025 Compify. All rights reserved.</p>
                     </div>
                 </div>
             </div>
