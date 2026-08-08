@@ -92,10 +92,11 @@ export async function whoAmI() {
     .catch((error) => handelError(error));
 }
 
-export async function getAllPlans() {
+export async function getAllPlans(timeout) {
   const options = {
     method: "GET",
     url: `${baseUrl}/subscription/plans`,
+    ...(timeout ? { timeout } : {}),
   };
   return axios(options)
     .then((response) => handleSuccess(response))
@@ -666,11 +667,12 @@ export async function getTopComponentsServerless() {
     const options = {
       method: "GET",
       url: `${baseUrl}/c/top-components`,
+      timeout: 5000,
     };
     const response = await axios(options);
     return handleSuccess(response);
   } catch {
-    // The API may be unavailable during an image build. ISR will retry.
+    // Keep the dynamic landing shell available when its public data API fails.
     return { status: 503, data: [] };
   }
 }
