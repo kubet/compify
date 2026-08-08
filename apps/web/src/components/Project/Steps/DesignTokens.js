@@ -4,7 +4,7 @@ import ValueTokens from './DesignToken/ValueTokens';
 import GroupTokens from './DesignToken/GroupTokens';
 import { motion } from 'framer-motion';
 import FactorTokens from './DesignToken/FactorTokens';
-import { DELETE_CONFIGS, findPublicGroupAliasCollision, findThemeTokenReferences, getPublicGroupTokenAliases, hasThemeTokenNameCollision, isValidTokenKey, rewriteThemeTokenReferences } from './DesignToken/utils';
+import { DELETE_CONFIGS, findPublicGroupAliasCollision, findThemeTokenReferences, getPublicGroupTokenAliases, hasThemeTokenNameCollision, isValidTokenKey, prepareThemeTokenDeletion, rewriteThemeTokenReferences } from './DesignToken/utils';
 const DesignTokens = ({ factors, groups, values, setFactors, setGroups, setValues }) => {
     const [expandedGroups, setExpandedGroups] = useState({});
     const [integrityError, setIntegrityError] = useState('');
@@ -13,6 +13,7 @@ const DesignTokens = ({ factors, groups, values, setFactors, setGroups, setValue
         type: null,
         groupKey: null,
         index: null,
+        key: null,
         title: '',
         message: ''
     });
@@ -56,89 +57,72 @@ const DesignTokens = ({ factors, groups, values, setFactors, setGroups, setValue
             : nextTheme);
     };
 
+    const deletionTarget = (type, groupKey, index) => {
+        if (type === 'factor') return { type, groupKey: null, index, key: factors[index]?.key };
+        if (type === 'value') return { type, groupKey: null, index, key: values[index]?.key };
+        if (type === 'group' && index !== null) {
+            return { type, groupKey, index, key: groups[groupKey]?.options[index]?.key };
+        }
+        return { type, groupKey, index: null, key: groupKey };
+    };
+
+    const deletionReferences = (theme, target) => {
+        const plan = prepareThemeTokenDeletion(theme, target);
+        if (!plan) return { plan: null, references: [] };
+        return {
+            plan,
+            references: findThemeTokenReferences(plan.remainingTheme, plan.tokenKeys)
+        };
+    };
+
+    const reportDeletionReferences = (references) => {
+        const owners = [...new Set(references.map(reference => reference.owner))].join(', ');
+        setIntegrityError(`Cannot delete because ${owners} ${references.length === 1 ? 'references' : 'reference'} the token.`);
+    };
+
     const handleDelete = (type, groupKey = null, index = null) => {
         const isGroupItem = type === 'group' && index !== null;
         const config = DELETE_CONFIGS[isGroupItem ? 'groupItem' : type];
-        const theme = { factors, groups, values };
-        let tokenKeys = [];
-        let remainingTheme = theme;
-
-        if (type === 'factor') {
-            tokenKeys = [factors[index].key];
-            remainingTheme = { ...theme, factors: factors.filter((_, itemIndex) => itemIndex !== index) };
-        } else if (type === 'value') {
-            tokenKeys = [values[index].key];
-            remainingTheme = { ...theme, values: values.filter((_, itemIndex) => itemIndex !== index) };
-        } else if (isGroupItem) {
-            tokenKeys = [`${groupKey}-${groups[groupKey].options[index].key}`];
-            remainingTheme = {
-                ...theme,
-                groups: {
-                    ...groups,
-                    [groupKey]: {
-                        ...groups[groupKey],
-                        options: groups[groupKey].options.filter((_, itemIndex) => itemIndex !== index)
-                    }
-                }
-            };
-        } else if (type === 'group') {
-            tokenKeys = groups[groupKey].options.map(option => `${groupKey}-${option.key}`);
-            const { [groupKey]: _removed, ...remainingGroups } = groups;
-            remainingTheme = { ...theme, groups: remainingGroups };
+        const target = deletionTarget(type, groupKey, index);
+        const { plan, references } = deletionReferences({ factors, groups, values }, target);
+        if (!plan) {
+            setIntegrityError('The token changed before deletion could be checked. Reopen the delete dialog and try again.');
+            return;
         }
-
-        const references = findThemeTokenReferences(remainingTheme, tokenKeys);
         if (references.length) {
-            const owners = [...new Set(references.map(reference => reference.owner))].join(', ');
-            setIntegrityError(`Cannot delete because ${owners} ${references.length === 1 ? 'references' : 'reference'} the token.`);
+            reportDeletionReferences(references);
             return;
         }
         setIntegrityError('');
-
-        setDeleteConfirmation({
-            isOpen: true,
-            type,
-            groupKey,
-            index,
-            ...config
-        });
+        setDeleteConfirmation({ isOpen: true, ...target, ...config });
     };
 
     const handleConfirmDelete = () => {
-        const { type, groupKey, index } = deleteConfirmation;
-
-        const deleteActions = {
-            factor: () => {
-                setFactors(prev => prev.filter((_, i) => i !== index));
-            },
-            group: () => {
-                if (index === null) {
-                    // Delete entire group
-                    setGroups(prev => {
-                        const { [groupKey]: _, ...rest } = prev;
-                        return rest;
-                    });
-                    setExpandedGroups(prev => {
-                        const { [groupKey]: _, ...rest } = prev;
-                        return rest;
-                    });
-                } else {
-                    // Delete single group item
-                    setGroups(prev => ({
-                        ...prev,
-                        [groupKey]: {
-                            ...prev[groupKey],
-                            options: prev[groupKey].options.filter((_, i) => i !== index)
-                        }
-                    }));
-                }
-            },
-            value: () => {
-                setValues(prev => prev.filter((_, i) => i !== index));
-            }
+        const target = {
+            type: deleteConfirmation.type,
+            groupKey: deleteConfirmation.groupKey,
+            index: deleteConfirmation.index,
+            key: deleteConfirmation.key
         };
-
-        deleteActions[type]?.();
+        const { plan, references } = deletionReferences({ factors, groups, values }, target);
+        if (!plan) {
+            setIntegrityError('The token changed while deletion was awaiting confirmation. Nothing was deleted; reopen the dialog to try again.');
+            closeDeleteConfirmation();
+            return;
+        }
+        if (references.length) {
+            reportDeletionReferences(references);
+            closeDeleteConfirmation();
+            return;
+        }
+        applyTheme(plan.remainingTheme);
+        if (target.type === 'group' && target.index === null) {
+            setExpandedGroups(prev => {
+                const { [target.groupKey]: _removed, ...rest } = prev;
+                return rest;
+            });
+        }
+        setIntegrityError('');
         closeDeleteConfirmation();
     };
 
@@ -148,6 +132,7 @@ const DesignTokens = ({ factors, groups, values, setFactors, setGroups, setValue
             type: null,
             groupKey: null,
             index: null,
+            key: null,
             title: '',
             message: ''
         });
@@ -191,7 +176,8 @@ const DesignTokens = ({ factors, groups, values, setFactors, setGroups, setValue
         setIntegrityError('');
         applyTheme(oldItem.key !== updatedItem.key
             ? rewriteThemeTokenReferences(nextTheme, {
-                [oldTokenKey]: newTokenKey
+                [oldTokenKey]: newTokenKey,
+                ...(groups[groupKey].isPublic ? { [oldItem.key]: updatedItem.key } : {})
             })
             : nextTheme);
     };
@@ -296,6 +282,15 @@ const DesignTokens = ({ factors, groups, values, setFactors, setGroups, setValue
         const index = entries.findIndex(([key]) => key === oldKey);
         if (index === -1) return;
         const groupData = groups[oldKey];
+        if (groupData.isPublic && !isPublic) {
+            const aliases = groupData.options.map(option => option.key);
+            const privateGroups = { ...groups, [oldKey]: { ...groupData, isPublic: false } };
+            const references = findThemeTokenReferences({ factors, groups: privateGroups, values }, aliases);
+            if (references.length) {
+                reportDeletionReferences(references);
+                return;
+            }
+        }
         const nextGroups = Object.fromEntries([
             ...entries.slice(0, index),
             [newKey, { ...groupData, type, isPublic }],

@@ -5,6 +5,7 @@ import {
     getPublicGroupTokenAliases,
     hasThemeTokenNameCollision,
     isValidTokenKey,
+    prepareThemeTokenDeletion,
     replaceExactTokenReferences,
     rewriteThemeTokenReferences,
 } from './utils';
@@ -82,6 +83,29 @@ describe('theme token reference integrity', () => {
             .toBe('--accent--');
     });
 
+    test('applies rename maps simultaneously, including meta references', () => {
+        expect(replaceExactTokenReferences('--a ${--a} --b', { a: 'b', b: 'a' }))
+            .toBe('--b ${--b} --a');
+    });
+
+    test('includes public aliases in stable deletion plans and rejects stale targets', () => {
+        const current = theme();
+        current.groups.palette.isPublic = true;
+        const optionPlan = prepareThemeTokenDeletion(current, {
+            type: 'group', groupKey: 'palette', index: 0, key: 'base'
+        });
+        expect(optionPlan.tokenKeys).toEqual(['palette-base', 'base']);
+        const groupPlan = prepareThemeTokenDeletion(current, {
+            type: 'group', groupKey: 'palette', index: null, key: 'palette'
+        });
+        expect(groupPlan.tokenKeys).toEqual([
+            'palette-base', 'base', 'palette-accent', 'accent'
+        ]);
+        expect(prepareThemeTokenDeletion(current, {
+            type: 'group', groupKey: 'palette', index: 0, key: 'changed'
+        })).toBeNull();
+    });
+
     test('cascades a rename throughout factor, group-option, and value expressions', () => {
         const rewritten = rewriteThemeTokenReferences(theme(), { space: 'gap' });
         expect(rewritten.factors[1].value).toBe('--gap * 2');
@@ -89,11 +113,16 @@ describe('theme token reference integrity', () => {
         expect(rewritten.values[0].value).toBe('calc(--gap + 2) --space-large --gap-3 ${gap}');
     });
 
-    test('supports group and option composite-key renames', () => {
-        const rewritten = rewriteThemeTokenReferences(theme(), {
+    test('supports canonical and public-alias option renames', () => {
+        const current = theme();
+        current.groups.palette.isPublic = true;
+        current.values.push({ key: 'alias-user', value: '--base ${base}' });
+        const rewritten = rewriteThemeTokenReferences(current, {
             'palette-base': 'colors-primary',
+            base: 'primary',
         });
         expect(rewritten.groups.palette.options[1].value).toBe('--colors-primary');
+        expect(rewritten.values[1].value).toBe('--primary ${primary}');
     });
 
     test('reports only exact references remaining after a proposed deletion', () => {

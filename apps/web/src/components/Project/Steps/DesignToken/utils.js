@@ -97,13 +97,12 @@ export const isValidTokenKey = (key) =>
 export const replaceExactTokenReferences = (value, renames, knownKeys = null) => {
     if (typeof value !== 'string') return value;
     const renameMap = renames instanceof Map ? renames : new Map(Object.entries(renames));
-
-    const metaReplaced = value.replace(META_TOKEN_REFERENCE, (match, prefix = '', key) => {
-        const replacement = renameMap.get(key);
-        return replacement === undefined ? match : `\${${prefix}${replacement}}`;
-    });
-
-    return metaReplaced.replace(DIRECT_TOKEN_REFERENCE, (match) => {
+    const tokenReference = /\$\{(--)?([A-Za-z_][A-Za-z0-9_-]{0,63})\}|--[A-Za-z_][A-Za-z0-9_-]{0,63}(?![A-Za-z0-9_-])/g;
+    return value.replace(tokenReference, (match, prefix, metaKey) => {
+        if (metaKey !== undefined) {
+            const replacement = renameMap.get(metaKey);
+            return replacement === undefined ? match : `\${${prefix || ''}${replacement}}`;
+        }
         const fullKey = match.slice(2);
         const key = resolveDirectReferenceKey(fullKey, knownKeys);
         if (!renameMap.has(key)) return match;
@@ -135,6 +134,54 @@ export const rewriteThemeTokenReferences = (theme, renames) => {
             value: replaceExactTokenReferences(value.value, renameMap, knownKeys)
         }))
     };
+};
+
+
+export const prepareThemeTokenDeletion = (theme, target) => {
+    const { type, groupKey = null, index = null, key } = target;
+    if (type === 'factor') {
+        if (theme.factors[index]?.key !== key) return null;
+        return {
+            tokenKeys: [key],
+            remainingTheme: { ...theme, factors: theme.factors.filter((_, itemIndex) => itemIndex !== index) }
+        };
+    }
+    if (type === 'value') {
+        if (theme.values[index]?.key !== key) return null;
+        return {
+            tokenKeys: [key],
+            remainingTheme: { ...theme, values: theme.values.filter((_, itemIndex) => itemIndex !== index) }
+        };
+    }
+    if (type !== 'group' || !groupKey || !Object.prototype.hasOwnProperty.call(theme.groups, groupKey)) return null;
+    const group = theme.groups[groupKey];
+    if (index !== null) {
+        const option = group.options[index];
+        if (option?.key !== key) return null;
+        return {
+            tokenKeys: [
+                `${groupKey}-${key}`,
+                ...(group.isPublic ? [key] : [])
+            ],
+            remainingTheme: {
+                ...theme,
+                groups: {
+                    ...theme.groups,
+                    [groupKey]: {
+                        ...group,
+                        options: group.options.filter((_, itemIndex) => itemIndex !== index)
+                    }
+                }
+            }
+        };
+    }
+    if (key !== groupKey) return null;
+    const tokenKeys = group.options.flatMap(option => [
+        `${groupKey}-${option.key}`,
+        ...(group.isPublic ? [option.key] : [])
+    ]);
+    const { [groupKey]: _removed, ...remainingGroups } = theme.groups;
+    return { tokenKeys, remainingTheme: { ...theme, groups: remainingGroups } };
 };
 
 export const findThemeTokenReferences = (theme, tokenKeys) => {
