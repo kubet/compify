@@ -1,4 +1,8 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { uuidToShortId } from 'src/common/short-id';
 import { InsertThemeDto } from 'src/models/theme/insert-theme.dto';
 import { validate } from 'class-validator';
@@ -188,5 +192,89 @@ describe('ThemeService ownership boundaries', () => {
     expect(repos.themeRepository.save).toHaveBeenCalledWith(theme);
     expect(theme).toMatchObject({ name: 'Brand', component, values });
     expect(result.id).toBe(uuidToShortId(themeId));
+  });
+
+  it('maps only the named component uniqueness violation on create to conflict', async () => {
+    const component = { id: componentId, user };
+    const repos = repositories({ component });
+    repos.themeRepository.save.mockRejectedValueOnce({
+      driverError: {
+        code: '23505',
+        constraint: 'UQ_themes_component',
+      },
+    });
+
+    const promise = service(repos).createOrUpdate(
+      { componentId: uuidToShortId(componentId) },
+      user,
+    );
+    await expect(promise).rejects.toBeInstanceOf(ConflictException);
+    await expect(promise).rejects.toThrow(
+      'A theme already exists for this component',
+    );
+  });
+
+  it.each([
+    {
+      driverError: { code: '23505', constraint: 'UQ_some_other_constraint' },
+    },
+    new Error('database unavailable'),
+  ])('rethrows unrelated create failures unchanged', async (failure) => {
+    const component = { id: componentId, user };
+    const repos = repositories({ component });
+    repos.themeRepository.save.mockRejectedValueOnce(failure);
+
+    await expect(
+      service(repos).createOrUpdate(
+        { componentId: uuidToShortId(componentId) },
+        user,
+      ),
+    ).rejects.toBe(failure);
+  });
+
+  it('does not map the named uniqueness violation on the update path', async () => {
+    const failure = {
+      driverError: { code: '23505', constraint: 'UQ_themes_component' },
+    };
+    const theme = {
+      id: themeId,
+      name: 'Brand',
+      factors: [],
+      groups: {},
+      values: [],
+      component: { id: componentId },
+    };
+    const repos = repositories({ theme });
+    repos.themeRepository.save.mockRejectedValueOnce(failure);
+
+    await expect(
+      service(repos).createOrUpdate(
+        { id: uuidToShortId(themeId), name: 'Updated' },
+        user,
+      ),
+    ).rejects.toBe(failure);
+  });
+
+  it('returns persistence-managed version and update timestamp', async () => {
+    const component = { id: componentId, user };
+    const updatedAt = new Date('2026-01-02T03:04:05.000Z');
+    const repos = repositories({ component });
+    repos.themeRepository.save.mockResolvedValueOnce({
+      id: themeId,
+      name: 'Default',
+      factors: [],
+      groups: {},
+      values: [],
+      component,
+      version: 1,
+      updatedAt,
+    });
+
+    const result = await service(repos).createOrUpdate(
+      { componentId: uuidToShortId(componentId) },
+      user,
+    );
+
+    expect(result).toMatchObject({ version: 1, updatedAt });
   });
 });
