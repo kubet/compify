@@ -45,6 +45,8 @@ and compatibility contracts.
 - Failed source-object uploads compensate newly created component rows instead of reserving orphaned publishing domains.
 - Private component image/vote IDOR paths, pre-authorization OG mutation, malformed short-ID 500s, password-reset account enumeration, email-change token replay/expiry, poisoned login forwards, and auth-network error handling were hardened.
 - Release CI enforces digest-pinned container images, SHA-pinned Actions, private-package allowlisting, reproducible npm tarballs, protected OIDC provenance and no token fallback.
+- Per-domain advisory serialization and bounded immutable-revision storage prevent concurrent revision corruption and authenticated storage exhaustion.
+- Publishing-name availability is confined to the authenticated user's namespace, and handoff consumer snapshots are bounded, no-follow, and retry-safe after native command failure.
 - Sandpack provenance is reconstructed and CI-verified against immutable v2.19.8 source; all 14 modified upstream files carry change notices and the internal package is non-publishable.
 
 ## [0.1.0] - 2026-08-07

@@ -6,6 +6,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   runStorybookHandoff,
   SHADCN_HANDOFF_VERSION,
+  snapshotConsumer,
 } from "./storybook-handoff";
 
 const roots: string[] = [];
@@ -157,18 +158,44 @@ describe("Storybook handoff", () => {
     expect(spawn).not.toHaveBeenCalled();
   });
 
-  it("does not issue a success receipt when native installation fails", () => {
+  it("cleans its artifact, writes no success receipt, and permits retry after installation failure", () => {
     const source = sourceProject();
     const consumer = consumerProject();
+    const output = path.join(source, "button.registry.json");
     const receipt = path.join(source, "receipt.json");
     const failed = (() => ({ ...success(), status: 7 })) as any;
     expect(() =>
       runStorybookHandoff(
         "Button.stories.tsx",
-        { cwd: source, consumer, receipt },
+        { cwd: source, consumer, output, receipt },
         failed
       )
     ).toThrow(/status 7/);
     expect(fs.existsSync(receipt)).toBe(false);
+    expect(fs.existsSync(output)).toBe(false);
+
+    expect(() =>
+      runStorybookHandoff(
+        "Button.stories.tsx",
+        { cwd: source, consumer, output, receipt },
+        (() => success()) as any
+      )
+    ).not.toThrow();
+    expect(fs.existsSync(output)).toBe(true);
+    expect(fs.existsSync(receipt)).toBe(true);
+  });
+
+  it("bounds consumer traversal before running native commands", () => {
+    const consumer = consumerProject();
+    expect(() =>
+      snapshotConsumer(consumer, {
+        maxEntries: 1,
+        maxDepth: 64,
+        maxBytes: 1024,
+      })
+    ).toThrow(/maximum entries/);
+    expect(() =>
+      snapshotConsumer(consumer, { maxEntries: 10, maxDepth: 64, maxBytes: 1 })
+    ).toThrow(/maximum bytes/);
   });
 });

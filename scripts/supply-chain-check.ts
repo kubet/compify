@@ -76,7 +76,9 @@ const release = read(".github/workflows/package-release.yml");
 for (const requirement of [
   "environment: npm-release", "id-token: write", "--provenance", "ref: ${{ github.sha }}",
   "persist-credentials: false", "package-sha256:", "EXPECTED_SHA256:", "npm@11.6.2",
-  "concurrency:", "cancel-in-progress: false",
+  "concurrency:", "cancel-in-progress: false", "checks: read",
+  "git merge-base --is-ancestor", "for check in changes required",
+  '"JavaScript and TypeScript"',
 ]) if (!release.includes(requirement)) fail(`package release is missing ${requirement}`);
 if (/NPM_TOKEN|NODE_AUTH_TOKEN|npm_[A-Za-z0-9_]*token/i.test(release))
   fail("npm release must use OIDC trusted publishing, not a registry token");

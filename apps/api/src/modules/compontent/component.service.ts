@@ -550,7 +550,26 @@ export class ComponentService {
     };
   }
 
-  async checkDomain(domain: string, id: string) {
+  async checkDomain(publishingName: string, id: string, user: User) {
+    // Accept only the slug portion. Building the namespace server-side prevents
+    // authenticated users from probing private publishing domains owned by
+    // another account.
+    if (
+      typeof publishingName !== 'string' ||
+      publishingName.length > 64 ||
+      !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(publishingName) ||
+      !user?.username
+    ) {
+      throw new BadRequestException('Invalid publishing domain');
+    }
+
+    // An ID is only used to ignore the component currently being edited. Do
+    // not let a caller supply somebody else's ID to exclude a collision.
+    if (id) {
+      await this.checkIfUserIsOwnerOrThrow403(id, user);
+    }
+
+    const domain = `${user.username}/${publishingName}`;
     const q = this.componentRepository
       .createQueryBuilder('component')
       .where('component.publishingDomain = :domain', { domain });

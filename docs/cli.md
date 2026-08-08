@@ -62,8 +62,15 @@ is present.
 Export a selected portable story and install it with native pinned
 `shadcn@4.16.2` into an explicitly separate, already initialized consumer.
 No publish request is made. On success it writes a deterministic, digest-signed
-receipt containing its `installed` or `built` evidence level, exact installer/build argv, and hashes of consumer changes.
-Existing artifact or receipt files are never overwritten.
+receipt containing its `installed` or `built` evidence level, exact
+installer/build argv, and hashes of consumer changes. Consumer snapshots are
+bounded to 10,000 entries, 64 directory levels, and 256 MiB; ignored dependency
+and build directories are not traversed, symlinks are never followed, and
+special files are not opened. Existing artifact or receipt files are never
+overwritten. If installation or build fails, no success receipt is written and
+the CLI removes only the unchanged artifact inode it created so a retry is not
+blocked. Native tools may already have changed consumer files; review the working
+tree before retrying.
 
 ```bash
 compify storybook handoff src/Button.stories.tsx --story Primary \

@@ -1,10 +1,13 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
+  InternalServerErrorException,
+  PayloadTooLargeException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
+import { DataSource, Repository } from 'typeorm';
 import {
   Component,
   ComponentVisibility,
@@ -20,6 +23,7 @@ import { authenticateCliToken } from 'src/common/cli-token-auth';
 import { ComponentService } from '../compontent/component.service';
 import { ConfigService } from '@nestjs/config';
 import { ComponentRevision } from 'src/entities/project/component-revision.entity';
+import { User } from 'src/entities/user/user.entity';
 import {
   PublishStoryDto,
   PublishStoryV2Dto,
@@ -36,7 +40,8 @@ export class CliService {
     private readonly componentService: ComponentService,
     private readonly configService: ConfigService,
     @InjectRepository(ComponentRevision)
-    private readonly componentRevisionRepository?: Repository<ComponentRevision>,
+    private readonly componentRevisionRepository: Repository<ComponentRevision>,
+    @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
 
   async getUserByCliToken(cliToken: string) {
@@ -133,6 +138,54 @@ export class CliService {
     const user = await this.getUserByCliToken(token);
     const input = this.validatePublishStory(body);
     const normalized = normalizePublishStory(input);
+    const publishingDomain = `${user.username}/${normalized.publishingName}`;
+
+    // A PostgreSQL advisory lock is deliberately session-scoped: it covers
+    // component metadata/object-storage writes as well as the immutable
+    // revision insert. Both schema versions use the same lock so a legacy
+    // publisher cannot race a v2 publisher for the mutable latest pointer.
+    return this.withPublishingDomainLock(publishingDomain, () =>
+      this.publishStoryUnderLock(normalized, user, publishingDomain),
+    );
+  }
+
+  private async withPublishingDomainLock<T>(
+    publishingDomain: string,
+    operation: () => Promise<T>,
+  ): Promise<T> {
+    if (!this.dataSource) {
+      throw new InternalServerErrorException('Database lock is unavailable');
+    }
+    const runner = this.dataSource.createQueryRunner();
+    let locked = false;
+    try {
+      await runner.connect();
+      await runner.query('SELECT pg_advisory_lock(hashtextextended($1, 0))', [
+        publishingDomain,
+      ]);
+      locked = true;
+      return await operation();
+    } finally {
+      if (locked) {
+        try {
+          await runner.query(
+            'SELECT pg_advisory_unlock(hashtextextended($1, 0))',
+            [publishingDomain],
+          );
+        } finally {
+          await runner.release();
+        }
+      } else {
+        await runner.release();
+      }
+    }
+  }
+
+  private async publishStoryUnderLock(
+    normalized: PublishStoryDto | PublishStoryV2Dto,
+    user: User,
+    publishingDomain: string,
+  ) {
     const { digest, ...unsigned } = normalized;
     const computedDigest = createHash('sha256')
       .update(canonicalJson(unsigned))
@@ -143,15 +196,13 @@ export class CliService {
 
     const v2 = normalized.schemaVersion === 2 ? normalized : undefined;
     const v1 = normalized.schemaVersion === 1 ? normalized : undefined;
-    const publishingDomain = `${user.username}/${normalized.publishingName}`;
+    // Every lookup and idempotency decision is repeated only after the lock is
+    // held; pre-lock observations must never influence a publication.
     const existing = await this.findPublishedComponent(publishingDomain);
     if (existing && existing.user?.id !== user.id) {
       throw new ForbiddenException();
     }
 
-    // Digest idempotency is checked before touching either mutable component
-    // metadata or object storage. A retry therefore returns the original
-    // revision even when newer revisions have subsequently been published.
     if (v2 && existing && this.componentRevisionRepository) {
       const prior = await this.componentRevisionRepository.findOne({
         where: { component: { id: existing.id }, digest: computedDigest },
@@ -177,6 +228,43 @@ export class CliService {
         normalized.visibility,
         computedDigest,
       );
+    }
+
+    const revisionByteSize = v2
+      ? Buffer.byteLength(canonicalJson(v2.registryItem), 'utf8')
+      : 0;
+    if (v2) {
+      if (!this.componentRevisionRepository) {
+        throw new InternalServerErrorException(
+          'Component revision storage is unavailable',
+        );
+      }
+      if (existing) {
+        const usage = await this.componentRevisionRepository
+          .createQueryBuilder('revision')
+          .select('COUNT(*)', 'count')
+          .addSelect('COALESCE(SUM(revision.byteSize), 0)', 'bytes')
+          .where('revision.componentId = :componentId', {
+            componentId: existing.id,
+          })
+          .getRawOne<{ count: string; bytes: string }>();
+        const count = Number(usage?.count || 0);
+        const bytes = Number(usage?.bytes || 0);
+        if (count >= MAX_REVISIONS_PER_COMPONENT) {
+          throw new ConflictException(
+            `Component has reached the ${MAX_REVISIONS_PER_COMPONENT} revision limit`,
+          );
+        }
+        if (bytes + revisionByteSize > MAX_REVISION_BYTES_PER_COMPONENT) {
+          throw new PayloadTooLargeException(
+            `Component revisions exceed the ${MAX_REVISION_BYTES_PER_COMPONENT} byte limit`,
+          );
+        }
+      } else if (revisionByteSize > MAX_REVISION_BYTES_PER_COMPONENT) {
+        throw new PayloadTooLargeException(
+          `Component revisions exceed the ${MAX_REVISION_BYTES_PER_COMPONENT} byte limit`,
+        );
+      }
     }
 
     const sourceFiles: Record<string, string> = v2
@@ -240,6 +328,7 @@ export class CliService {
         component: { id: persisted.id } as Component,
         digest: computedDigest,
         revision: (latest?.revision || 0) + 1,
+        byteSize: revisionByteSize,
         schemaVersion: 2,
         visibility:
           normalized.visibility === 'public'
@@ -670,6 +759,8 @@ function validatePublishStoryV2(
   return value as unknown as PublishStoryV2Dto;
 }
 
+export const MAX_REVISIONS_PER_COMPONENT = 100;
+export const MAX_REVISION_BYTES_PER_COMPONENT = 50 * 1024 * 1024;
 export const MAX_STORY_FILES = 500;
 export const MAX_STORY_BYTES = 5 * 1024 * 1024;
 export const MAX_STORY_FILE_BYTES = 256 * 1024;

@@ -331,6 +331,11 @@ export const Broken = () => null
     })
   })
 
+  it("fails closed when a baseUrl fallback crosses into a nested package", () => {
+    const fixture = path.resolve(__dirname, "../../test-fixtures/storybook-aliases")
+    expect(() => buildStoryBundle("src/components/NestedPackage.stories.tsx", { cwd: fixture })).toThrow(/crosses into a nested package root/)
+  })
+
   it("fails closed for wildcard, fallback, conditional, external, and inherited aliases", () => {
     const story = `import { Button } from "@button"
 export default { component: Button }

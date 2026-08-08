@@ -96,7 +96,7 @@ function PublishCreateModal({ publishModalOpen,
         }
 
         try {
-            const response = await checkDomain(user.username + '/' + domain, componentId);
+            const response = await checkDomain(domain, componentId);
             setIsDomainAvailable(response.data.available);
         } catch (error) {
             console.error("Error checking domain:", error);

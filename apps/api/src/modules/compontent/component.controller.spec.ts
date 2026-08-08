@@ -13,6 +13,7 @@ describe('ComponentController animated image validation', () => {
   const componentService = {
     checkIfUserIsOwnerOrThrow403: jest.fn(),
     updateComponentImageUploaded: jest.fn(),
+    checkDomain: jest.fn(),
   };
   const minioService = { uploadFile: jest.fn(), getFile: jest.fn() };
   const constructImageService = { constructAnimatedImg: jest.fn() };
@@ -73,6 +74,21 @@ describe('ComponentController animated image validation', () => {
       'capture',
     ]);
   });
+  it('forwards domain checks with the authenticated user boundary', async () => {
+    const user = { id: 'user-id', username: 'alice' } as any;
+    componentService.checkDomain.mockResolvedValue({ available: true });
+    await expect(
+      controller.checkDomain('button', 'component-id', user),
+    ).resolves.toEqual({
+      available: true,
+    });
+    expect(componentService.checkDomain).toHaveBeenCalledWith(
+      'button',
+      'component-id',
+      user,
+    );
+  });
+
   it("does not read another user's private component image", async () => {
     componentService.checkIfUserIsOwnerOrThrow403.mockRejectedValue(
       new Error('not owner'),

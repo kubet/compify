@@ -100,9 +100,56 @@ try {
   const publicNext = await publish("public", "revision two");
   assert(publicNext.revision === publicResult.revision + 1, "changed artifact did not append a revision");
   assert(publicNext.immutableRegistryUrl !== publicResult.immutableRegistryUrl, "changed artifact reused an immutable URL");
+
+  // Two independent CLI processes exercise the cross-instance PostgreSQL
+  // advisory lock rather than an in-process mutex.
+  async function publishConcurrent(description: string) {
+    const slug = `public-button-${suffix}`.toLowerCase();
+    const child = Bun.spawn([
+      "bun", cli, "--api-url", apiUrl, "--web-url", webUrl,
+      "storybook", "publish", "src/Button.stories.tsx", "--story", "Primary",
+      "--cwd", fixture, "--name", "public-button", "--publishing-name", slug,
+      "--visibility", "public", "--description", description, "--json",
+    ], {
+      cwd: root,
+      env: { ...process.env, ...cliEnv },
+      stdout: "pipe",
+      stderr: "pipe",
+    });
+    const [exitCode, stdout, stderr] = await Promise.all([
+      child.exited,
+      new Response(child.stdout).text(),
+      new Response(child.stderr).text(),
+    ]);
+    assert(exitCode === 0, `concurrent publish failed: ${stdout}
+${stderr}`);
+    return JSON.parse(stdout);
+  }
+  const concurrentDescriptions = ["concurrent alpha", "concurrent beta"];
+  const concurrent = await Promise.all(
+    concurrentDescriptions.map((description) => publishConcurrent(description)),
+  );
+  assert(
+    JSON.stringify(concurrent.map((item) => item.revision).sort((a, b) => a - b)) ===
+      JSON.stringify([publicNext.revision + 1, publicNext.revision + 2]),
+    "concurrent publishes did not receive consecutive unique revisions",
+  );
+  const concurrentItems = await Promise.all(
+    concurrent.map((item) => expectJson(item.immutableRegistryUrl, 200)),
+  );
+  assert(
+    concurrentDescriptions.every((description) =>
+      concurrentItems.some((item) => item.description === description),
+    ),
+    "concurrent immutable artifacts did not preserve both reviewed payloads",
+  );
+
   const publicItem = await expectJson(publicResult.registryUrl, 200);
   assert(/^[a-f0-9]{64}$/.test(publicItem.meta?.compify?.digest), "public registry lost the selected bundle digest");
-  assert(publicItem.description === "revision two", "latest registry URL did not advance to the new revision");
+  assert(
+    concurrentDescriptions.includes(publicItem.description),
+    "latest registry URL did not advance to a serialized concurrent revision",
+  );
   assert(JSON.stringify(publicItem.files.map((file: any) => [file.path, file.content])) === JSON.stringify(exported.files.map((file: any) => [file.path, file.content])), "public registry changed the reviewed source graph");
   const originalPublic = await expectJson(publicResult.immutableRegistryUrl, 200);
   assert(originalPublic.description === undefined, "immutable historical revision changed after republish");
@@ -128,6 +175,20 @@ try {
   const otherToken = await expectJson(`${apiUrl}/user/cli/token`, 201, {
     method: "POST", headers: { Cookie: otherCookie, Origin: webUrl },
   });
+  const namespaceAvailability = await expectJson(
+    `${apiUrl}/component/check/domain?domain=${encodeURIComponent(`public-button-${suffix}`)}`,
+    200,
+    { headers: { Cookie: otherCookie, Origin: webUrl } },
+  );
+  assert(
+    namespaceAvailability.available === true,
+    "another user's publishing slug leaked as unavailable across namespaces",
+  );
+  await expectJson(
+    `${apiUrl}/component/check/domain?domain=${encodeURIComponent(publicResult.publishingDomain)}`,
+    400,
+    { headers: { Cookie: otherCookie, Origin: webUrl } },
+  );
   await expectJson(privateResult.registryUrl, 404, {
     headers: { Authorization: `Bearer ${otherToken.token}` },
   });
@@ -195,7 +256,7 @@ try {
   await expectJson(privateResult.registryUrl, 404, {
     headers: { Authorization: `Bearer ${tokenResult.token}` },
   });
-  console.log("distribution smoke passed: CSF export, immutable repeat publish, public/private policy, Compify + shadcn install/build, and token revocation");
+  console.log("distribution smoke passed: CSF export, serialized immutable revisions, namespace/private policy, Compify + shadcn install/build, and token revocation");
 } finally {
   rmSync(temp, { recursive: true, force: true });
 }

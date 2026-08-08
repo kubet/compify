@@ -172,6 +172,17 @@ export class ComponentController {
     return this.componentService.findRecentMy(user);
   }
 
+  // Keep fixed routes above the catch-all ID route. Availability is an
+  // authenticated editor operation, not a public registry lookup.
+  @Get('check/domain')
+  checkDomain(
+    @Query('domain') publishingName: string,
+    @Query('id') id: string,
+    @GetUser() user: User,
+  ) {
+    return this.componentService.checkDomain(publishingName, id, user);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string, @GetUser() user: User) {
     return this.componentService.findOne(id, user);
@@ -180,11 +191,6 @@ export class ComponentController {
   @Post('upvote')
   upvote(@Body() body: UpvoteComponentDto, @GetUser() user: User) {
     return this.componentService.upvote(body, user);
-  }
-
-  @Get('check/domain')
-  checkDomain(@Query('domain') domain: string, @Query('id') id: string) {
-    return this.componentService.checkDomain(domain, id);
   }
 
   @Delete(':id')

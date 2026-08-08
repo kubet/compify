@@ -3,6 +3,7 @@ import { createHash } from 'crypto';
 import {
   canonicalJson,
   CliService,
+  MAX_REVISION_BYTES_PER_COMPONENT,
   MAX_STORY_BYTES,
   normalizePublishStory,
 } from './cli.service';
@@ -30,6 +31,8 @@ function serviceWith(...entities: any[]) {
     service: new CliService(
       {} as any,
       tokenRepo,
+      {} as any,
+      {} as any,
       {} as any,
       {} as any,
       {} as any,
@@ -118,6 +121,19 @@ describe('CliService Storybook publishing', () => {
     for (const method of ['leftJoinAndSelect', 'where'])
       componentQuery[method].mockReturnValue(componentQuery);
     const revisions: any[] = [];
+    const revisionUsageQuery: any = {
+      select: jest.fn(),
+      addSelect: jest.fn(),
+      where: jest.fn(),
+      getRawOne: jest.fn().mockImplementation(async () => ({
+        count: String(revisions.length),
+        bytes: String(
+          revisions.reduce((total, revision) => total + revision.byteSize, 0),
+        ),
+      })),
+    };
+    for (const method of ['select', 'addSelect', 'where'])
+      revisionUsageQuery[method].mockReturnValue(revisionUsageQuery);
     const revisionRepo = {
       findOne: jest.fn().mockImplementation(async (options) => {
         const digest = options?.where?.digest;
@@ -125,12 +141,19 @@ describe('CliService Storybook publishing', () => {
           return revisions.find((item) => item.digest === digest) || null;
         return revisions.length ? revisions[revisions.length - 1] : null;
       }),
+      createQueryBuilder: jest.fn().mockReturnValue(revisionUsageQuery),
       create: jest.fn().mockImplementation((entity) => entity),
       save: jest.fn().mockImplementation(async (entity) => {
         revisions.push(entity);
         return entity;
       }),
     };
+    const queryRunner = {
+      connect: jest.fn().mockResolvedValue(undefined),
+      query: jest.fn().mockResolvedValue(undefined),
+      release: jest.fn().mockResolvedValue(undefined),
+    };
+    const dataSource = { createQueryRunner: jest.fn(() => queryRunner) };
     const service = new CliService(
       { createQueryBuilder: () => componentQuery } as any,
       { createQueryBuilder: () => queryBuilder, save: jest.fn() } as any,
@@ -141,8 +164,16 @@ describe('CliService Storybook publishing', () => {
           key === 'BACKEND_URL' ? 'https://api.test/' : 'https://web.test/',
       } as any,
       revisionRepo as any,
+      dataSource as any,
     );
-    return { service, componentService, revisionRepo, componentQuery };
+    return {
+      service,
+      componentService,
+      revisionRepo,
+      componentQuery,
+      queryRunner,
+      revisionUsageQuery,
+    };
   }
 
   function request(overrides: Record<string, unknown> = {}) {
@@ -479,4 +510,71 @@ describe('CliService Storybook publishing', () => {
     expect(componentService.create.mock.calls[1][0].id).toBeDefined();
     expect(revisionRepo.save).toHaveBeenCalledTimes(2);
   });
+  it('releases the publishing-domain advisory lock when publication fails', async () => {
+    const { service, componentService, queryRunner } = harness();
+    componentService.create.mockRejectedValueOnce(new Error('storage failed'));
+
+    await expect(
+      service.publishStory(request(), `Bearer ${VALID_TOKEN}`),
+    ).rejects.toThrow('storage failed');
+    expect(queryRunner.query).toHaveBeenNthCalledWith(
+      1,
+      'SELECT pg_advisory_lock(hashtextextended($1, 0))',
+      ['alice/button'],
+    );
+    expect(queryRunner.query).toHaveBeenNthCalledWith(
+      2,
+      'SELECT pg_advisory_unlock(hashtextextended($1, 0))',
+      ['alice/button'],
+    );
+    expect(queryRunner.release).toHaveBeenCalledTimes(1);
+  });
+
+  it('performs v2 digest idempotency only after acquiring the domain lock', async () => {
+    const { service, componentService, revisionRepo, queryRunner } = harness();
+    const body = requestV2();
+    await service.publishStory(body, `Bearer ${VALID_TOKEN}`);
+    jest.clearAllMocks();
+
+    await expect(
+      service.publishStory(body, `Bearer ${VALID_TOKEN}`),
+    ).resolves.toMatchObject({ revision: 1, digest: body.digest });
+    expect(componentService.create).not.toHaveBeenCalled();
+    expect(queryRunner.query.mock.invocationCallOrder[0]).toBeLessThan(
+      revisionRepo.findOne.mock.invocationCallOrder[0],
+    );
+    expect(queryRunner.query).toHaveBeenLastCalledWith(
+      'SELECT pg_advisory_unlock(hashtextextended($1, 0))',
+      ['alice/button'],
+    );
+    expect(queryRunner.release).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    [{ count: '100', bytes: '0' }, 409],
+    [{ count: '1', bytes: String(MAX_REVISION_BYTES_PER_COMPONENT) }, 413],
+  ])(
+    'rejects v2 revision quota usage %p without mutating',
+    async (usage, status) => {
+      const {
+        service,
+        componentService,
+        componentQuery,
+        revisionUsageQuery,
+        queryRunner,
+      } = harness();
+      componentQuery.getOne.mockReset().mockResolvedValue({
+        id: '00000000-0000-4000-8000-000000000001',
+        publishingDomain: 'alice/button',
+        user: { id: 'user-1', username: 'alice' },
+      });
+      revisionUsageQuery.getRawOne.mockResolvedValue(usage);
+
+      await expect(
+        service.publishStory(requestV2(), `Bearer ${VALID_TOKEN}`),
+      ).rejects.toMatchObject({ status });
+      expect(componentService.create).not.toHaveBeenCalled();
+      expect(queryRunner.release).toHaveBeenCalledTimes(1);
+    },
+  );
 });

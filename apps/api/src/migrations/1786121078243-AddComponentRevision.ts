@@ -5,7 +5,7 @@ export class AddComponentRevision1786121078243 implements MigrationInterface {
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `CREATE TABLE "component_revision" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "digest" character(64) NOT NULL, "revision" integer NOT NULL, "schemaVersion" smallint NOT NULL, "visibility" "public"."component_visibility_enum" NOT NULL, "registryItem" jsonb NOT NULL, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "componentId" uuid NOT NULL, CONSTRAINT "UQ_component_revision_component_digest" UNIQUE ("componentId", "digest"), CONSTRAINT "UQ_component_revision_component_revision" UNIQUE ("componentId", "revision"), CONSTRAINT "PK_component_revision" PRIMARY KEY ("id"))`,
+      `CREATE TABLE "component_revision" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "digest" character(64) NOT NULL, "revision" integer NOT NULL, "byteSize" integer NOT NULL, "schemaVersion" smallint NOT NULL, "visibility" "public"."component_visibility_enum" NOT NULL, "registryItem" jsonb NOT NULL, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "componentId" uuid NOT NULL, CONSTRAINT "UQ_component_revision_component_digest" UNIQUE ("componentId", "digest"), CONSTRAINT "UQ_component_revision_component_revision" UNIQUE ("componentId", "revision"), CONSTRAINT "PK_component_revision" PRIMARY KEY ("id"))`,
     );
     await queryRunner.query(
       `CREATE INDEX "IDX_component_revision_digest" ON "component_revision" ("digest")`,

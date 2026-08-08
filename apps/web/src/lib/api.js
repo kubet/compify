@@ -132,9 +132,11 @@ export async function getComponent(componentId) {
     .catch((error) => handelError(error));
 }
 export async function checkDomain(domain, componentId) {
+  const params = new URLSearchParams({ domain });
+  if (componentId) params.set("id", componentId);
   const options = {
     method: "GET",
-    url: `${baseUrl}/component/check/domain?domain=${domain}&id=${componentId}`,
+    url: `${baseUrl}/component/check/domain?${params.toString()}`,
   };
   return axios(options)
     .then((response) => handleSuccess(response))

@@ -48,11 +48,16 @@ For v2 CLI publications, the reviewed registry-item object is the storage source
 of truth: file type/target, dependency categories, Tailwind/CSS fields, docs,
 metadata, story selection and provenance survive without legacy editor remapping.
 Publishing an owned name again appends a numbered digest-addressed revision;
-repeating the same digest is idempotent. The response includes the mutable latest
-`registryUrl` and an immutable `immutableRegistryUrl`. The server preserves the
-canonical artifact semantics, but it does not preserve the sender's JSON
-whitespace/byte serialization or provide a transparency-log attestation. Retained
-v1 publications still use the documented reconstructed compatibility path.
+repeating the same digest is idempotent. Publishes for one domain are serialized
+with a PostgreSQL advisory lock so concurrent v1/v2 requests cannot allocate the
+same revision or race the mutable preview projection. Each component is bounded
+to 100 revisions and 50 MiB of canonical revision data; the API rejects the next
+revision before mutable storage is touched when either limit would be exceeded.
+The response includes the mutable latest `registryUrl` and an immutable
+`immutableRegistryUrl`. The server preserves the canonical artifact semantics,
+but it does not preserve the sender's JSON whitespace/byte serialization or
+provide a transparency-log attestation. Retained v1 publications still use the
+documented reconstructed compatibility path.
 
 See [Storybook translation](./storybook.mdx) for supported input and security
 boundaries. Publishing never means that Compify executed the Storybook story or

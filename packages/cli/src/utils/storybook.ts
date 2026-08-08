@@ -421,6 +421,17 @@ function wildcardMatches(pattern: string, specifier: string): boolean {
 function resolveFromBase(base: string, specifier: string): string {
   return resolveLocal(path.join(base, "__compify_alias__.ts"), `./${specifier.replace(/^\.\//, "")}`)
 }
+function assertAliasBoundary(specifier: string, resolved: string, config: AliasConfig): string {
+  if (!contained(config.root, resolved)) throw new Error(`Alias ${JSON.stringify(specifier)} resolves outside its package root`)
+  let boundary = path.dirname(resolved)
+  while (boundary !== config.root) {
+    if (fs.existsSync(path.join(boundary, "package.json"))) throw new Error(`Alias ${JSON.stringify(specifier)} crosses into a nested package root`)
+    const parent = path.dirname(boundary)
+    if (parent === boundary) throw new Error(`Alias ${JSON.stringify(specifier)} resolves outside its package root`)
+    boundary = parent
+  }
+  return resolved
+}
 function configuredLocal(specifier: string, config: AliasConfig): string | undefined {
   let target: unknown
   let kind: "package.json imports" | "tsconfig paths" | undefined
@@ -437,7 +448,7 @@ function configuredLocal(specifier: string, config: AliasConfig): string | undef
     const wildcard = Object.keys(config.paths).find(key => wildcardMatches(key, specifier))
     if (wildcard) throw new Error(`Wildcard tsconfig paths alias ${JSON.stringify(wildcard)} is not portable`)
     if (config.baseDir && config.hasBaseUrl) {
-      try { return resolveFromBase(config.baseDir, specifier) }
+      try { return assertAliasBoundary(specifier, resolveFromBase(config.baseDir, specifier), config) }
       catch (error) { if (!(error instanceof Error) || !error.message.startsWith("Could not resolve local import")) throw error }
     }
     return undefined
@@ -453,15 +464,7 @@ function configuredLocal(specifier: string, config: AliasConfig): string | undef
   }
   const base = kind === "package.json imports" ? config.root : config.baseDir!
   const resolved = resolveFromBase(base, target)
-  if (!contained(config.root, resolved)) throw new Error(`Alias ${JSON.stringify(specifier)} resolves outside its package root`)
-  let boundary = path.dirname(resolved)
-  while (boundary !== config.root) {
-    if (fs.existsSync(path.join(boundary, "package.json"))) throw new Error(`Alias ${JSON.stringify(specifier)} crosses into a nested package root`)
-    const parent = path.dirname(boundary)
-    if (parent === boundary) throw new Error(`Alias ${JSON.stringify(specifier)} resolves outside its package root`)
-    boundary = parent
-  }
-  return resolved
+  return assertAliasBoundary(specifier, resolved, config)
 }
 function portableRelative(from: string, target: string): string {
   let relative = path.relative(path.dirname(from), target).split(path.sep).join("/")

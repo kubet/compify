@@ -1,4 +1,4 @@
-import { NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { ComponentService } from './component.service';
 import { ComponentVisibility } from 'src/entities/project/component.entity';
 
@@ -106,6 +106,48 @@ describe('ComponentService authorization boundaries', () => {
     ).rejects.toMatchObject({ status: 403 });
     expect(constructImageService.constructOGImage).not.toHaveBeenCalled();
     expect(componentRepository.save).not.toHaveBeenCalled();
+  });
+
+  it('checks publishing availability only inside the authenticated namespace', async () => {
+    const qb: any = {
+      where: jest.fn(),
+      andWhere: jest.fn(),
+      getOne: jest.fn().mockResolvedValue(null),
+    };
+    qb.where.mockReturnValue(qb);
+    qb.andWhere.mockReturnValue(qb);
+    const componentRepository: any = {
+      createQueryBuilder: jest.fn().mockReturnValue(qb),
+    };
+    const service = new ComponentService(
+      componentRepository,
+      {} as any,
+      {} as any,
+      {} as any,
+      {} as any,
+      {} as any,
+      {} as any,
+      {} as any,
+      {} as any,
+    );
+
+    await expect(
+      service.checkDomain('button', '', {
+        id: 'attacker-id',
+        username: 'attacker',
+      } as any),
+    ).resolves.toEqual({ available: true });
+    expect(qb.where).toHaveBeenCalledWith(
+      'component.publishingDomain = :domain',
+      { domain: 'attacker/button' },
+    );
+    await expect(
+      service.checkDomain('victim/private-name', '', {
+        id: 'attacker-id',
+        username: 'attacker',
+      } as any),
+    ).rejects.toBeInstanceOf(BadRequestException);
+    expect(componentRepository.createQueryBuilder).toHaveBeenCalledTimes(1);
   });
 
   it.each(['not json', 'null', '[]'])(
