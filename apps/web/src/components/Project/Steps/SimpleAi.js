@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Chip, Slider, Tab, Input, InputField } from "@/components/Elements";
 import { ShowPalette } from "../common";
 import DesignTokens from './DesignTokens';
-import keyReplace from '../utils';
+import { compileThemeCollections } from '../utils';
 import ThemeConfigurator from '../theme/ThemeConfigurator';
 import LabelButton from '@/components/Elements/LabelButton';
 import { getCssVariables, getJSONConfig } from '../common/getTokenConfigFiles';
@@ -11,6 +11,7 @@ import { getCssVariables, getJSONConfig } from '../common/getTokenConfigFiles';
 
 const SimpleAi = () => {
     const [activeTab, setActiveTab] = useState('preview');
+    const [compileError, setCompileError] = useState('');
 
     const [factors, setFactors] = useState([
         { key: 'hue', value: 1, c: '1', max: 360, min: 0, type: 'hue' },
@@ -104,84 +105,24 @@ const SimpleAi = () => {
         ));
     }, []);
 
-    const getAllTokens = useMemo(() => {
-        const factorTokens = factors.map(factor => ({ key: factor.key, value: factor.value, c: factor.c }));
-        const groupTokens = Object.entries(groups).flatMap(([groupKey, group]) =>
-            group.options.map(item => ({ key: `${groupKey}-${item.key}`, value: item.value, c: item.c }))
-        );
-        return [...factorTokens, ...groupTokens, ...values];
-    }, [factors, groups, values]);
-
-    const compileValue = useCallback((value, tokens) => {
-        if (typeof value !== 'string') {
-            return value; // Return non-string values as-is
-        }
-        let compiledValue = keyReplace(tokens, value);
-        // Check if the compiled value still contains token references
-        if (typeof compiledValue === 'string' && compiledValue.includes('--')) {
-            compiledValue = keyReplace(tokens, compiledValue);
-        }
-        return compiledValue;
-    }, []);
-
-    const updateCompiledValues = useCallback(() => {
-        const allTokens = getAllTokens;
-
-        const updatedFactors = factors.map(factor => ({
-            ...factor,
-            c: compileValue(factor.value, allTokens)
-        }));
-
-        const updatedGroups = Object.fromEntries(
-            Object.entries(groups).map(([key, group]) => [
-                key,
-                {
-                    ...group,
-                    options: group.options.map(item => ({
-                        ...item,
-                        c: compileValue(item.value, allTokens)
-                    }))
-                }
-            ])
-        );
-
-        const updatedValues = values.map(value => ({
-            ...value,
-            c: compileValue(value.value, allTokens)
-        }));
-
-        return { updatedFactors, updatedGroups, updatedValues };
-    }, [compileValue, getAllTokens, factors, groups, values]);
-
     useEffect(() => {
-        const { updatedFactors, updatedGroups, updatedValues } = updateCompiledValues();
-
-        setFactors(prevFactors => {
-            if (JSON.stringify(prevFactors) !== JSON.stringify(updatedFactors)) {
-                return updatedFactors;
-            }
-            return prevFactors;
-        });
-
-        setGroups(prevGroups => {
-            if (JSON.stringify(prevGroups) !== JSON.stringify(updatedGroups)) {
-                return updatedGroups;
-            }
-            return prevGroups;
-        });
-
-        setValues(prevValues => {
-            if (JSON.stringify(prevValues) !== JSON.stringify(updatedValues)) {
-                return updatedValues;
-            }
-            return prevValues;
-        });
-    }, [updateCompiledValues]);
+        try {
+            const compiled = compileThemeCollections({ factors, groups, values });
+            setFactors(previous => JSON.stringify(previous) === JSON.stringify(compiled.factors) ? previous : compiled.factors);
+            setGroups(previous => JSON.stringify(previous) === JSON.stringify(compiled.groups) ? previous : compiled.groups);
+            setValues(previous => JSON.stringify(previous) === JSON.stringify(compiled.values) ? previous : compiled.values);
+            setCompileError('');
+        } catch (error) {
+            console.error('Theme compilation failed:', error);
+            setCompileError(error instanceof Error ? error.message : 'Theme tokens could not be compiled.');
+        }
+    }, [factors, groups, values]);
 
 
 
     return (
         <div className="space-y-8">
+            {compileError && <p className="rounded-md border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">{compileError}</p>}
             <motion.h4
                 className="text-2xl mb-4 md:text-3xl font-extrabold text-start w-full bg-gradient-to-r from-gray-300 via-gray-500 to-gray-700 bg-clip-text text-transparent"
                 initial={{ opacity: 0, y: -20 }}
