@@ -19,3 +19,8 @@ signature or third-party attestation.
 These replays may falsify technical feasibility. They cannot satisfy the owner,
 real-destination, payment, activation, repeat, renewal, or PMF requirements in
 [`product-market-fit.md`](../../product-market-fit.md).
+
+Raw JSON/JSONL/checksum artifacts are retained as repository files rather than
+web documentation pages. Review them in the pinned Git history; the rendered
+index summarizes their bounded conclusions without implying that Fumadocs
+serves arbitrary evidence files.

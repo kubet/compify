@@ -16,7 +16,7 @@ exports, the real historical token change
 its parent, two repeated inspect runs per revision, and a minimum seven-of-ten
 inspectability gate before any destination handoff.
 
-All 40 commands were byte-repeatable, but **0/10** head selections inspected:
+All 40 failure results were byte-repeatable, but no run produced inspect JSON, so the preregistered semantic-JSON equality check was not applicable and did not pass. **0/10** head selections inspected:
 nine failed closed because the source package extends TypeScript configuration
 outside Compify's bounded static alias contract, and the preregistered `Text`
 `Default` export does not exist. All ten remain `unknown`; none is classified
@@ -31,12 +31,14 @@ inherited-tsconfig support, a token graph, or broader theme tooling until a
 qualified team presents the same blocked job and accepts the security/fidelity
 tradeoff.
 
-- `manifest.json` contains the complete denominator, classifications, source and
+- Repository file `manifest.json` contains the complete denominator, classifications, source and
   tool SHAs, gate result, and explicit unattempted evidence.
-- `inspect-runs.jsonl` retains every normalized command, exact stdout/stderr,
+- Repository file `inspect-runs.jsonl` retains every normalized command, exact stdout/stderr,
   exit code, and byte digest for both source revisions.
-- `SHA256SUMS` binds the replay files and preregistration snapshot. It is a byte
+- Repository file `SHA256SUMS` binds the replay files and preregistration snapshot. It is a byte
   integrity check, not a signature or attestation.
+
+Official runs used `NO_COLOR=1` with `FORCE_COLOR` unset. The manifest records the exact executable and lockfile digests, build recipe, and source-diff byte recipe.
 
 Shopify Polaris is MIT-licensed and archived; no source code is copied here.
 See the pinned [license](https://github.com/Shopify/polaris-react-archive/blob/a9827635844e9c43093c901966dbe8b623380e96/LICENSE.md).

@@ -20,7 +20,7 @@
     ]
   },
   "compifySourceSha": "82c1fc0084d04ded10d505b7f2fa6c3bdef1e634",
-  "conclusion": "The preregistered public-source replay failed its minimum inspectability gate. Current CLI intentionally rejects inherited tsconfig configuration, so no style-contract, install, build, or receipt evidence was produced. This is a bounded static-contract failure, not permission to widen the parser and not business evidence.",
+  "conclusion": "The preregistered public-source replay failed its minimum inspectability gate and could not satisfy the preregistered semantic-JSON repeatability check because every run failed before JSON output. Failure bytes were repeatable. Current CLI intentionally rejects inherited tsconfig configuration, so no style-contract, install, build, or receipt evidence was produced. This is a bounded static-contract failure, not permission to widen the parser and not business evidence.",
   "coverage": {
     "classificationCounts": {
       "not-impacted": 0,
@@ -33,6 +33,23 @@
     "headInspectableSelections": 0,
     "minimumRequired": 7
   },
+  "execution": {
+    "cliExecutable": {
+      "buildRecipe": [
+        "cd packages/cli",
+        "bun install --frozen-lockfile",
+        "bun run build"
+      ],
+      "bunLockSha256": "6fc9756753b0e8218f0ddcba01d0c03aef91366a159e43aad20ca359d685be1c",
+      "byteLength": 115186,
+      "path": "packages/cli/dist/index.js",
+      "sha256": "254f312a928be3ebcff9d64b6670098a0ed2ee9998b9a5751eb0d990a2cba7eb"
+    },
+    "environmentOverrides": {
+      "FORCE_COLOR": "unset",
+      "NO_COLOR": "1"
+    }
+  },
   "kind": "compify.theme-release-assurance.offline-replay-result",
   "matrix": [
     {
@@ -41,16 +58,16 @@
       "revisions": {
         "base": {
           "accepted": false,
+          "byteRepeatableFailure": true,
           "classification": "unknown",
-          "deterministic": true,
           "diagnostic": "error Storybook inspection failed: tsconfig extends is not supported; inherited configuration is outside the bounded static alias contract",
           "exitCode": 1,
           "observedDirectChangedProperties": []
         },
         "head": {
           "accepted": false,
+          "byteRepeatableFailure": true,
           "classification": "unknown",
-          "deterministic": true,
           "diagnostic": "error Storybook inspection failed: tsconfig extends is not supported; inherited configuration is outside the bounded static alias contract",
           "exitCode": 1,
           "observedDirectChangedProperties": []
@@ -66,16 +83,16 @@
       "revisions": {
         "base": {
           "accepted": false,
+          "byteRepeatableFailure": true,
           "classification": "unknown",
-          "deterministic": true,
           "diagnostic": "error Storybook inspection failed: tsconfig extends is not supported; inherited configuration is outside the bounded static alias contract",
           "exitCode": 1,
           "observedDirectChangedProperties": []
         },
         "head": {
           "accepted": false,
+          "byteRepeatableFailure": true,
           "classification": "unknown",
-          "deterministic": true,
           "diagnostic": "error Storybook inspection failed: tsconfig extends is not supported; inherited configuration is outside the bounded static alias contract",
           "exitCode": 1,
           "observedDirectChangedProperties": []
@@ -91,16 +108,16 @@
       "revisions": {
         "base": {
           "accepted": false,
+          "byteRepeatableFailure": true,
           "classification": "unknown",
-          "deterministic": true,
           "diagnostic": "error Storybook inspection failed: tsconfig extends is not supported; inherited configuration is outside the bounded static alias contract",
           "exitCode": 1,
           "observedDirectChangedProperties": []
         },
         "head": {
           "accepted": false,
+          "byteRepeatableFailure": true,
           "classification": "unknown",
-          "deterministic": true,
           "diagnostic": "error Storybook inspection failed: tsconfig extends is not supported; inherited configuration is outside the bounded static alias contract",
           "exitCode": 1,
           "observedDirectChangedProperties": []
@@ -116,16 +133,16 @@
       "revisions": {
         "base": {
           "accepted": false,
+          "byteRepeatableFailure": true,
           "classification": "unknown",
-          "deterministic": true,
           "diagnostic": "error Storybook inspection failed: tsconfig extends is not supported; inherited configuration is outside the bounded static alias contract",
           "exitCode": 1,
           "observedDirectChangedProperties": []
         },
         "head": {
           "accepted": false,
+          "byteRepeatableFailure": true,
           "classification": "unknown",
-          "deterministic": true,
           "diagnostic": "error Storybook inspection failed: tsconfig extends is not supported; inherited configuration is outside the bounded static alias contract",
           "exitCode": 1,
           "observedDirectChangedProperties": []
@@ -141,16 +158,16 @@
       "revisions": {
         "base": {
           "accepted": false,
+          "byteRepeatableFailure": true,
           "classification": "unknown",
-          "deterministic": true,
           "diagnostic": "error Storybook inspection failed: tsconfig extends is not supported; inherited configuration is outside the bounded static alias contract",
           "exitCode": 1,
           "observedDirectChangedProperties": []
         },
         "head": {
           "accepted": false,
+          "byteRepeatableFailure": true,
           "classification": "unknown",
-          "deterministic": true,
           "diagnostic": "error Storybook inspection failed: tsconfig extends is not supported; inherited configuration is outside the bounded static alias contract",
           "exitCode": 1,
           "observedDirectChangedProperties": []
@@ -166,16 +183,16 @@
       "revisions": {
         "base": {
           "accepted": false,
+          "byteRepeatableFailure": true,
           "classification": "unknown",
-          "deterministic": true,
           "diagnostic": "error Storybook inspection failed: tsconfig extends is not supported; inherited configuration is outside the bounded static alias contract",
           "exitCode": 1,
           "observedDirectChangedProperties": []
         },
         "head": {
           "accepted": false,
+          "byteRepeatableFailure": true,
           "classification": "unknown",
-          "deterministic": true,
           "diagnostic": "error Storybook inspection failed: tsconfig extends is not supported; inherited configuration is outside the bounded static alias contract",
           "exitCode": 1,
           "observedDirectChangedProperties": []
@@ -191,16 +208,16 @@
       "revisions": {
         "base": {
           "accepted": false,
+          "byteRepeatableFailure": true,
           "classification": "unknown",
-          "deterministic": true,
           "diagnostic": "error Storybook inspection failed: tsconfig extends is not supported; inherited configuration is outside the bounded static alias contract",
           "exitCode": 1,
           "observedDirectChangedProperties": []
         },
         "head": {
           "accepted": false,
+          "byteRepeatableFailure": true,
           "classification": "unknown",
-          "deterministic": true,
           "diagnostic": "error Storybook inspection failed: tsconfig extends is not supported; inherited configuration is outside the bounded static alias contract",
           "exitCode": 1,
           "observedDirectChangedProperties": []
@@ -216,16 +233,16 @@
       "revisions": {
         "base": {
           "accepted": false,
+          "byteRepeatableFailure": true,
           "classification": "unknown",
-          "deterministic": true,
           "diagnostic": "error Storybook inspection failed: Story export not found: Default",
           "exitCode": 1,
           "observedDirectChangedProperties": []
         },
         "head": {
           "accepted": false,
+          "byteRepeatableFailure": true,
           "classification": "unknown",
-          "deterministic": true,
           "diagnostic": "error Storybook inspection failed: Story export not found: Default",
           "exitCode": 1,
           "observedDirectChangedProperties": []
@@ -241,16 +258,16 @@
       "revisions": {
         "base": {
           "accepted": false,
+          "byteRepeatableFailure": true,
           "classification": "unknown",
-          "deterministic": true,
           "diagnostic": "error Storybook inspection failed: tsconfig extends is not supported; inherited configuration is outside the bounded static alias contract",
           "exitCode": 1,
           "observedDirectChangedProperties": []
         },
         "head": {
           "accepted": false,
+          "byteRepeatableFailure": true,
           "classification": "unknown",
-          "deterministic": true,
           "diagnostic": "error Storybook inspection failed: tsconfig extends is not supported; inherited configuration is outside the bounded static alias contract",
           "exitCode": 1,
           "observedDirectChangedProperties": []
@@ -266,16 +283,16 @@
       "revisions": {
         "base": {
           "accepted": false,
+          "byteRepeatableFailure": true,
           "classification": "unknown",
-          "deterministic": true,
           "diagnostic": "error Storybook inspection failed: tsconfig extends is not supported; inherited configuration is outside the bounded static alias contract",
           "exitCode": 1,
           "observedDirectChangedProperties": []
         },
         "head": {
           "accepted": false,
+          "byteRepeatableFailure": true,
           "classification": "unknown",
-          "deterministic": true,
           "diagnostic": "error Storybook inspection failed: tsconfig extends is not supported; inherited configuration is outside the bounded static alias contract",
           "exitCode": 1,
           "observedDirectChangedProperties": []
@@ -289,8 +306,14 @@
   "preregistrationCommit": "b6d5c70063ef409717198488b40a31828d13d992",
   "preregistrationPath": "../polaris-a982763-preregistration.json",
   "runs": {
-    "allRepeatPairsByteIdentical": true,
+    "allRepeatFailureBytesIdentical": true,
     "perRevisionPerSelection": 2,
+    "semanticJsonEquality": {
+      "evaluated": false,
+      "passed": false,
+      "preregistered": true,
+      "reason": "Every run failed before JSON output; empty stdout has no inspect semantics to compare."
+    },
     "total": 40
   },
   "schemaVersion": 1,
@@ -303,13 +326,26 @@
     "licenseUrl": "https://github.com/Shopify/polaris-react-archive/blob/a9827635844e9c43093c901966dbe8b623380e96/LICENSE.md",
     "repository": "https://github.com/Shopify/polaris-react-archive"
   },
-  "sourceDiffSha256": "f635fa3567d71605a9e95d3e551c292a91d58cd4f2e589b507a6086c2f04d131",
+  "sourceDiff": {
+    "byteLength": 7493,
+    "command": [
+      "git",
+      "show",
+      "--format=",
+      "--no-renames",
+      "a9827635844e9c43093c901966dbe8b623380e96",
+      "--",
+      "polaris-tokens/src/themes/base/color.ts",
+      "polaris-tokens/src/themes/dark.ts"
+    ],
+    "sha256": "f635fa3567d71605a9e95d3e551c292a91d58cd4f2e589b507a6086c2f04d131"
+  },
   "sourceStoryFileCountAtHead": 87,
   "status": "technical-kill-gate-triggered",
   "stoppedBeforeHandoff": true,
   "unattemptedEvidence": [
-    "consumer-a install/build",
-    "consumer-b install/build",
+    "vite-a install/build",
+    "vite-b install/build",
     "v1 style sidecar",
     "v2 handoff receipt",
     "receipt-sidecar mutation check",
