@@ -93,6 +93,7 @@ const inspect = common(
           entry: bundle.entry,
           packageFiles: Object.keys(bundle.files),
           sourceGraph: bundle.sourceGraph,
+          styleContract: bundle.styleContract,
           ...(opts.explain ? { inclusionChain } : {}),
           dependencies: bundle.dependencies,
           stories: bundle.stories,
@@ -111,6 +112,9 @@ const inspect = common(
             `Files: ${result.packageFiles.length}; dependencies: ${
               Object.keys(result.dependencies).length
             }; stories: ${result.stories.length}`
+          );
+          logger.warn(
+            `Style contract is incomplete static evidence: ${bundle.styleContract.uses.length} literal use(s), ${bundle.styleContract.bundledDefinitions.length} bundled definition(s); this does not prove runtime availability.`
           );
           for (const story of result.stories)
             logger.info(
@@ -205,6 +209,7 @@ const handoff = common(
   )
   .option("-o, --output <file>", "registry-item output path")
   .option("--receipt <file>", "handoff receipt output path")
+  .option("--style-contract-output <file>", "incomplete static CSS evidence sidecar path")
   .option(
     "--build-command <executable>",
     "optional consumer build executable (never run through a shell)"
@@ -222,6 +227,7 @@ const handoff = common(
         consumer: string;
         output?: string;
         receipt?: string;
+        styleContractOutput?: string;
         buildCommand?: string;
         buildArg: string[];
       }

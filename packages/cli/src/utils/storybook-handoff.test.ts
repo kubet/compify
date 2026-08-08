@@ -24,9 +24,11 @@ function sourceProject() {
   fs.writeFileSync(
     path.join(root, "Button.tsx"),
     `import React from "react"
+import "./button.css"
 export const Button = () => null
 `
   );
+  fs.writeFileSync(path.join(root, "button.css"), `.button { color: var(--consumer-brand) }\n`);
   fs.writeFileSync(
     path.join(root, "Button.stories.tsx"),
     `import { Button } from "./Button"
@@ -76,6 +78,7 @@ describe("Storybook handoff", () => {
   it("uses pinned shadcn argv without a shell and writes a digest-verifiable receipt", () => {
     const source = sourceProject();
     const consumer = consumerProject();
+    fs.writeFileSync(path.join(consumer, "theme.css"), ":root { --consumer-brand: red; --unrelated: blue }\n");
     const calls: any[] = [];
     const spawn = ((file: string, args: readonly string[], options: any) => {
       calls.push({ file, args: [...args], options });
@@ -139,6 +142,15 @@ describe("Storybook handoff", () => {
       crypto.createHash("sha256").update(canonical(unsigned)).digest("hex")
     );
     expect(parsed.source.stories).toEqual(["Primary"]);
+    expect(parsed).not.toHaveProperty("styleContract");
+    const styleSidecar = JSON.parse(
+      fs.readFileSync(path.join(source, ".compify", "button.style-contract.json"), "utf8")
+    );
+    expect(styleSidecar.bundleDigest).toBe(parsed.source.bundleDigest);
+    expect(styleSidecar.evidence.incomplete).toBe(true);
+    expect(styleSidecar.evidence.consumerProvidedCandidates).toEqual([
+      { name: "--consumer-brand", file: "theme.css", line: 1, column: 9 },
+    ]);
   });
 
   it("fails before executing when the consumer is not a separate initialized package", () => {

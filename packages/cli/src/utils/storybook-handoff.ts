@@ -8,6 +8,7 @@ import {
   toRegistryItem,
   type BuildStoryOptions,
 } from "./storybook";
+import { inspectStyleContract, scanConsumerStyleCandidates } from "./storybook-style-contract";
 
 export const SHADCN_HANDOFF_VERSION = "4.16.2";
 
@@ -17,6 +18,8 @@ export interface HandoffOptions extends BuildStoryOptions {
   receipt?: string;
   buildCommand?: string;
   buildArgs?: string[];
+  /** Separate evidence sidecar; never added to registry or handoff receipt digests. */
+  styleContractOutput?: string;
 }
 
 export interface HandoffReceipt {
@@ -406,11 +409,19 @@ export function runStorybookHandoff(
     options.cwd || process.cwd(),
     options.receipt || `.compify/${bundle.name}.handoff.json`
   );
-  if (output === receiptPath)
-    throw new Error("Artifact and receipt paths must be different");
+  const styleContractPath = path.resolve(
+    options.cwd || process.cwd(),
+    options.styleContractOutput || `.compify/${bundle.name}.style-contract.json`
+  );
+  if (new Set([output, receiptPath, styleContractPath]).size !== 3)
+    throw new Error("Artifact, receipt, and style-contract sidecar paths must be different");
   reserveFile(output);
   reserveFile(receiptPath);
+  reserveFile(styleContractPath);
 
+  // Snapshot and lexical consumer evidence are collected before installation,
+  // so candidates cannot be confused with files written by shadcn.
+  const consumerCandidates = scanConsumerStyleCandidates(consumer);
   // Snapshot before reserving the artifact so a bounded-traversal failure never
   // strands a filename that prevents a corrected invocation from retrying.
   const before = snapshotConsumer(consumer);
@@ -418,6 +429,8 @@ export function runStorybookHandoff(
 `;
   const registrySha256 = sha256(registryJson);
   const artifactIdentity = writeOwnedFileExclusive(output, registryJson);
+  let styleContractIdentity: OwnedFileIdentity | undefined;
+  let styleContractSha256: string | undefined;
 
   try {
     const installerCommand = [
@@ -481,6 +494,18 @@ export function runStorybookHandoff(
       ...unsigned,
       receiptDigest: sha256(canonical(unsigned)),
     };
+    // This is deliberately a sidecar rather than a receipt/registry field:
+    // both existing digests have established wire semantics. The bundle digest
+    // binds the sidecar to the exact bundled inputs without changing either.
+    const styleContractJson = `${JSON.stringify({
+      schemaVersion: 1,
+      kind: "compify.storybook.style-contract",
+      bundleDigest: bundle.digest,
+      evidence: inspectStyleContract(bundle.files, consumerCandidates),
+    }, null, 2)}
+`;
+    styleContractSha256 = sha256(styleContractJson);
+    styleContractIdentity = writeOwnedFileExclusive(styleContractPath, styleContractJson);
     const receiptJson = `${JSON.stringify(receipt, null, 2)}
 `;
     writeOwnedFileExclusive(receiptPath, receiptJson);
@@ -490,6 +515,8 @@ export function runStorybookHandoff(
     // the exact artifact inode and bytes created by this invocation; if another
     // actor changed it, retain it as failure evidence rather than deleting it.
     const retrySafe = removeOwnedFile(output, artifactIdentity, registrySha256);
+    if (styleContractIdentity && styleContractSha256)
+      removeOwnedFile(styleContractPath, styleContractIdentity, styleContractSha256);
     if (!retrySafe) {
       const detail = `Generated artifact was changed and retained at ${output}; remove it explicitly before retrying`;
       if (error instanceof Error) error.message = `${error.message}; ${detail}`;

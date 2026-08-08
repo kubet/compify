@@ -292,8 +292,12 @@ export const Styled = () => <div className={styles.root} />
     ])
     // Evidence is an inspection-only sidecar and does not alter wire output.
     const registryBefore = toRegistryItem(bundle)
+    const publishBefore = publishPayload(bundle)
     bundle.sourceGraph.imports.length = 0
+    bundle.styleContract.uses.length = 0
+    bundle.styleContract.consumerProvidedCandidates.push({ name: "--sidecar-only", file: "consumer.css", line: 1, column: 1 })
     expect(toRegistryItem(bundle)).toEqual(registryBefore)
+    expect(publishPayload(bundle)).toEqual(publishBefore)
   })
 
   it("records unresolved transitive imports as deterministic graph evidence", () => {
