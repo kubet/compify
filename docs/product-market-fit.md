@@ -64,6 +64,52 @@ actions, sitemap entries are catalog pages, and issues are individual reports.
 | Storybook documents an official [MCP server](https://storybook.js.org/docs/ai/mcp), described as preview/unstable and React-only at review time (2026-08-07). | Upstream component context for agents is an active ecosystem direction. | It can change by version and does not prove that Compify should duplicate MCP or that MCP solves source distribution. |
 | shadcn documents [custom registries](https://ui.shadcn.com/docs/registry) and an [MCP server](https://ui.shadcn.com/docs/mcp) that consumes configured registries (reviewed 2026-08-07). | A known source-distribution format can reach developers and some agent clients. | Compatibility depends on pinned CLI/client behavior. This is not evidence that teams want another registry producer. |
 
+## Theme release assurance adjacency: concierge evidence before product
+
+Compify's legacy editor can create component-scoped factors, groups, semantic
+values, CSS variables, and flat JSON. That implementation is not evidence that
+teams want another theme editor, token platform, or AI palette generator. The
+only adjacent business hypothesis consistent with Compify's authority boundary
+is **Theme Release Assurance**: before a team releases an already-authored token
+or theme change, identify the statically observable component dependencies,
+run the checks the team already trusts in named destinations, and retain a
+reviewed digest-bound evidence bundle.
+
+A qualified pilot must already have all of the following:
+
+- a production React design system with Storybook;
+- at least two brands/modes/themes, or one semantic-token set used by three apps;
+- a named maintainer and monthly-or-faster token changes;
+- a real release from the prior 60 days involving manual review, downstream
+  repair, or regression risk; and
+- one canonical Git input plus two destination applications it can use in a
+  private, bounded pilot.
+
+The activation event is a **Verified Theme Release (VTR)**, not a theme saved or
+page visited. A VTR requires a non-demo external token commit, an explicit owner,
+a reviewed changed-token and impacted/unknown graph, declared checks over at
+least ten selected stories and two app destinations, and an approved evidence
+digest. Runtime, visual, accessibility, build, and static evidence remain
+separate. Retention requires a second distinct production theme change by the
+same team within 45 days without founder operation.
+
+Run this as a paid concierge study before building a theme product: ten
+30-day pilots at a fixed **$1,500** scope (one token repository, up to three
+modes, 25 critical stories, and two apps). Ask for a real order rather than a
+pricing opinion. For successful pilots, test **$199/month per protected library**
+for a team offer and **$599/month** for longer evidence retention and approval
+policy. These are willingness-to-pay experiments, not published plans.
+
+Kill or reduce this adjacency to an open policy/receipt module if fewer than
+three pilots pay, fewer than two renew, fewer than five complete a second real
+release, static mapping covers less than 70% of the declared cohort, or seven of
+ten teams demonstrate that their existing package CI plus token/visual tools
+already solves the job. Do not build Figma sync, a token marketplace, visual
+regression, generic transformations, enterprise administration, or AI theme
+creation from interview compliments. DTCG import, token dependency graphs, and
+signed release evidence become candidates only after repeated real-release
+proof.
+
 The appropriate conclusion is “there is a sufficiently large adjacent ecosystem
 to recruit a focused sample,” not “the market is 20 million users.” Refresh all
 dynamic snapshots before external publication.
