@@ -7,7 +7,12 @@ const password = "Browser-password-12345";
 test("public product and docs remain anonymous", async ({ page }) => {
   await page.goto("/");
   await expect(page).toHaveURL(/\/$/);
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("Ship");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText(
+    "Build components once.",
+  );
+  const githubLink = page.getByRole("link", { name: "Open source on GitHub" });
+  await expect(githubLink).toHaveAttribute("href", "https://github.com/kubet/compify");
+  await expect(githubLink).toHaveAttribute("target", "_blank");
   await page.goto("/docs/compatibility");
   await expect(page).toHaveURL(/\/docs\/compatibility$/);
   await expect(page.getByText("Compatibility", { exact: false }).first()).toBeVisible();

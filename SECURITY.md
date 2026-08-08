@@ -31,7 +31,7 @@ disrupting production while researching.
 ## Notes for contributors and operators
 
 - Never commit secrets; all credentials come from environment variables.
-- CI runs gitleaks on every pull request.
+- The CI workflow runs gitleaks on every pull request when GitHub Actions are enabled.
 - Use long independent values for JWT, internal API, database, and object-store
   secrets. Do not expose PostgreSQL or MinIO administration ports publicly.
 - Backups contain account data and component source. Encrypt them, restrict
