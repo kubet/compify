@@ -1,0 +1,320 @@
+{
+  "businessEvidence": "none",
+  "claimBoundary": {
+    "allowed": [
+      "offline technical replay",
+      "public OSS source fixture",
+      "static lexical evidence",
+      "install/build evidence when a declared check succeeds"
+    ],
+    "forbidden": [
+      "VTR",
+      "pilot",
+      "customer",
+      "partner",
+      "endorsement",
+      "production adoption",
+      "user validation",
+      "runtime or visual proof",
+      "PMF"
+    ]
+  },
+  "compifySourceSha": "82c1fc0084d04ded10d505b7f2fa6c3bdef1e634",
+  "conclusion": "The preregistered public-source replay failed its minimum inspectability gate. Current CLI intentionally rejects inherited tsconfig configuration, so no style-contract, install, build, or receipt evidence was produced. This is a bounded static-contract failure, not permission to widen the parser and not business evidence.",
+  "coverage": {
+    "classificationCounts": {
+      "not-impacted": 0,
+      "observed-direct": 0,
+      "unknown": 10
+    },
+    "denominatorSelections": 10,
+    "gatePassed": false,
+    "headInspectableRatio": 0,
+    "headInspectableSelections": 0,
+    "minimumRequired": 7
+  },
+  "kind": "compify.theme-release-assurance.offline-replay-result",
+  "matrix": [
+    {
+      "handoffAttempted": false,
+      "retainedInDenominator": true,
+      "revisions": {
+        "base": {
+          "accepted": false,
+          "classification": "unknown",
+          "deterministic": true,
+          "diagnostic": "error Storybook inspection failed: tsconfig extends is not supported; inherited configuration is outside the bounded static alias contract",
+          "exitCode": 1,
+          "observedDirectChangedProperties": []
+        },
+        "head": {
+          "accepted": false,
+          "classification": "unknown",
+          "deterministic": true,
+          "diagnostic": "error Storybook inspection failed: tsconfig extends is not supported; inherited configuration is outside the bounded static alias contract",
+          "exitCode": 1,
+          "observedDirectChangedProperties": []
+        }
+      },
+      "selectionId": "appprovider",
+      "storyExport": "Default",
+      "storyFile": "polaris-react/src/components/AppProvider/AppProvider.stories.tsx"
+    },
+    {
+      "handoffAttempted": false,
+      "retainedInDenominator": true,
+      "revisions": {
+        "base": {
+          "accepted": false,
+          "classification": "unknown",
+          "deterministic": true,
+          "diagnostic": "error Storybook inspection failed: tsconfig extends is not supported; inherited configuration is outside the bounded static alias contract",
+          "exitCode": 1,
+          "observedDirectChangedProperties": []
+        },
+        "head": {
+          "accepted": false,
+          "classification": "unknown",
+          "deterministic": true,
+          "diagnostic": "error Storybook inspection failed: tsconfig extends is not supported; inherited configuration is outside the bounded static alias contract",
+          "exitCode": 1,
+          "observedDirectChangedProperties": []
+        }
+      },
+      "selectionId": "avatar",
+      "storyExport": "Default",
+      "storyFile": "polaris-react/src/components/Avatar/Avatar.stories.tsx"
+    },
+    {
+      "handoffAttempted": false,
+      "retainedInDenominator": true,
+      "revisions": {
+        "base": {
+          "accepted": false,
+          "classification": "unknown",
+          "deterministic": true,
+          "diagnostic": "error Storybook inspection failed: tsconfig extends is not supported; inherited configuration is outside the bounded static alias contract",
+          "exitCode": 1,
+          "observedDirectChangedProperties": []
+        },
+        "head": {
+          "accepted": false,
+          "classification": "unknown",
+          "deterministic": true,
+          "diagnostic": "error Storybook inspection failed: tsconfig extends is not supported; inherited configuration is outside the bounded static alias contract",
+          "exitCode": 1,
+          "observedDirectChangedProperties": []
+        }
+      },
+      "selectionId": "badge",
+      "storyExport": "Default",
+      "storyFile": "polaris-react/src/components/Badge/Badge.stories.tsx"
+    },
+    {
+      "handoffAttempted": false,
+      "retainedInDenominator": true,
+      "revisions": {
+        "base": {
+          "accepted": false,
+          "classification": "unknown",
+          "deterministic": true,
+          "diagnostic": "error Storybook inspection failed: tsconfig extends is not supported; inherited configuration is outside the bounded static alias contract",
+          "exitCode": 1,
+          "observedDirectChangedProperties": []
+        },
+        "head": {
+          "accepted": false,
+          "classification": "unknown",
+          "deterministic": true,
+          "diagnostic": "error Storybook inspection failed: tsconfig extends is not supported; inherited configuration is outside the bounded static alias contract",
+          "exitCode": 1,
+          "observedDirectChangedProperties": []
+        }
+      },
+      "selectionId": "banner",
+      "storyExport": "Default",
+      "storyFile": "polaris-react/src/components/Banner/Banner.stories.tsx"
+    },
+    {
+      "handoffAttempted": false,
+      "retainedInDenominator": true,
+      "revisions": {
+        "base": {
+          "accepted": false,
+          "classification": "unknown",
+          "deterministic": true,
+          "diagnostic": "error Storybook inspection failed: tsconfig extends is not supported; inherited configuration is outside the bounded static alias contract",
+          "exitCode": 1,
+          "observedDirectChangedProperties": []
+        },
+        "head": {
+          "accepted": false,
+          "classification": "unknown",
+          "deterministic": true,
+          "diagnostic": "error Storybook inspection failed: tsconfig extends is not supported; inherited configuration is outside the bounded static alias contract",
+          "exitCode": 1,
+          "observedDirectChangedProperties": []
+        }
+      },
+      "selectionId": "box",
+      "storyExport": "Default",
+      "storyFile": "polaris-react/src/components/Box/Box.stories.tsx"
+    },
+    {
+      "handoffAttempted": false,
+      "retainedInDenominator": true,
+      "revisions": {
+        "base": {
+          "accepted": false,
+          "classification": "unknown",
+          "deterministic": true,
+          "diagnostic": "error Storybook inspection failed: tsconfig extends is not supported; inherited configuration is outside the bounded static alias contract",
+          "exitCode": 1,
+          "observedDirectChangedProperties": []
+        },
+        "head": {
+          "accepted": false,
+          "classification": "unknown",
+          "deterministic": true,
+          "diagnostic": "error Storybook inspection failed: tsconfig extends is not supported; inherited configuration is outside the bounded static alias contract",
+          "exitCode": 1,
+          "observedDirectChangedProperties": []
+        }
+      },
+      "selectionId": "button",
+      "storyExport": "Default",
+      "storyFile": "polaris-react/src/components/Button/Button.stories.tsx"
+    },
+    {
+      "handoffAttempted": false,
+      "retainedInDenominator": true,
+      "revisions": {
+        "base": {
+          "accepted": false,
+          "classification": "unknown",
+          "deterministic": true,
+          "diagnostic": "error Storybook inspection failed: tsconfig extends is not supported; inherited configuration is outside the bounded static alias contract",
+          "exitCode": 1,
+          "observedDirectChangedProperties": []
+        },
+        "head": {
+          "accepted": false,
+          "classification": "unknown",
+          "deterministic": true,
+          "diagnostic": "error Storybook inspection failed: tsconfig extends is not supported; inherited configuration is outside the bounded static alias contract",
+          "exitCode": 1,
+          "observedDirectChangedProperties": []
+        }
+      },
+      "selectionId": "card",
+      "storyExport": "Default",
+      "storyFile": "polaris-react/src/components/Card/Card.stories.tsx"
+    },
+    {
+      "handoffAttempted": false,
+      "retainedInDenominator": true,
+      "revisions": {
+        "base": {
+          "accepted": false,
+          "classification": "unknown",
+          "deterministic": true,
+          "diagnostic": "error Storybook inspection failed: Story export not found: Default",
+          "exitCode": 1,
+          "observedDirectChangedProperties": []
+        },
+        "head": {
+          "accepted": false,
+          "classification": "unknown",
+          "deterministic": true,
+          "diagnostic": "error Storybook inspection failed: Story export not found: Default",
+          "exitCode": 1,
+          "observedDirectChangedProperties": []
+        }
+      },
+      "selectionId": "text",
+      "storyExport": "Default",
+      "storyFile": "polaris-react/src/components/Text/Text.stories.tsx"
+    },
+    {
+      "handoffAttempted": false,
+      "retainedInDenominator": true,
+      "revisions": {
+        "base": {
+          "accepted": false,
+          "classification": "unknown",
+          "deterministic": true,
+          "diagnostic": "error Storybook inspection failed: tsconfig extends is not supported; inherited configuration is outside the bounded static alias contract",
+          "exitCode": 1,
+          "observedDirectChangedProperties": []
+        },
+        "head": {
+          "accepted": false,
+          "classification": "unknown",
+          "deterministic": true,
+          "diagnostic": "error Storybook inspection failed: tsconfig extends is not supported; inherited configuration is outside the bounded static alias contract",
+          "exitCode": 1,
+          "observedDirectChangedProperties": []
+        }
+      },
+      "selectionId": "textfield",
+      "storyExport": "Default",
+      "storyFile": "polaris-react/src/components/TextField/TextField.stories.tsx"
+    },
+    {
+      "handoffAttempted": false,
+      "retainedInDenominator": true,
+      "revisions": {
+        "base": {
+          "accepted": false,
+          "classification": "unknown",
+          "deterministic": true,
+          "diagnostic": "error Storybook inspection failed: tsconfig extends is not supported; inherited configuration is outside the bounded static alias contract",
+          "exitCode": 1,
+          "observedDirectChangedProperties": []
+        },
+        "head": {
+          "accepted": false,
+          "classification": "unknown",
+          "deterministic": true,
+          "diagnostic": "error Storybook inspection failed: tsconfig extends is not supported; inherited configuration is outside the bounded static alias contract",
+          "exitCode": 1,
+          "observedDirectChangedProperties": []
+        }
+      },
+      "selectionId": "tooltip",
+      "storyExport": "Default",
+      "storyFile": "polaris-react/src/components/Tooltip/Tooltip.stories.tsx"
+    }
+  ],
+  "preregistrationCommit": "b6d5c70063ef409717198488b40a31828d13d992",
+  "preregistrationPath": "../polaris-a982763-preregistration.json",
+  "runs": {
+    "allRepeatPairsByteIdentical": true,
+    "perRevisionPerSelection": 2,
+    "total": 40
+  },
+  "schemaVersion": 1,
+  "source": {
+    "archivedFixture": true,
+    "baseSha": "d07c5f1cb64a621aa53d587a0442a3f46922a368",
+    "changeTitle": "Clean up experimental dark tokens (#12467)",
+    "headSha": "a9827635844e9c43093c901966dbe8b623380e96",
+    "license": "MIT",
+    "licenseUrl": "https://github.com/Shopify/polaris-react-archive/blob/a9827635844e9c43093c901966dbe8b623380e96/LICENSE.md",
+    "repository": "https://github.com/Shopify/polaris-react-archive"
+  },
+  "sourceDiffSha256": "f635fa3567d71605a9e95d3e551c292a91d58cd4f2e589b507a6086c2f04d131",
+  "sourceStoryFileCountAtHead": 87,
+  "status": "technical-kill-gate-triggered",
+  "stoppedBeforeHandoff": true,
+  "unattemptedEvidence": [
+    "consumer-a install/build",
+    "consumer-b install/build",
+    "v1 style sidecar",
+    "v2 handoff receipt",
+    "receipt-sidecar mutation check",
+    "runtime",
+    "visual",
+    "accessibility"
+  ]
+}
