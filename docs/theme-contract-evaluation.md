@@ -7,7 +7,7 @@ description: Internal evidence, compatibility boundary, and stop gates for Compi
 
 Status: internal evidence and hardening boundary, not a released package or product commitment.
 
-Evidence snapshot: 2026-08-08, verified main `49844463c16fb055564593a4d601919411605aec`.
+Evidence snapshot: 2026-08-08, verified main and production `82c1fc0084d04ded10d505b7f2fa6c3bdef1e634`.
 
 ## Decision
 
@@ -19,8 +19,8 @@ production backup inspected for this evaluation contains no themes. Shipped fixt
 and editor code demonstrate implementation compatibility; they are not customer
 adoption, portability, willingness-to-pay, or product-market-fit evidence.
 
-The current safe step is therefore an internal authored-content boundary shared by
-HTTP writes and component forks. It validates the shapes the existing editor actually
+The deployed safe step is an internal authored-content boundary shared by HTTP
+writes and component forks. It validates the shapes the existing editor actually
 uses and stops persisting derived `c` fields. It does not add a token platform, DTCG
 import/export, theme CLI, modes, plugins, transformations, signing, or visual/runtime
 claims. npm publication, tags, and releases remain paused.
@@ -77,6 +77,21 @@ parity before it can move into a package.
 Customer CSS, Tailwind configuration, DTCG/token repositories, and application code
 remain canonical. Compify's stored theme is component-scoped editor input, not an
 authority over those sources.
+
+## Offline styling-contract replay
+
+The first preregistered public-source technical replay used the MIT-licensed,
+archived Shopify Polaris token change `a982763` with ten frozen story selections.
+All 40 repeated base/head commands were byte-repeatable, but 0/10 head selections
+inspected: nine failed closed on inherited TypeScript configuration outside the
+bounded static alias contract, and one frozen story export did not exist. The
+seven-of-ten inspectability gate therefore stopped the replay before handoff,
+build, sidecar, or receipt evidence. All ten outcomes remain `unknown`.
+
+This is a negative technical result, not a VTR or demand result. It does not
+justify widening tsconfig evaluation or building a token graph. The exact
+preregistration, denominator, logs, manifest, and checksums are retained under
+[`evidence/theme-release-assurance/`](evidence/theme-release-assurance/).
 
 ## Candidate package gate
 
