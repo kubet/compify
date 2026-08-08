@@ -66,9 +66,11 @@ is present.
 
 Export a selected portable story and install it with native pinned
 `shadcn@4.16.2` into an explicitly separate, already initialized consumer.
-No publish request is made. On success it writes a deterministic, digest-signed
+No publish request is made. On success it writes a deterministic, digest-verifiable
 receipt containing its `installed` or `built` evidence level, exact
-installer/build argv, and hashes of consumer changes. Consumer snapshots are
+installer/build argv, and hashes of consumer changes. Its SHA-256 detects changes
+relative to a trusted copy; it is not a maintainer signature or third-party
+attestation. Consumer snapshots are
 bounded to 10,000 entries, 64 directory levels, and 256 MiB; ignored dependency
 and build directories are not traversed, symlinks are never followed, and
 special files are not opened. Concurrent pathname changes abort evidence

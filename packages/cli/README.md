@@ -46,7 +46,7 @@ compify storybook handoff src/components/Button.stories.tsx --story Primary \
   --consumer ../consumer-app --build-command bun --build-arg run --build-arg build
 ```
 
-This uses pinned native `shadcn@4.16.2`, never publishes, and writes a digest-signed receipt. A receipt is `built` evidence only when an explicit build command succeeds; otherwise it records `installed` evidence.
+This uses pinned native `shadcn@4.16.2`, never publishes, and writes a digest-verifiable receipt. A receipt is `built` evidence only when an explicit build command succeeds; otherwise it records `installed` evidence.
 
 Inspection parses source without importing or executing the story module.
 Inspect JSON also includes an explicitly incomplete `styleContract` evidence layer:
