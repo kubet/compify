@@ -2,12 +2,12 @@
 
 ## Positioning
 
-**Turn selected React Storybook source into reviewable shadcn registry artifacts.**
+**Package selected React component source into reviewable shadcn registry artifacts, using Storybook CSF as the explicit selection boundary.**
 
 Storybook remains the upstream place where a team authors, exercises, tests, and
-documents components. Compify is a translation and distribution layer: it reads
-supported source, lets a maintainer select the intended component surface, and
-produces source-owned artifacts for the shadcn registry ecosystem. It is not a
+documents components. Compify is a packaging and distribution layer: it statically reads
+supported source, lets a maintainer select the intended component surface through
+CSF, and produces source-owned artifacts for the shadcn registry ecosystem. It is not a
 replacement for Storybook, a component marketplace, or a second source of truth.
 
 The official Storybook MCP server is complementary. It helps agents understand

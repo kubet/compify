@@ -36,28 +36,33 @@ function PasswordResetContent() {
     }, [token, email, router]);
 
     const handleResetPassword = async () => {
-        // if (!password || !confirmPassword) {
-        //     setMsg({ text: 'Please fill in all fields', status: 'error' });
-        //     return;
-        // }
-        // if (password !== confirmPassword) {
-        //     setMsg({ text: 'Passwords do not match', status: 'error' });
-        //     return;
-        // }
-        // if (password.length < 6) {
-        //     setMsg({ text: 'Password must be at least 6 characters', status: 'error' });
-        //     return;
-        // }
+        if (isLoading) return;
+
+        if (!password || !confirmPassword) {
+            setMsg({ text: 'Please fill in all fields', status: 'error' });
+            return;
+        }
+        if (password !== confirmPassword) {
+            setMsg({ text: 'Passwords do not match', status: 'error' });
+            return;
+        }
+        if (password.length < 6) {
+            setMsg({ text: 'Password must be at least 6 characters', status: 'error' });
+            return;
+        }
 
         setIsLoading(true);
-        const res = await resetPasswordWithToken(token, email, password);
-        if (res.status === 201) {
-            setMsg({ text: 'Password reset successful', status: 'success' });
-            setTimeout(() => router.push('/login'), 2000);
-        } else {
-            setMsg({ text: res.data.message, status: 'error' });
+        try {
+            const res = await resetPasswordWithToken(token, email, password);
+            if (res.status === 201) {
+                setMsg({ text: 'Password reset successful', status: 'success' });
+                setTimeout(() => router.push('/login'), 2000);
+            } else {
+                setMsg({ text: res.data?.message || 'Unable to reset password. Please try again.', status: 'error' });
+            }
+        } finally {
+            setIsLoading(false);
         }
-        setIsLoading(false);
     }
 
     return (

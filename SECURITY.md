@@ -2,11 +2,12 @@
 
 ## Supported versions
 
-Security fixes are applied to the latest `0.1.x` release and to `main`.
+Security fixes are applied to the latest `0.2.x` repository release and to `main`.
 
 | Version | Supported |
 | ------- | --------- |
-| 0.1.x   | Yes       |
+| 0.2.x   | Yes       |
+| 0.1.x   | Security fixes only until 0.2.1 |
 | < 0.1   | No        |
 
 ## Reporting a vulnerability

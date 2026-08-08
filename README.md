@@ -1,8 +1,9 @@
 # Compify
 
-Compify translates selected React Storybook source into reviewable shadcn
-registry artifacts. Storybook stays upstream for authoring, tests, and docs;
-Compify handles the supported translation and registry distribution path.
+Compify statically packages a selected React component graph into reviewable
+shadcn registry artifacts, using its Storybook CSF file as the explicit selection
+and context boundary. Storybook stays upstream for authoring, tests, and docs;
+Compify handles the supported packaging and registry distribution path.
 
 The repository also contains the existing browser editor, registry API,
 Bun-powered component CLI, Compify MCP server, and self-hosting baseline. See

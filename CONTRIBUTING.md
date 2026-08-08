@@ -32,3 +32,13 @@ CI runs frozen Bun installs, builds, tests, dependency and secret audits,
 CodeQL, migration checks, and a real Docker Compose product smoke test. Hosted
 Compify production deployment is intentionally maintained outside this public
 repository.
+
+## Inbound licensing
+
+By submitting a contribution, you confirm that you have the right to submit it
+and agree that original contributions outside `packages/compify-pack` are
+provided under the repository MIT license. Contributions to the vendored
+Sandpack derivative in `packages/compify-pack` are provided under Apache-2.0 and
+must preserve applicable upstream notices and document material modifications.
+The project does not currently require a CLA or DCO sign-off; authorship remains
+recorded in Git history.

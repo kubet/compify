@@ -7,18 +7,24 @@ and compatibility contracts.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-08-08
+
 ### Added
 
+- Release candidates `@compify/cli@0.2.0` and `@compify/storybook@0.1.0`; package publication remains a separate, explicit release action.
 - Storybook-first CLI commands to statically inspect React CSF, export a validated shadcn registry item, and publish a reviewed component graph to a configured Compify API.
 - A renderer-neutral `@compify/storybook` manager addon for explicit portability, registry, install, and preview metadata.
 - Bearer-authenticated `POST /cli/publish-story` with deterministic digests, provenance, strict file/path/content limits, and public, unlisted, or private visibility.
 - Storybook product-market-fit research, falsification criteria, adoption measures, documentation, and first-class CI coverage.
+- Explicit `--story <export-name>` selection, a zero-account golden fixture, and packed-CLI release validation.
 
 ### Changed
 
 - Direct shadcn registry installation is now the primary publish and component-detail workflow.
 - Self-hosted Google OAuth and Turnstile capabilities are explicitly paired and disabled by default; missing Sandpack infrastructure now fails closed instead of pointing to a nonexistent bundled service.
 - Unlisted components remain directly installable but are excluded from the registry index.
+- The public landing page, navigation, metadata, and package documentation now lead with the review-first Storybook workflow and its limits instead of unsupported marketplace or productivity claims.
+- Password-reset validation and editor file-tab keyboard/accessibility behavior were hardened.
 
 ### Security
 

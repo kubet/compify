@@ -17,12 +17,11 @@ function NavBar() {
   const pathname = usePathname();
 
   const notLoggedInLinks = useMemo(() => ([
-    { title: "Browse", href: "/search" },
-    { title: "Features", href: "/#features" },
-    { title: "Demo", href: "/#demo" },
-    { title: "Pricing", href: "/#pricing" },
-    { title: "Templates", href: "/templates" },
-    { title: "Components", href: "/#components" },
+    { title: "Workflow", href: "/#workflow" },
+    { title: "For teams", href: "/#users" },
+    { title: "Limits", href: "/#limits" },
+    { title: "Docs", href: "/docs/getting-started" },
+    { title: "Registry", href: "/search" },
   ]), []);
 
   const loggedInLinks = useMemo(() => ([

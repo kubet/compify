@@ -304,7 +304,7 @@ function canonical(value: any): string {
   if (value && typeof value === "object") return `{${Object.keys(value).sort().map(k => `${JSON.stringify(k)}:${canonical(value[k])}`).join(",")}}`
   return JSON.stringify(value)
 }
-export interface BuildStoryOptions { cwd?: string; name?: string; publishingName?: string; description?: string; visibility?: "public" | "private" | "unlisted"; componentEntry?: string }
+export interface BuildStoryOptions { cwd?: string; name?: string; publishingName?: string; description?: string; visibility?: "public" | "private" | "unlisted"; componentEntry?: string; story?: string }
 export function buildStoryBundle(input?: string, options: BuildStoryOptions = {}): StoryBundle {
   const storyPath = resolveStoryEntry(input, options.cwd)
   const root = findPackageRoot(storyPath)
@@ -314,7 +314,18 @@ export function buildStoryBundle(input?: string, options: BuildStoryOptions = {}
   const storySource = storyRaw.toString("utf8").replace(/\r\n?/g, "\n")
   const storyAst = parseSource(storySource, storyRel)
   const diagnostics: PortabilityDiagnostic[] = []
-  const stories = inspectStories(storyAst, storyRel, diagnostics)
+  const inspectedStories = inspectStories(storyAst, storyRel, diagnostics)
+  let stories = inspectedStories
+  if (options.story) {
+    const selected = inspectedStories.find(story => story.exportName === options.story)
+    if (!selected) throw new Error(`Story export not found: ${options.story}`)
+    stories = [selected]
+    // Story-scoped portability diagnostics from unselected exports must not
+    // prevent exporting an explicitly selected portable story.
+    for (let index = diagnostics.length - 1; index >= 0; index--) {
+      if (diagnostics[index].exportName && diagnostics[index].exportName !== options.story) diagnostics.splice(index, 1)
+    }
+  }
 
   let componentPath: string | undefined
   if (options.componentEntry) {

@@ -12,6 +12,7 @@ type CommonOptions = {
   publishingName?: string
   visibility: "public" | "private" | "unlisted"
   componentEntry?: string
+  story?: string
 }
 
 function build(entry: string | undefined, opts: CommonOptions) {
@@ -22,6 +23,7 @@ function build(entry: string | undefined, opts: CommonOptions) {
     publishingName: opts.publishingName,
     visibility: opts.visibility,
     componentEntry: opts.componentEntry,
+    story: opts.story,
   })
 }
 function assertPortable(bundle: ReturnType<typeof build>) {
@@ -41,6 +43,7 @@ function common(command: Command): Command {
     .option("--description <description>", "component description")
     .option("--publishing-name <name>", "public publishing slug/name")
     .option("--component-entry <path>", "component source entry (overrides CSF meta.component inference)")
+    .option("--story <export-name>", "select one exact named story export")
     .addOption(new Option("--visibility <visibility>", "publish visibility").choices(["public", "private", "unlisted"]).default("private"))
 }
 

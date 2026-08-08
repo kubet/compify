@@ -37,6 +37,28 @@ describe("static Storybook bundling", () => {
     expect(bundle.diagnostics).toContainEqual(expect.objectContaining({ code: "DYNAMIC_STORY_ARGS", severity: "warning" }))
   })
 
+  it("selects one exact story and ignores non-portability in unselected stories", () => {
+    const root = project({
+      "Button.stories.tsx": `import { Button } from "./Button"
+export default { component: Button }
+export const Portable = { args: { label: "Go" } }
+export const Dynamic = { args: makeArgs() }
+`,
+      "Button.tsx": `export const Button = () => null
+`,
+    })
+    const bundle = buildStoryBundle(undefined, { cwd: root, story: "Portable" })
+    expect(bundle.stories).toEqual([{ exportName: "Portable", name: "Portable", args: { label: "Go" }, portable: true }])
+    expect(bundle.diagnostics).not.toContainEqual(expect.objectContaining({ exportName: "Dynamic" }))
+  })
+
+  it("rejects a named-story selection that does not exactly match an exported story", () => {
+    const root = project({ "X.stories.tsx": `export default {}
+export const Primary = {}
+` })
+    expect(() => buildStoryBundle(undefined, { cwd: root, story: "primary" })).toThrow("Story export not found: primary")
+  })
+
   it("terminates local import cycles and normalizes CRLF deterministically", () => {
     const files = {
       "Cycle.stories.tsx": `import { a } from "./a"\nexport default { title: "Cycle", component: a }\nexport const One = { args: { ok: true } }\n`,

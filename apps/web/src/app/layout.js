@@ -14,17 +14,17 @@ const suse = localFont({
 export const metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: 'Compify - Build & Share Beautiful UI Components | Component Library',
-    template: '%s | Compify - Component Builder'
+    default: 'Compify — Reviewable Storybook to shadcn artifacts',
+    template: '%s | Compify'
   },
-  description: 'Build Faster Using Reusable Components. Preview, customize, and share high-quality UI across your projects.',
+  description: 'Statically package selected React component source, using Storybook CSF as the review boundary, into deterministic shadcn registry artifacts.',
   openGraph: {
     type: 'website',
-    siteName: 'Compify - Component Builder',
+    siteName: 'Compify',
     images: [`${cdnUrl}/default-og.webp`],
     locale: 'en_US',
     title: 'Compify - Build Beautiful UI Components | Modern Component Library',
-    description: 'Build Faster Using Reusable Components. Preview, customize, and share high-quality UI across your projects.',
+    description: 'Statically package selected React component source, using Storybook CSF as the review boundary, into deterministic shadcn registry artifacts.',
   },
   twitter: {
     card: 'summary_large_image',

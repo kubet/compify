@@ -25,8 +25,9 @@ file exists. Common options are `--cwd`, `--name`, `--description`,
 `public`, or `unlisted`; default `private`). The CLI normally infers the
 installable component entry from the CSF default meta `component` import;
 `--component-entry` provides an explicit override when that is not possible.
-`public` items are indexed, `unlisted` items are direct-address only, and
-`private` items are owner-only.
+Use `--story <export-name>` to select one exact named story export; without it,
+all named stories in the file must be portable. `public` items are indexed,
+`unlisted` items are direct-address only, and `private` items are owner-only.
 
 ### `compify storybook inspect [entry]`
 
@@ -36,6 +37,7 @@ portability diagnostics.
 
 ```bash
 compify storybook inspect src/Button.stories.tsx
+compify storybook inspect src/Button.stories.tsx --story Primary
 compify storybook inspect src/Button.stories.tsx --json
 ```
 
@@ -48,7 +50,7 @@ Translate the bundle into a local shadcn registry item.
 
 ```bash
 compify storybook export src/Button.stories.tsx \
-  --output .compify/button.registry.json
+  --story Primary --output .compify/button.registry.json
 ```
 
 `-o, --output <file>` chooses the path; otherwise the CLI writes
@@ -68,7 +70,8 @@ COMPIFY_API_URL=https://api.example.com compify storybook publish \
 The target must be a self-hosted current-source deployment containing
 `POST /cli/publish-story`; the CLI default API does not currently expose that
 endpoint. `--json` emits the server response. Export and publish both refuse
-bundles with error diagnostics or non-portable stories.
+bundles with error diagnostics or non-portable selected stories. When `--story`
+is omitted, every named story in the file is selected and must be portable.
 The story source and Storybook-only dependencies are metadata inputs and are not
 included in the installable component files. The API independently verifies the deterministic payload digest.
 

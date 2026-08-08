@@ -45,9 +45,19 @@ compify storybook inspect src/components/Button.stories.tsx \
 
 See the [CLI reference](./cli.md) for other options.
 
-`inspect` reports all named stories discovered in the selected file. The
-current CLI bundles at file level; it does not export only one named story from
-that file.
+`inspect` reports all named stories discovered in the selected file by default.
+Pass `--story <export-name>` to inspect, export, or publish one exact named story:
+
+```bash
+compify storybook inspect src/components/Button.stories.tsx --story Primary
+compify storybook export src/components/Button.stories.tsx \
+  --story Primary --output .compify/button.registry.json
+```
+
+Without `--story`, every named story in the file is selected and must be portable
+for export or publish. With it, portability diagnostics belonging only to other
+named stories do not block the selected story. The component source bundle is
+still resolved from the file's default meta component (or `--component-entry`).
 
 ## Supported source boundary
 
@@ -116,7 +126,7 @@ Compify does not currently promise:
 - asset/binary bundling or arbitrary file types;
 - automatic conversion of a story render function into a reusable component;
 - perfect dependency discovery for runtime or dynamically loaded dependencies;
-- per-named-story export from a multi-story file; or
+- combining named stories from different story files into one artifact; or
 - automatic synchronization when upstream source changes.
 
 An inspection with no error diagnostics means the supported static bundle can be

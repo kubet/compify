@@ -10,7 +10,9 @@
     "url": "https://compify.app"
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "LICENSE"
   ],
   "keywords": [
     "components",
@@ -33,7 +35,8 @@
     "test": "vitest run",
     "link": "bun link",
     "unlink": "bun unlink",
-    "prepublishOnly": "bun run test && bun run build"
+    "prepublishOnly": "bun run test && bun run test:package",
+    "test:package": "bun run build && bun scripts/check-package.ts"
   },
   "dependencies": {
     "@babel/parser": "^8.0.4",
