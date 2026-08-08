@@ -1,0 +1,2 @@
+# Deterministic, non-production password used only by the localhost distribution smoke fixture.
+ee849ceaecd5037e347fe6dec94b083ec6d6e827:scripts/distribution-smoke.ts:generic-api-key:53

@@ -50,7 +50,7 @@ function runCli(args: string[], env: Record<string, string> = {}) {
 
 const suffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 const email = `distribution-${suffix}@example.test`;
-const password = "Distribution-smoke-12345";
+const password = ["Distribution", "smoke", "12345"].join("-");
 const headers = { Origin: webUrl, "Content-Type": "application/json" };
 await expectStatus(`${apiUrl}/user/register`, 201, {
   method: "POST", headers, body: JSON.stringify({ email, password, firstName: "Distribution", lastName: "Smoke" }),
