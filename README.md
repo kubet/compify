@@ -5,21 +5,20 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Bun 1.3.9](https://img.shields.io/badge/Bun-1.3.9-f9f1e1?logo=bun)](https://bun.sh/)
 
-**Turn an explicitly selected React Storybook source graph into a reviewable,
-shadcn-compatible artifact with deterministic install and build evidence.**
+**Build React components once. Preview, share, and install them anywhere.**
 
-Storybook stays upstream for authoring, previews, tests, and docs. Compify owns
-the static source boundary, artifact review, native shadcn handoff, and local
-receipt. It does not execute story modules or publish implicitly.
+Compify is an open-source component platform and CLI with a live browser editor,
+a shadcn-compatible registry, and a Storybook-aware workflow for moving reviewed
+React components between applications.
 
 <p align="center">
   <a href="https://compify.app/demo-video.mp4">
-    <img src="docs/assets/legacy-editor-demo.webp" width="720" alt="Compify browser editor with React source on the left and its component preview on the right" />
+    <img src="docs/assets/demo.gif" width="720" alt="Animated Compify demo showing React source edits and live component previews" />
   </a>
 </p>
 
 <p align="center">
-  <strong><a href="https://compify.app/demo-video.mp4">▶ Watch the 22-second demo with playback controls</a></strong>
+  <strong><a href="https://compify.app/demo-video.mp4">Open the full-quality 22-second MP4 with playback controls</a></strong>
 </p>
 
 > The recording shows Compify's existing optional browser editor. The release
