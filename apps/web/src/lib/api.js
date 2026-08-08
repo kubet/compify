@@ -1,5 +1,6 @@
 import { baseUrl } from "@/constains";
 import axios from "axios";
+import { makeRemapFilesPayload } from "./ai-payload";
 
 // Required for cross-origin, host-only HttpOnly session cookies.
 axios.defaults.withCredentials = true;
@@ -579,11 +580,11 @@ export async function getCompletionInput({ prompt, fa }) {
     .catch((error) => handelError(error));
 }
 
-export async function remapFiles({ files, uiFrameworks, themeKeys }) {
+export async function remapFiles({ files, uiFrameworks, componentId }) {
   const options = {
     method: "POST",
     url: `${baseUrl}/ai/remap-files`,
-    data: { files, uiFrameworks, themeKeys },
+    data: makeRemapFilesPayload({ files, uiFrameworks, componentId }),
   };
   return axios(options)
     .then((response) => handleSuccess(response))

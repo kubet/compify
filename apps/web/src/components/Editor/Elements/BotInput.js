@@ -516,6 +516,7 @@ const BotInput = ({
             setSnackHeight,
             deleteFile: handleDeleteFile,
             usedUiFrameworks,
+            componentId,
             handleFileSwitch
         };
 

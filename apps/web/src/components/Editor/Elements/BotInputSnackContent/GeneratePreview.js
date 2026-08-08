@@ -177,7 +177,7 @@ function GeneratePreview({ files, apply, close, setSnackHeight, activeFile, user
     const getFiles = () => {
         const filesObj = {};
         selectedFiles.forEach(file => {
-            filesObj[file] = files[file]?.code;
+            filesObj[denormalizePath(file)] = files[file]?.code;
         });
         return filesObj;
     }
