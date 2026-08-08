@@ -58,8 +58,8 @@ function ChangeFactor({ factor, theme, setTheme, openMenu }) {
                 <span className="text-sm capitalize">{factor}</span>
                 <motion.div className="relative">
                     <Slider
-                        max={foundFactor?.max || 100}
-                        min={foundFactor?.min || 0}
+                        max={foundFactor?.max ?? 100}
+                        min={foundFactor?.min ?? 0}
                         defaultValue={foundFactor?.value}
                         onValueChange={(value) => handleUpdateFactor(value)}
                         gradientBg={config.background}

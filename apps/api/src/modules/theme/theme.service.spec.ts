@@ -69,7 +69,7 @@ function service(repos: ReturnType<typeof repositories>) {
 const ownedTheme = {
   id: themeId,
   name: 'Brand',
-  factors: [{ key: 'hue', value: '10' }],
+  factors: [{ key: 'hue', type: 'hue', value: '10' }],
   groups: {},
   values: [],
   version: 1,
@@ -284,7 +284,7 @@ describe('ThemeService retained persistence regressions', () => {
     ).rejects.toBe(failure);
   });
 
-  it('preserves omitted fields on partial updates', async () => {
+  it('sanitizes and rewrites all collections on partial updates', async () => {
     const updatedAt = new Date('2026-01-02T03:04:05Z');
     const repos = repositories({
       theme: ownedTheme,
@@ -309,9 +309,11 @@ describe('ThemeService retained persistence regressions', () => {
       1,
     );
     const changes = repos.qb.set.mock.calls[0][0];
-    expect(changes).not.toHaveProperty('factors');
-    expect(changes).not.toHaveProperty('groups');
-    expect(changes).not.toHaveProperty('values');
+    expect(changes).toMatchObject({
+      factors: ownedTheme.factors,
+      groups: ownedTheme.groups,
+      values: ownedTheme.values,
+    });
     expect(result).toMatchObject({
       factors: ownedTheme.factors,
       groups: ownedTheme.groups,
@@ -319,6 +321,95 @@ describe('ThemeService retained persistence regressions', () => {
       version: 2,
       updatedAt,
     });
+  });
+
+  it('strips derived fields and rewrites every prospective collection', async () => {
+    const theme = {
+      ...ownedTheme,
+      factors: [{ key: 'hue', type: 'hue', value: 10, c: 'old compilation' }],
+      groups: {
+        palette: {
+          type: 'palette',
+          options: [{ key: 'primary', value: '--hue', c: 10 }],
+        },
+      },
+      values: [
+        { key: 'primary', value: '--palette-primary', c: '--palette-primary' },
+      ],
+    };
+    const repos = repositories({ theme });
+    await service(repos).createOrUpdate(
+      { id: uuidToShortId(themeId), name: 'Sanitized' },
+      user,
+      1,
+    );
+    expect(repos.qb.set).toHaveBeenCalledWith(
+      expect.objectContaining({
+        factors: [{ key: 'hue', type: 'hue', value: 10 }],
+        groups: {
+          palette: {
+            type: 'palette',
+            options: [{ key: 'primary', value: '--hue' }],
+          },
+        },
+        values: [{ key: 'primary', value: '--palette-primary' }],
+      }),
+    );
+  });
+
+  it('rejects malformed untouched stored content before issuing a CAS update', async () => {
+    const repos = repositories({
+      theme: {
+        ...ownedTheme,
+        values: [{ key: 'primary', value: 'red', unexpected: true }],
+      },
+    });
+    await expect(
+      service(repos).createOrUpdate(
+        { id: uuidToShortId(themeId), name: 'Cannot mask invalid source' },
+        user,
+        1,
+      ),
+    ).rejects.toBeInstanceOf(BadRequestException);
+    expect(repos.themeRepository.createQueryBuilder).not.toHaveBeenCalled();
+  });
+
+  it('reports a stale owned validator before inspecting malformed stored content', async () => {
+    const repos = repositories({
+      theme: {
+        ...ownedTheme,
+        values: [{ key: 'primary', value: 'red', unexpected: true }],
+      },
+    });
+    await expect(
+      service(repos).createOrUpdate(
+        { id: uuidToShortId(themeId), name: 'Stale' },
+        user,
+        0,
+      ),
+    ).rejects.toBeInstanceOf(ConflictException);
+    expect(repos.themeRepository.createQueryBuilder).not.toHaveBeenCalled();
+  });
+
+  it('rejects raw migration fields over one MiB even when projection would strip them', async () => {
+    const repos = repositories({ component: { id: componentId, user } });
+    await expect(
+      service(repos).createOrUpdate(
+        {
+          componentId: uuidToShortId(componentId),
+          factors: [
+            {
+              key: 'x',
+              type: 'value',
+              value: 1,
+              c: 'x'.repeat(1024 * 1024),
+            },
+          ],
+        } as any,
+        user,
+      ),
+    ).rejects.toThrow('Theme size exceeds');
+    expect(repos.themeRepository.save).not.toHaveBeenCalled();
   });
 
   it('returns persistence-managed create version and update timestamp', async () => {

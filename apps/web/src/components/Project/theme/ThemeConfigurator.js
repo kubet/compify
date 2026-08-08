@@ -296,8 +296,8 @@ const ThemeConfigurator = ({ factors, values, updateFactor, replaceValue, groups
                         // whileHover={{ scale: 1.02 }}
                         >
                             <Slider
-                                max={factor?.max || 100}
-                                min={factor?.min || 0}
+                                max={factor?.max ?? 100}
+                                min={factor?.min ?? 0}
                                 defaultValue={factor.value}
                                 onValueChange={(value) => handleSliderChange(index, value)}
                                 gradientBg={sliderConfigs[factor.key].background}
