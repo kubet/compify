@@ -52,18 +52,14 @@ export default function ValueTokens({ values, setValues, updateValue, removeValu
                 <div key={index} className="flex items-center space-x-2">
                     <UtilityInput
                         value={item.key}
-                        onChange={(e) => {
-                            const updatedItem = { ...item, key: e.target.value };
-                            setValues(prev => {
-                                const newValues = [...prev];
-                                newValues[index] = updatedItem;
-                                return newValues;
-                            });
-                        }}
+                        onChange={(e) => updateValue(index, { ...item, key: e.target.value })}
                         className="w-1/2"
                         errorMessage={checkDuplicateName(item.key, 'values') ? 'Name already exists' : ''}
                         errorColor='#eab208'
                     />
+                    {checkDuplicateName(item.key, 'values') && (
+                        <span role="alert" className="sr-only">Value name already exists</span>
+                    )}
                     <InputControl
                         token={item}
                         onChange={(updatedToken) => updateValue(index, updatedToken)}

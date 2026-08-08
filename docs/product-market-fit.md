@@ -64,6 +64,76 @@ actions, sitemap entries are catalog pages, and issues are individual reports.
 | Storybook documents an official [MCP server](https://storybook.js.org/docs/ai/mcp), described as preview/unstable and React-only at review time (2026-08-07). | Upstream component context for agents is an active ecosystem direction. | It can change by version and does not prove that Compify should duplicate MCP or that MCP solves source distribution. |
 | shadcn documents [custom registries](https://ui.shadcn.com/docs/registry) and an [MCP server](https://ui.shadcn.com/docs/mcp) that consumes configured registries (reviewed 2026-08-07). | A known source-distribution format can reach developers and some agent clients. | Compatibility depends on pinned CLI/client behavior. This is not evidence that teams want another registry producer. |
 
+## Theme release assurance adjacency: concierge evidence before product
+
+Compify's legacy editor can create component-scoped factors, groups, semantic
+values, CSS variables, and flat JSON. That implementation is not evidence that
+teams want another theme editor, token platform, or AI palette generator. The
+only adjacent business hypothesis consistent with Compify's authority boundary
+is **Theme Release Assurance**: before a team releases an already-authored token
+or theme change, identify the statically observable component dependencies,
+run the checks the team already trusts in named destinations, and retain a
+reviewed digest-bound evidence bundle.
+
+A qualified pilot must already have all of the following:
+
+- a production React design system with Storybook;
+- at least two brands/modes/themes, or one semantic-token set used by three apps;
+- a named maintainer and monthly-or-faster token changes;
+- a real release from the prior 60 days involving manual review, downstream
+  repair, or regression risk; and
+- one canonical Git input plus two destination applications it can use in a
+  private, bounded pilot.
+
+The activation event is a **Verified Theme Release (VTR)**, not a theme saved or
+page visited. A VTR requires a non-demo external token commit, an explicit owner,
+a reviewed changed-token and impacted/unknown graph, declared checks over at
+least ten selected stories and two app destinations, and an approved evidence
+digest. Runtime, visual, accessibility, build, and static evidence remain
+separate. Retention requires a second distinct production theme change by the
+same team within 45 days without founder operation.
+
+Run this as a paid concierge study before building a theme product: offer at
+most ten 30-day pilot slots at a fixed **$1,500** scope (one token repository,
+up to three modes, 25 critical stories, and two apps). Ask for a real order
+rather than a pricing opinion. The experiment clock starts only after an owner
+explicitly approves outbound recruitment. During its first 42 days, make at
+most 40 individually researched invitations to maintainers who appear to meet
+the qualification criteria; do not bulk-message or post on their behalf.
+
+Record one immutable funnel row per organization: `invited` means a named
+maintainer received the bounded offer; `qualified` means the maintainer confirmed
+all criteria above; `enrolled` means the scope and kickoff were accepted; `paid`
+means the $1,500 order cleared; `VTR` means activation met the definition above;
+`repeat` means a second production release met it within 45 days; and `renewed`
+means any paid continuation was ordered within 45 days after the pilot. Every
+paid pilot remains in the repeat and renewal denominators, including pilots that
+do not activate. Coverage is calculated across the 25 critical stories each paid
+team declares at kickoff: the numerator is stories that the static graph can
+classify as impacted or not impacted for the release, and `unknown` stories stay
+in the denominator. Report both per-team coverage and the aggregate
+story-release numerator and denominator; never discard failed pilots.
+
+After a VTR, test **$199/month per protected library** for a team offer and
+**$599/month** for longer evidence retention and approval policy. These are
+willingness-to-pay experiments, not published plans. Stop recruitment on day 42
+and finish already-paid 30-day pilots plus their 45-day repeat/renewal window;
+do not extend the clock because results are weak.
+
+Kill or reduce this adjacency to an open policy/receipt module if, after 40
+invitation attempts or day 42 (whichever comes first), fewer than three pilots
+pay; if fewer than two of all paid pilots renew; if fewer than five of all paid
+pilots complete a second real release; if aggregate static mapping covers less
+than 70% of declared story-release pairs; or if seven of the first ten qualified
+teams demonstrate that their existing package CI plus token/visual tools already
+solves the job. Failure to recruit or qualify enough teams by the deadline is a
+negative result, not permission to defer the decision. Do not build Figma sync,
+a token marketplace, visual
+regression, generic transformations, enterprise administration, or AI theme
+creation from interview compliments. DTCG import, token dependency graphs, and
+signed release evidence become candidates only after repeated real-release
+proof.
+
 The appropriate conclusion is “there is a sufficiently large adjacent ecosystem
 to recruit a focused sample,” not “the market is 20 million users.” Refresh all
 dynamic snapshots before external publication.

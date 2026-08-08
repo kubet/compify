@@ -3,6 +3,7 @@ import path from "path"
 import crypto from "crypto"
 import { execFileSync } from "child_process"
 import { parse } from "@babel/parser"
+import { inspectStyleContract, type StyleContractEvidence } from "./storybook-style-contract"
 
 export interface PortabilityDiagnostic {
   severity: "warning" | "error"
@@ -45,6 +46,8 @@ export interface StoryBundle {
   diagnostics: PortabilityDiagnostic[]
   /** Deterministic inspection sidecar. Deliberately excluded from digest and registry wire payloads. */
   sourceGraph: SourceGraphEvidence
+  /** Incomplete, non-executing CSS lexical evidence; excluded from digest and registry wire payloads. */
+  styleContract: StyleContractEvidence
 }
 
 const SOURCE_EXTENSIONS = [".tsx", ".ts", ".jsx", ".js", ".mjs", ".cjs"]
@@ -730,9 +733,10 @@ export function buildStoryBundle(input?: string, options: BuildStoryOptions = {}
   }
   graphEdges.sort((a, b) => canonical(a) < canonical(b) ? -1 : canonical(a) > canonical(b) ? 1 : 0)
   const sourceGraph = { files: evidenceFiles, imports: graphEdges }
-  // sourceGraph is inspection evidence, not publish content. Keeping it out of
+  const styleContract = inspectStyleContract(sortedFiles)
+  // sourceGraph and styleContract are inspection evidence, not publish content. Keeping them out of
   // unsigned preserves the established wire digest semantics deliberately.
-  return { ...unsigned, digest, diagnostics, sourceGraph }
+  return { ...unsigned, digest, diagnostics, sourceGraph, styleContract }
 }
 
 /** Return the deterministic local-import chain from the component entry to a

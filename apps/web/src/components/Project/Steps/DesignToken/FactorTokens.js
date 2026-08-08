@@ -97,6 +97,9 @@ export default function FactorTokens({ factors, updateFactor, removeFactor, addF
                             errorMessage={checkDuplicateName(factor.key, 'factors') ? 'Name already exists' : ''}
                             errorColor='#eab208'
                         />
+                        {checkDuplicateName(factor.key, 'factors') && (
+                            <span role="alert" className="sr-only">Factor name already exists</span>
+                        )}
                     </div>
                     <div className="w-1/2">
                         <InputControl

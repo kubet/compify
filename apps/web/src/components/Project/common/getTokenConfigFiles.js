@@ -1,4 +1,5 @@
-const TOKEN_NAME_PATTERN = /^[A-Za-z_][A-Za-z0-9_-]*$/;
+const TOKEN_NAME_PATTERN = /^[A-Za-z_][A-Za-z0-9_-]{0,63}$/;
+const RESERVED_TOKEN_NAMES = new Set(['__proto__', 'prototype', 'constructor']);
 
 const serializeCssValue = (value, key) => {
     if (typeof value === 'number' && Number.isFinite(value)) return String(value);
@@ -49,7 +50,7 @@ const validateAndSortTokens = (tokens) => {
 
     const validatedTokens = tokens.map((token) => {
         const key = typeof token?.key === 'string' ? token.key : '';
-        if (!TOKEN_NAME_PATTERN.test(key)) {
+        if (!TOKEN_NAME_PATTERN.test(key) || RESERVED_TOKEN_NAMES.has(key)) {
             throw new Error(`Unsafe design token name: "${key}"`);
         }
         if (seen.has(key)) {

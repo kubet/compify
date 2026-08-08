@@ -4,6 +4,7 @@ import os from "os";
 import path from "path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
+  DEFAULT_CONSUMER_SNAPSHOT_LIMITS,
   runStorybookHandoff,
   SHADCN_HANDOFF_VERSION,
   snapshotConsumer,
@@ -24,9 +25,11 @@ function sourceProject() {
   fs.writeFileSync(
     path.join(root, "Button.tsx"),
     `import React from "react"
+import "./button.css"
 export const Button = () => null
 `
   );
+  fs.writeFileSync(path.join(root, "button.css"), `.button { color: var(--consumer-brand) }\n`);
   fs.writeFileSync(
     path.join(root, "Button.stories.tsx"),
     `import { Button } from "./Button"
@@ -76,6 +79,7 @@ describe("Storybook handoff", () => {
   it("uses pinned shadcn argv without a shell and writes a digest-verifiable receipt", () => {
     const source = sourceProject();
     const consumer = consumerProject();
+    fs.writeFileSync(path.join(consumer, "theme.css"), ":root { --consumer-brand: red; --unrelated: blue }\n");
     const calls: any[] = [];
     const spawn = ((file: string, args: readonly string[], options: any) => {
       calls.push({ file, args: [...args], options });
@@ -138,7 +142,24 @@ describe("Storybook handoff", () => {
     expect(receiptDigest).toBe(
       crypto.createHash("sha256").update(canonical(unsigned)).digest("hex")
     );
+    expect(parsed.schemaVersion).toBe(2);
     expect(parsed.source.stories).toEqual(["Primary"]);
+    const stylePath = path.join(source, ".compify", "button.style-contract.json");
+    expect(parsed.styleContract).toMatchObject({
+      path: stylePath,
+      bundleDigest: parsed.source.bundleDigest,
+      analysis: "static-css-lexical",
+      incomplete: true,
+    });
+    expect(parsed.styleContract.sha256).toBe(
+      crypto.createHash("sha256").update(fs.readFileSync(stylePath)).digest("hex")
+    );
+    const styleSidecar = JSON.parse(fs.readFileSync(stylePath, "utf8"));
+    expect(styleSidecar.bundleDigest).toBe(parsed.source.bundleDigest);
+    expect(styleSidecar.evidence.incomplete).toBe(true);
+    expect(styleSidecar.evidence.consumerProvidedCandidates).toEqual([
+      { name: "--consumer-brand", file: "theme.css", line: 1, column: 9 },
+    ]);
   });
 
   it("fails before executing when the consumer is not a separate initialized package", () => {
@@ -158,7 +179,7 @@ describe("Storybook handoff", () => {
     expect(spawn).not.toHaveBeenCalled();
   });
 
-  it("cleans its artifact, writes no success receipt, and permits retry after installation failure", () => {
+  it("retains failure evidence, writes no success receipt, and refuses implicit overwrite", () => {
     const source = sourceProject();
     const consumer = consumerProject();
     const output = path.join(source, "button.registry.json");
@@ -172,7 +193,7 @@ describe("Storybook handoff", () => {
       )
     ).toThrow(/status 7/);
     expect(fs.existsSync(receipt)).toBe(false);
-    expect(fs.existsSync(output)).toBe(false);
+    expect(fs.existsSync(output)).toBe(true);
 
     expect(() =>
       runStorybookHandoff(
@@ -180,9 +201,26 @@ describe("Storybook handoff", () => {
         { cwd: source, consumer, output, receipt },
         (() => success()) as any
       )
-    ).not.toThrow();
-    expect(fs.existsSync(output)).toBe(true);
-    expect(fs.existsSync(receipt)).toBe(true);
+    ).toThrow(/Refusing to overwrite/);
+    expect(fs.existsSync(receipt)).toBe(false);
+  });
+
+  it("aborts a snapshot when a child directory is replaced before recursion", () => {
+    const consumer = consumerProject();
+    const child = path.join(consumer, "child");
+    const replacement = path.join(consumer, "replacement");
+    const displaced = path.join(consumer, "displaced");
+    fs.mkdirSync(child);
+    fs.mkdirSync(replacement);
+    fs.writeFileSync(path.join(child, "original.txt"), "original");
+    fs.writeFileSync(path.join(replacement, "replacement.txt"), "replacement");
+    expect(() => snapshotConsumer(consumer, DEFAULT_CONSUMER_SNAPSHOT_LIMITS, {
+      beforeDescend: directory => {
+        if (path.basename(directory) !== "child") return;
+        fs.renameSync(child, displaced);
+        fs.renameSync(replacement, child);
+      },
+    })).toThrow(/changed before traversal/);
   });
 
   it("bounds consumer traversal before running native commands", () => {

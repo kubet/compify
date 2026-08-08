@@ -127,7 +127,7 @@ so adding explanations cannot silently change the install artifact.
 
 For a real cross-app proof, `storybook handoff` exports locally, invokes pinned
 native shadcn without a shell, optionally runs an explicit consumer build, and
-writes a digest-signed receipt. A receipt is `built` evidence only when that
+writes a digest-verifiable receipt. A receipt is `built` evidence only when that
 build succeeds; no publish request is made. Snapshot traversal is bounded and
 never follows symlinks. A native-command failure writes no success receipt,
 removes only Compify's unchanged temporary artifact, and may leave consumer

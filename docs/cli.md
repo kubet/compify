@@ -41,8 +41,13 @@ compify storybook inspect src/Button.stories.tsx --story Primary
 compify storybook inspect src/Button.stories.tsx --json
 ```
 
-`--json` emits machine-readable output. Inspection exits unsuccessfully when it
-reports an error diagnostic.
+`--json` emits machine-readable output. It also includes a `styleContract`
+observation containing literal CSS `var(--name)` uses, fallbacks, bundled
+custom-property definitions, and source locations. This scan is deliberately
+incomplete: it does not execute CSS, preprocessors, JavaScript, Storybook, or a
+browser, and it does not prove cascade, scope, selector, layer, media, import
+order, or runtime availability. Inspection exits unsuccessfully when it reports
+an error diagnostic.
 
 ### `compify storybook export [entry]`
 
@@ -61,16 +66,20 @@ is present.
 
 Export a selected portable story and install it with native pinned
 `shadcn@4.16.2` into an explicitly separate, already initialized consumer.
-No publish request is made. On success it writes a deterministic, digest-signed
+No publish request is made. On success it writes a deterministic, digest-verifiable
 receipt containing its `installed` or `built` evidence level, exact
-installer/build argv, and hashes of consumer changes. Consumer snapshots are
+installer/build argv, and hashes of consumer changes. Its SHA-256 detects changes
+relative to a trusted copy; it is not a maintainer signature or third-party
+attestation. Consumer snapshots are
 bounded to 10,000 entries, 64 directory levels, and 256 MiB; ignored dependency
 and build directories are not traversed, symlinks are never followed, and
-special files are not opened. Existing artifact or receipt files are never
-overwritten. If installation or build fails, no success receipt is written and
-the CLI removes only the unchanged artifact inode it created so a retry is not
-blocked. Native tools may already have changed consumer files; review the working
-tree before retrying.
+special files are not opened. Concurrent pathname changes abort evidence
+collection rather than being followed. Existing artifact or receipt files are
+never overwritten. If installation or build fails, no success receipt is written;
+generated files are retained as failure evidence because pathname-based cleanup
+cannot atomically prove which inode it would unlink. Native tools may already have
+changed consumer files; review the working tree and remove retained artifacts
+explicitly before retrying.
 
 ```bash
 compify storybook handoff src/Button.stories.tsx --story Primary \
@@ -83,6 +92,15 @@ The required consumer must be outside the source package tree and contain both
 commands are never interpreted by a shell. Defaults are
 `.compify/<name>.registry.json` and `.compify/<name>.handoff.json`; override them
 with `--output` and `--receipt`.
+
+Handoff also writes `.compify/<name>.style-contract.json` before reporting
+success; `--style-contract-output <file>` selects another path. The sidecar adds
+bounded, pre-install consumer definition candidates only for variables used by
+the selected bundle. Bundled and consumer definitions remain lexical candidates,
+not proof that a value reaches the component. The version 2 handoff receipt commits to the
+sidecar's exact SHA-256 and source bundle digest, while registry, publish, and
+bundle wire formats remain unchanged. This makes later sidecar edits detectable;
+it does not turn static observation into signed runtime or visual evidence.
 
 ### `compify storybook publish [entry]`
 

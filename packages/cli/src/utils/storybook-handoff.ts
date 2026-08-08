@@ -8,6 +8,7 @@ import {
   toRegistryItem,
   type BuildStoryOptions,
 } from "./storybook";
+import { inspectStyleContract, scanConsumerStyleCandidates } from "./storybook-style-contract";
 
 export const SHADCN_HANDOFF_VERSION = "4.16.2";
 
@@ -17,10 +18,12 @@ export interface HandoffOptions extends BuildStoryOptions {
   receipt?: string;
   buildCommand?: string;
   buildArgs?: string[];
+  /** Separate static-evidence sidecar, whose exact bytes are bound by the receipt. */
+  styleContractOutput?: string;
 }
 
 export interface HandoffReceipt {
-  schemaVersion: 1;
+  schemaVersion: 2;
   kind: "compify.storybook.handoff";
   evidenceLevel: "installed" | "built";
   source: {
@@ -32,6 +35,13 @@ export interface HandoffReceipt {
   };
   consumer: { root: string };
   artifact: { path: string; sha256: string };
+  styleContract: {
+    path: string;
+    sha256: string;
+    bundleDigest: string;
+    analysis: "static-css-lexical";
+    incomplete: true;
+  };
   installer: {
     package: "shadcn";
     version: string;
@@ -116,11 +126,13 @@ export const DEFAULT_CONSUMER_SNAPSHOT_LIMITS: ConsumerSnapshotLimits = {
   maxBytes: 256 * 1024 * 1024,
 };
 
-/** Snapshot only a bounded portion of the consumer tree. Symlinks are hashed as
- * links and never followed; special files are ignored rather than opened. */
+/** Snapshot only a bounded portion of the consumer tree. Symlinks and special
+ * files are ignored rather than followed or opened. Concurrent path changes
+ * abort the snapshot instead of returning evidence from another tree. */
 export function snapshotConsumer(
   root: string,
-  limits: ConsumerSnapshotLimits = DEFAULT_CONSUMER_SNAPSHOT_LIMITS
+  limits: ConsumerSnapshotLimits = DEFAULT_CONSUMER_SNAPSHOT_LIMITS,
+  hooks: { beforeDescend?: (directory: string) => void } = {}
 ): Map<string, string> {
   if (
     !Number.isSafeInteger(limits.maxEntries) ||
@@ -136,18 +148,43 @@ export function snapshotConsumer(
   const rootReal = fs.realpathSync(root);
   let entries = 0;
   let bytes = 0;
-  const walk = (directory: string, depth: number) => {
+  const walk = (
+    directory: string,
+    depth: number,
+    expectedIdentity?: { dev: number; ino: number }
+  ) => {
     if (depth > limits.maxDepth)
       throw new Error(
         `Consumer snapshot exceeded maximum depth (${limits.maxDepth})`
       );
-    const directoryReal = fs.realpathSync(directory);
-    if (!contained(rootReal, directoryReal))
-      throw new Error("Consumer snapshot directory escaped the consumer root");
+    const expectedDirectory = path.resolve(directory);
+    const directoryInitial = fs.lstatSync(expectedDirectory);
+    if (
+      expectedIdentity &&
+      (directoryInitial.dev !== expectedIdentity.dev ||
+        directoryInitial.ino !== expectedIdentity.ino)
+    )
+      throw new Error("Consumer snapshot directory changed before traversal");
+    const directoryReal = fs.realpathSync(expectedDirectory);
+    if (
+      !directoryInitial.isDirectory() ||
+      directoryInitial.isSymbolicLink() ||
+      directoryReal !== expectedDirectory ||
+      !contained(rootReal, directoryReal)
+    )
+      throw new Error("Consumer snapshot directory changed or escaped the consumer root");
+    const directoryEntries = fs
+      .readdirSync(expectedDirectory, { withFileTypes: true })
+      .sort((a, b) => a.name.localeCompare(b.name));
+    const directoryAfterRead = fs.lstatSync(expectedDirectory);
+    if (
+      !directoryAfterRead.isDirectory() ||
+      directoryAfterRead.dev !== directoryInitial.dev ||
+      directoryAfterRead.ino !== directoryInitial.ino
+    )
+      throw new Error("Consumer snapshot directory changed while listing");
 
-    for (const item of fs
-      .readdirSync(directory, { withFileTypes: true })
-      .sort((a, b) => a.name.localeCompare(b.name))) {
+    for (const item of directoryEntries) {
       entries += 1;
       if (entries > limits.maxEntries)
         throw new Error(
@@ -161,9 +198,12 @@ export function snapshotConsumer(
         .join("/");
       const stats = fs.lstatSync(absolute);
       if (stats.isSymbolicLink()) {
-        result.set(relative, sha256(`symlink:${fs.readlinkSync(absolute)}`));
+        continue;
       } else if (stats.isDirectory()) {
-        if (!SNAPSHOT_IGNORES.has(item.name)) walk(absolute, depth + 1);
+        if (!SNAPSHOT_IGNORES.has(item.name)) {
+          hooks.beforeDescend?.(absolute);
+          walk(absolute, depth + 1, { dev: stats.dev, ino: stats.ino });
+        }
       } else if (stats.isFile()) {
         bytes += stats.size;
         if (bytes > limits.maxBytes)
@@ -179,14 +219,20 @@ export function snapshotConsumer(
         );
         try {
           const opened = fs.fstatSync(descriptor);
+          const resolved = fs.realpathSync(absolute);
+          const resolvedStats = fs.statSync(resolved);
           if (
             !opened.isFile() ||
             opened.dev !== stats.dev ||
             opened.ino !== stats.ino ||
-            opened.size !== stats.size
+            opened.size !== stats.size ||
+            resolved !== path.resolve(absolute) ||
+            !contained(rootReal, resolved) ||
+            resolvedStats.dev !== opened.dev ||
+            resolvedStats.ino !== opened.ino
           )
             throw new Error(
-              `Consumer file changed while snapshotting: ${relative}`
+              `Consumer file changed or escaped while snapshotting: ${relative}`
             );
           const hash = crypto.createHash("sha256");
           const buffer = Buffer.allocUnsafe(64 * 1024);
@@ -207,10 +253,15 @@ export function snapshotConsumer(
             offset += count;
           }
           const after = fs.fstatSync(descriptor);
+          const resolvedAfter = fs.realpathSync(absolute);
+          const resolvedStatsAfter = fs.statSync(resolvedAfter);
           if (
             after.size !== opened.size ||
             after.mtimeMs !== opened.mtimeMs ||
-            after.ctimeMs !== opened.ctimeMs
+            after.ctimeMs !== opened.ctimeMs ||
+            resolvedAfter !== resolved ||
+            resolvedStatsAfter.dev !== opened.dev ||
+            resolvedStatsAfter.ino !== opened.ino
           )
             throw new Error(
               `Consumer file changed while snapshotting: ${relative}`
@@ -265,84 +316,14 @@ function reserveFile(filename: string) {
   fs.mkdirSync(path.dirname(filename), { recursive: true });
 }
 
-type OwnedFileIdentity = { dev: number; ino: number; size: number };
-
-function sameFile(stats: fs.Stats, identity: OwnedFileIdentity) {
-  return stats.dev === identity.dev && stats.ino === identity.ino;
-}
-
-function removeOwnedFile(
-  filename: string,
-  identity: OwnedFileIdentity,
-  expectedSha256: string
-): boolean {
-  let stats: fs.Stats;
-  try {
-    stats = fs.lstatSync(filename);
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") return true;
-    return false;
-  }
-  if (
-    !stats.isFile() ||
-    !sameFile(stats, identity) ||
-    stats.size !== identity.size
-  )
-    return false;
-  const noFollow =
-    (fs.constants as typeof fs.constants & { O_NOFOLLOW?: number })
-      .O_NOFOLLOW || 0;
-  let descriptor: number;
-  try {
-    descriptor = fs.openSync(filename, fs.constants.O_RDONLY | noFollow);
-  } catch {
-    return false;
-  }
-  try {
-    const opened = fs.fstatSync(descriptor);
-    if (
-      !sameFile(opened, identity) ||
-      sha256(fs.readFileSync(descriptor)) !== expectedSha256
-    )
-      return false;
-  } finally {
-    fs.closeSync(descriptor);
-  }
-  try {
-    const current = fs.lstatSync(filename);
-    if (!sameFile(current, identity)) return false;
-    fs.unlinkSync(filename);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 function writeOwnedFileExclusive(filename: string, contents: string) {
   const descriptor = fs.openSync(filename, "wx");
-  const identity = fs.fstatSync(descriptor);
   try {
     fs.writeFileSync(descriptor, contents);
     fs.fsyncSync(descriptor);
-  } catch (error) {
-    try {
-      fs.closeSync(descriptor);
-    } finally {
-      try {
-        const current = fs.lstatSync(filename);
-        if (sameFile(current, identity)) fs.unlinkSync(filename);
-      } catch {
-        // The original write error is more useful than a cleanup error.
-      }
-    }
-    throw error;
+  } finally {
+    fs.closeSync(descriptor);
   }
-  fs.closeSync(descriptor);
-  return {
-    dev: identity.dev,
-    ino: identity.ino,
-    size: Buffer.byteLength(contents),
-  };
 }
 
 /** Performs a local-only handoff. The injectable spawn function exists solely
@@ -406,18 +387,26 @@ export function runStorybookHandoff(
     options.cwd || process.cwd(),
     options.receipt || `.compify/${bundle.name}.handoff.json`
   );
-  if (output === receiptPath)
-    throw new Error("Artifact and receipt paths must be different");
+  const styleContractPath = path.resolve(
+    options.cwd || process.cwd(),
+    options.styleContractOutput || `.compify/${bundle.name}.style-contract.json`
+  );
+  if (new Set([output, receiptPath, styleContractPath]).size !== 3)
+    throw new Error("Artifact, receipt, and style-contract sidecar paths must be different");
   reserveFile(output);
   reserveFile(receiptPath);
+  reserveFile(styleContractPath);
 
+  // Snapshot and lexical consumer evidence are collected before installation,
+  // so candidates cannot be confused with files written by shadcn.
+  const consumerCandidates = scanConsumerStyleCandidates(consumer);
   // Snapshot before reserving the artifact so a bounded-traversal failure never
   // strands a filename that prevents a corrected invocation from retrying.
   const before = snapshotConsumer(consumer);
   const registryJson = `${JSON.stringify(toRegistryItem(bundle), null, 2)}
 `;
   const registrySha256 = sha256(registryJson);
-  const artifactIdentity = writeOwnedFileExclusive(output, registryJson);
+  writeOwnedFileExclusive(output, registryJson);
 
   try {
     const installerCommand = [
@@ -431,11 +420,7 @@ export function runStorybookHandoff(
     const installResult = spawn(
       installerCommand[0],
       installerCommand.slice(1),
-      {
-        cwd: consumer,
-        shell: false,
-        stdio: "inherit",
-      }
+      { cwd: consumer, shell: false, stdio: "inherit" }
     );
     assertSucceeded("shadcn install", installResult);
     let build: HandoffReceipt["build"] = null;
@@ -450,8 +435,18 @@ export function runStorybookHandoff(
       build = { command: buildCommand, exitCode: 0 };
     }
 
+    const styleContractJson = `${JSON.stringify({
+      schemaVersion: 1,
+      kind: "compify.storybook.style-contract",
+      bundleDigest: bundle.digest,
+      evidence: inspectStyleContract(bundle.files, consumerCandidates),
+    }, null, 2)}
+`;
+    const styleContractSha256 = sha256(styleContractJson);
+    writeOwnedFileExclusive(styleContractPath, styleContractJson);
+
     const unsigned = {
-      schemaVersion: 1 as const,
+      schemaVersion: 2 as const,
       kind: "compify.storybook.handoff" as const,
       evidenceLevel: build ? ("built" as const) : ("installed" as const),
       source: {
@@ -463,6 +458,13 @@ export function runStorybookHandoff(
       },
       consumer: { root: consumer },
       artifact: { path: output, sha256: registrySha256 },
+      styleContract: {
+        path: styleContractPath,
+        sha256: styleContractSha256,
+        bundleDigest: bundle.digest,
+        analysis: "static-css-lexical" as const,
+        incomplete: true as const,
+      },
       installer: {
         package: "shadcn" as const,
         version: SHADCN_HANDOFF_VERSION,
@@ -486,15 +488,11 @@ export function runStorybookHandoff(
     writeOwnedFileExclusive(receiptPath, receiptJson);
     return receipt;
   } catch (error) {
-    // A failed native command must never leave a success receipt. Remove only
-    // the exact artifact inode and bytes created by this invocation; if another
-    // actor changed it, retain it as failure evidence rather than deleting it.
-    const retrySafe = removeOwnedFile(output, artifactIdentity, registrySha256);
-    if (!retrySafe) {
-      const detail = `Generated artifact was changed and retained at ${output}; remove it explicitly before retrying`;
-      if (error instanceof Error) error.message = `${error.message}; ${detail}`;
-      else throw new Error(`${String(error)}; ${detail}`);
+    const detail = `No success receipt was written. Generated files are retained as failure evidence; review and remove them explicitly before retrying`;
+    if (error instanceof Error) {
+      error.message = `${error.message}; ${detail}`;
+      throw error;
     }
-    throw error;
+    throw new Error(`${String(error)}; ${detail}`);
   }
 }

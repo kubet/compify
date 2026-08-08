@@ -46,9 +46,19 @@ compify storybook handoff src/components/Button.stories.tsx --story Primary \
   --consumer ../consumer-app --build-command bun --build-arg run --build-arg build
 ```
 
-This uses pinned native `shadcn@4.16.2`, never publishes, and writes a digest-signed receipt. A receipt is `built` evidence only when an explicit build command succeeds; otherwise it records `installed` evidence.
+This uses pinned native `shadcn@4.16.2`, never publishes, and writes a digest-verifiable receipt. A receipt is `built` evidence only when an explicit build command succeeds; otherwise it records `installed` evidence.
 
 Inspection parses source without importing or executing the story module.
+Inspect JSON also includes an explicitly incomplete `styleContract` evidence layer:
+literal `var(--name)` uses and fallbacks plus custom-property definitions in
+bundled stylesheet files, with file/line/column evidence. Handoff writes the same
+lexical evidence and pre-install consumer definition candidates to
+`.compify/<name>.style-contract.json` (override with `--style-contract-output`).
+Bundled and consumer definitions are lexical candidates; neither proves cascade
+or runtime availability. The sidecar stays outside registry, publish, and bundle
+wire formats, while the version 2 handoff receipt commits to its exact SHA-256
+and source bundle digest so later edits are detectable.
+
 Export follows supported local text imports from the component entry, records
 runtime dependencies and provenance, and refuses unresolved or unsafe input.
 Always review the generated JSON and test it in a separate consumer app.
