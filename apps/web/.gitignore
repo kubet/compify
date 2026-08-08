@@ -37,3 +37,6 @@ next-env.d.ts
 
 # Generated from the pinned fumadocs-ui package during Bun install
 /public/fumadocs.css
+
+# Generated from the first-party documentation recording during Bun install
+/public/demo-video.mp4

@@ -13,6 +13,10 @@ test("public product and docs remain anonymous", async ({ page }) => {
   const githubLink = page.getByRole("link", { name: "Open source on GitHub" });
   await expect(githubLink).toHaveAttribute("href", "https://github.com/kubet/compify");
   await expect(githubLink).toHaveAttribute("target", "_blank");
+  const demoVideo = await page.request.get("/demo-video.mp4");
+  expect(demoVideo.ok()).toBe(true);
+  expect(demoVideo.headers()["content-type"]).toContain("video/mp4");
+  expect((await demoVideo.body()).byteLength).toBe(1_801_743);
   await page.goto("/docs/compatibility");
   await expect(page).toHaveURL(/\/docs\/compatibility$/);
   await expect(page.getByText("Compatibility", { exact: false }).first()).toBeVisible();

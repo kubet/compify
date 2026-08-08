@@ -33,3 +33,9 @@ const docsStylesSource = path.join(
 const docsStylesDestination = path.join(appRoot, "public/fumadocs.css");
 await mkdir(path.dirname(docsStylesDestination), { recursive: true });
 await cp(docsStylesSource, docsStylesDestination, { dereference: true });
+
+// Serve the maintainer-supplied README demo with a browser-playable video MIME
+// type instead of GitHub's application/octet-stream raw-file response.
+const demoVideoSource = path.resolve(appRoot, "../../docs/assets/demo-video.mp4");
+const demoVideoDestination = path.join(appRoot, "public/demo-video.mp4");
+await cp(demoVideoSource, demoVideoDestination, { dereference: true });
