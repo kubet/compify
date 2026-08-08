@@ -142,10 +142,17 @@ describe("Storybook handoff", () => {
       crypto.createHash("sha256").update(canonical(unsigned)).digest("hex")
     );
     expect(parsed.source.stories).toEqual(["Primary"]);
-    expect(parsed).not.toHaveProperty("styleContract");
-    const styleSidecar = JSON.parse(
-      fs.readFileSync(path.join(source, ".compify", "button.style-contract.json"), "utf8")
+    const stylePath = path.join(source, ".compify", "button.style-contract.json");
+    expect(parsed.styleContract).toMatchObject({
+      path: stylePath,
+      bundleDigest: parsed.source.bundleDigest,
+      analysis: "static-css-lexical",
+      incomplete: true,
+    });
+    expect(parsed.styleContract.sha256).toBe(
+      crypto.createHash("sha256").update(fs.readFileSync(stylePath)).digest("hex")
     );
+    const styleSidecar = JSON.parse(fs.readFileSync(stylePath, "utf8"));
     expect(styleSidecar.bundleDigest).toBe(parsed.source.bundleDigest);
     expect(styleSidecar.evidence.incomplete).toBe(true);
     expect(styleSidecar.evidence.consumerProvidedCandidates).toEqual([
@@ -170,7 +177,7 @@ describe("Storybook handoff", () => {
     expect(spawn).not.toHaveBeenCalled();
   });
 
-  it("cleans its artifact, writes no success receipt, and permits retry after installation failure", () => {
+  it("retains failure evidence, writes no success receipt, and refuses implicit overwrite", () => {
     const source = sourceProject();
     const consumer = consumerProject();
     const output = path.join(source, "button.registry.json");
@@ -184,7 +191,7 @@ describe("Storybook handoff", () => {
       )
     ).toThrow(/status 7/);
     expect(fs.existsSync(receipt)).toBe(false);
-    expect(fs.existsSync(output)).toBe(false);
+    expect(fs.existsSync(output)).toBe(true);
 
     expect(() =>
       runStorybookHandoff(
@@ -192,9 +199,8 @@ describe("Storybook handoff", () => {
         { cwd: source, consumer, output, receipt },
         (() => success()) as any
       )
-    ).not.toThrow();
-    expect(fs.existsSync(output)).toBe(true);
-    expect(fs.existsSync(receipt)).toBe(true);
+    ).toThrow(/Refusing to overwrite/);
+    expect(fs.existsSync(receipt)).toBe(false);
   });
 
   it("bounds consumer traversal before running native commands", () => {

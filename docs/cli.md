@@ -71,11 +71,13 @@ receipt containing its `installed` or `built` evidence level, exact
 installer/build argv, and hashes of consumer changes. Consumer snapshots are
 bounded to 10,000 entries, 64 directory levels, and 256 MiB; ignored dependency
 and build directories are not traversed, symlinks are never followed, and
-special files are not opened. Existing artifact or receipt files are never
-overwritten. If installation or build fails, no success receipt is written and
-the CLI removes only the unchanged artifact inode it created so a retry is not
-blocked. Native tools may already have changed consumer files; review the working
-tree before retrying.
+special files are not opened. Concurrent pathname changes abort evidence
+collection rather than being followed. Existing artifact or receipt files are
+never overwritten. If installation or build fails, no success receipt is written;
+generated files are retained as failure evidence because pathname-based cleanup
+cannot atomically prove which inode it would unlink. Native tools may already have
+changed consumer files; review the working tree and remove retained artifacts
+explicitly before retrying.
 
 ```bash
 compify storybook handoff src/Button.stories.tsx --story Primary \
@@ -91,12 +93,12 @@ with `--output` and `--receipt`.
 
 Handoff also writes `.compify/<name>.style-contract.json` before reporting
 success; `--style-contract-output <file>` selects another path. The sidecar adds
-bounded, pre-install consumer definition candidates only for variables that are
-used by the selected bundle and not defined inside it. Candidates remain
-observations, not proof that a value reaches the component. The sidecar binds to
-the existing source bundle digest but is intentionally excluded from established
-registry, publish, and handoff-receipt digest schemas; treat it as review input,
-not signed runtime or visual evidence.
+bounded, pre-install consumer definition candidates only for variables used by
+the selected bundle. Bundled and consumer definitions remain lexical candidates,
+not proof that a value reaches the component. The handoff receipt commits to the
+sidecar's exact SHA-256 and source bundle digest, while registry, publish, and
+bundle wire formats remain unchanged. This makes later sidecar edits detectable;
+it does not turn static observation into signed runtime or visual evidence.
 
 ### `compify storybook publish [entry]`
 

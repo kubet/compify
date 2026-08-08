@@ -18,7 +18,9 @@ export interface StyleContractEvidence {
   incomplete: true
   limitations: string[]
   uses: StyleContractUse[]
+  /** Lexical declaration candidates; not proof that a use resolves. */
   bundledDefinitions: StyleContractDefinition[]
+  /** Pre-install lexical candidates for names used by the selected bundle. */
   consumerProvidedCandidates: StyleContractDefinition[]
 }
 
@@ -26,7 +28,7 @@ const STYLE_EXTENSIONS = new Set([".css", ".scss", ".sass", ".less"])
 const LIMITATIONS = [
   "Evidence is lexical and incomplete; it does not execute CSS, preprocessors, JavaScript, Storybook, or a browser.",
   "Only conventional literal custom-property names in bundled stylesheet files are recognized; computed, escaped, interpolated, and runtime-generated names are omitted.",
-  "Consumer definitions are candidates, not proof that cascade, scope, selector, layer, media, or import order makes a value available.",
+  "Bundled and consumer definitions are candidates, not proof that cascade, scope, selector, layer, media, or import order makes a value available.",
 ]
 
 function maskedCss(source: string): string {
@@ -94,9 +96,8 @@ export function inspectStyleContract(files: Record<string, string>, consumerProv
     uses.push(...result.uses); bundledDefinitions.push(...result.definitions)
   }
   uses.sort(compareEvidence); bundledDefinitions.sort(compareEvidence)
-  const defined = new Set(bundledDefinitions.map(item => item.name))
-  const unresolvedUses = new Set(uses.map(item => item.name).filter(name => !defined.has(name)))
-  const relevantCandidates = consumerProvidedCandidates.filter(item => unresolvedUses.has(item.name)).sort(compareEvidence)
+  const usedNames = new Set(uses.map(item => item.name))
+  const relevantCandidates = consumerProvidedCandidates.filter(item => usedNames.has(item.name)).sort(compareEvidence)
   return { schemaVersion: 1, analysis: "static-css-lexical", incomplete: true, limitations: [...LIMITATIONS], uses, bundledDefinitions, consumerProvidedCandidates: relevantCandidates }
 }
 
@@ -111,9 +112,17 @@ export function scanConsumerStyleCandidates(root: string): StyleContractDefiniti
     return relative === "" || (!relative.startsWith(`..${path.sep}`) && relative !== ".." && !path.isAbsolute(relative))
   }
   const walk = (directory: string) => {
-    const directoryReal = fs.realpathSync(directory)
-    if (!contained(directoryReal)) throw new Error("Consumer style evidence directory escaped the consumer root")
-    for (const item of fs.readdirSync(directory, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+    const expectedDirectory = path.resolve(directory)
+    const directoryInitial = fs.lstatSync(expectedDirectory)
+    const directoryReal = fs.realpathSync(expectedDirectory)
+    if (!directoryInitial.isDirectory() || directoryInitial.isSymbolicLink() ||
+        directoryReal !== expectedDirectory || !contained(directoryReal))
+      throw new Error("Consumer style evidence directory changed or escaped the consumer root")
+    const entries = fs.readdirSync(expectedDirectory, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))
+    const directoryAfterRead = fs.lstatSync(expectedDirectory)
+    if (!directoryAfterRead.isDirectory() || directoryAfterRead.dev !== directoryInitial.dev || directoryAfterRead.ino !== directoryInitial.ino)
+      throw new Error("Consumer style evidence directory changed while listing")
+    for (const item of entries) {
       const absolute = path.join(directory, item.name)
       const initial = fs.lstatSync(absolute)
       if (initial.isSymbolicLink()) continue
@@ -126,11 +135,18 @@ export function scanConsumerStyleCandidates(root: string): StyleContractDefiniti
       const descriptor = fs.openSync(absolute, fs.constants.O_RDONLY | noFollow)
       try {
         const opened = fs.fstatSync(descriptor)
-        if (!opened.isFile() || opened.dev !== initial.dev || opened.ino !== initial.ino || opened.size !== initial.size)
-          throw new Error(`Consumer stylesheet changed while reading: ${item.name}`)
+        const resolved = fs.realpathSync(absolute)
+        const resolvedStats = fs.statSync(resolved)
+        if (!opened.isFile() || opened.dev !== initial.dev || opened.ino !== initial.ino || opened.size !== initial.size ||
+            resolved !== path.resolve(absolute) || !contained(resolved) ||
+            resolvedStats.dev !== opened.dev || resolvedStats.ino !== opened.ino)
+          throw new Error(`Consumer stylesheet changed or escaped while reading: ${item.name}`)
         const source = fs.readFileSync(descriptor, "utf8")
         const after = fs.fstatSync(descriptor)
-        if (after.dev !== opened.dev || after.ino !== opened.ino || after.size !== opened.size || after.mtimeMs !== opened.mtimeMs || after.ctimeMs !== opened.ctimeMs)
+        const resolvedAfter = fs.realpathSync(absolute)
+        const resolvedStatsAfter = fs.statSync(resolvedAfter)
+        if (after.dev !== opened.dev || after.ino !== opened.ino || after.size !== opened.size || after.mtimeMs !== opened.mtimeMs || after.ctimeMs !== opened.ctimeMs ||
+            resolvedAfter !== resolved || resolvedStatsAfter.dev !== opened.dev || resolvedStatsAfter.ino !== opened.ino)
           throw new Error(`Consumer stylesheet changed while reading: ${item.name}`)
         bytes += opened.size
         const file = path.relative(realRoot, absolute).split(path.sep).join("/")

@@ -114,7 +114,7 @@ const inspect = common(
             }; stories: ${result.stories.length}`
           );
           logger.warn(
-            `Style contract is incomplete static evidence: ${bundle.styleContract.uses.length} literal use(s), ${bundle.styleContract.bundledDefinitions.length} bundled definition(s); this does not prove runtime availability.`
+            `Style contract is incomplete static evidence: ${bundle.styleContract.uses.length} literal use(s), ${bundle.styleContract.bundledDefinitions.length} bundled definition candidate(s); this does not prove cascade or runtime availability.`
           );
           for (const story of result.stories)
             logger.info(

@@ -43,7 +43,7 @@ describe("static CSS custom-property evidence", () => {
   })
 
 
-  it("keeps only consumer candidates for used but bundle-undefined names", () => {
+  it("keeps consumer candidates for every used name without implying lexical definitions resolve it", () => {
     const candidates = [
       { name: "--needed", file: "theme.css", line: 2, column: 3 },
       { name: "--already", file: "theme.css", line: 3, column: 3 },
@@ -54,6 +54,7 @@ describe("static CSS custom-property evidence", () => {
     }, candidates)
     expect(evidence.consumerProvidedCandidates).toEqual([
       { name: "--needed", file: "theme.css", line: 2, column: 3 },
+      { name: "--already", file: "theme.css", line: 3, column: 3 },
     ])
   })
 
