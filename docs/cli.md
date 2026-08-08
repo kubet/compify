@@ -41,8 +41,13 @@ compify storybook inspect src/Button.stories.tsx --story Primary
 compify storybook inspect src/Button.stories.tsx --json
 ```
 
-`--json` emits machine-readable output. Inspection exits unsuccessfully when it
-reports an error diagnostic.
+`--json` emits machine-readable output. It also includes a `styleContract`
+observation containing literal CSS `var(--name)` uses, fallbacks, bundled
+custom-property definitions, and source locations. This scan is deliberately
+incomplete: it does not execute CSS, preprocessors, JavaScript, Storybook, or a
+browser, and it does not prove cascade, scope, selector, layer, media, import
+order, or runtime availability. Inspection exits unsuccessfully when it reports
+an error diagnostic.
 
 ### `compify storybook export [entry]`
 
@@ -83,6 +88,15 @@ The required consumer must be outside the source package tree and contain both
 commands are never interpreted by a shell. Defaults are
 `.compify/<name>.registry.json` and `.compify/<name>.handoff.json`; override them
 with `--output` and `--receipt`.
+
+Handoff also writes `.compify/<name>.style-contract.json` before reporting
+success; `--style-contract-output <file>` selects another path. The sidecar adds
+bounded, pre-install consumer definition candidates only for variables that are
+used by the selected bundle and not defined inside it. Candidates remain
+observations, not proof that a value reaches the component. The sidecar binds to
+the existing source bundle digest but is intentionally excluded from established
+registry, publish, and handoff-receipt digest schemas; treat it as review input,
+not signed runtime or visual evidence.
 
 ### `compify storybook publish [entry]`
 
