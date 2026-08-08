@@ -1,47 +1,104 @@
 # Compify
 
-Compify statically packages a selected React component graph into reviewable
-shadcn registry artifacts, using its Storybook CSF file as the explicit selection
-and context boundary. Storybook stays upstream for authoring, tests, and docs;
-Compify handles the supported packaging and registry distribution path.
+[![CI](https://github.com/kubet/compify/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/kubet/compify/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/kubet/compify/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/kubet/compify/actions/workflows/codeql.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Bun 1.3.9](https://img.shields.io/badge/Bun-1.3.9-f9f1e1?logo=bun)](https://bun.sh/)
 
-The repository also contains the existing browser editor, registry API,
-Bun-powered component CLI, Compify MCP server, and self-hosting baseline. See
-[Product direction](PRODUCT.md) for the current/next boundary.
+**Turn an explicitly selected React Storybook source graph into a reviewable,
+shadcn-compatible artifact with deterministic install and build evidence.**
 
-## Prove a cross-app handoff
+Storybook stays upstream for authoring, previews, tests, and docs. Compify owns
+the static source boundary, artifact review, native shadcn handoff, and local
+receipt. It does not execute story modules or publish implicitly.
 
-The release candidate's activation path is local and account-free. After
-[building the CLI from source](packages/cli/README.md#build-from-source), point it
-at one selected story and a **different**, already shadcn-initialized application:
+<p align="center">
+  <a href="https://compify.app/demo-video.mp4">
+    <img src="docs/assets/legacy-editor-demo.webp" width="720" alt="Compify browser editor with React source on the left and its component preview on the right" />
+  </a>
+</p>
+
+<p align="center">
+  <strong><a href="https://compify.app/demo-video.mp4">▶ Watch the 22-second demo with playback controls</a></strong>
+</p>
+
+> The recording shows Compify's existing optional browser editor. The release
+> candidate's primary workflow is the account-free Storybook-to-shadcn handoff
+> below. The recording is not presented as proof of Storybook compatibility or
+> destination-build fidelity; those claims are backed by executable checks in
+> the [compatibility matrix](docs/compatibility.md).
+
+## Why Compify
+
+Moving a component between applications is rarely just copying one file. The
+review boundary can include local imports, aliases, styles, runtime packages,
+and consumer-specific installation behavior. Compify makes that boundary
+explicit and fail-closed:
+
+- **Select deliberately:** a CSF story export is the entry boundary.
+- **Inspect statically:** supported source is parsed without importing or
+  executing the story.
+- **Review exactly:** every selected source file receives a SHA-256 value, and
+  the canonical registry artifact receives a stable digest before installation.
+- **Install natively:** pinned `shadcn@4.16.2` owns registry validation and file
+  installation.
+- **Prove the destination:** an explicit consumer build produces a local receipt
+  with artifact identity, exact argv, and installed-file hashes.
+
+## Account-free quick start
+
+The Storybook workflow in this repository is the `@compify/cli@0.2.0` release
+candidate. npm still contains the older `0.1.0`, so build the candidate from
+source until the package release is explicitly announced:
 
 ```bash
-compify storybook inspect src/Button.stories.tsx --story Primary --explain src/Button.tsx
-compify storybook handoff src/Button.stories.tsx --story Primary \
-  --consumer ../consumer-app \
-  --build-command bun --build-arg run --build-arg build
+git clone https://github.com/kubet/compify.git
+cd compify/packages/cli
+bun install --frozen-lockfile
+bun run build
+bun link
+compify --help
+
+# Install the included, already shadcn-initialized consumer.
+cd ../../examples/consumer-next-ts
+bun install --frozen-lockfile
+
+# Move to the included Storybook fixture.
+cd ../storybook-button
 ```
 
-`handoff` statically selects the source graph, invokes pinned native
-`shadcn@4.16.2` without a shell, runs the explicit destination build, and writes
-a local digest-signed receipt containing graph/artifact identity, exact argv, and
-consumer file hashes. It never publishes implicitly. Review the artifact and
-receipt before treating the handoff as approved evidence.
+Inspect its selected story and explain why the component entry is included:
 
-## Existing browser editor demo
+```bash
+compify storybook inspect src/Button.stories.tsx \
+  --story Primary \
+  --explain src/Button.tsx
+```
 
-<details>
-<summary>Watch the 22-second editor demo</summary>
+Then hand the reviewed graph to the **different, already shadcn-initialized**
+consumer included in the repository:
 
-[![Compify browser editor demo](docs/assets/legacy-editor-demo.webp)](docs/assets/demo-video.mp4)
+```bash
+compify storybook handoff src/Button.stories.tsx \
+  --story Primary \
+  --consumer ../consumer-next-ts \
+  --build-command bun \
+  --build-arg run \
+  --build-arg build
+```
 
-The recording demonstrates the existing optional browser editor: editing React
-source and seeing its preview update. It is not evidence for Storybook graph
-compatibility, shadcn installation, runtime fidelity, or the newer policy-gated
-source-distribution workflow; those claims are backed by the executable evidence
-in [the compatibility matrix](docs/compatibility.md).
+`handoff` never publishes. It invokes native shadcn without a shell, runs only
+the explicit destination build command, and writes a digest-verifiable receipt. A successful receipt is install/build
+evidence—not a claim of visual fidelity,
+deployment, adoption, or product-market fit.
 
-</details>
+## Included surfaces
+
+The repository also contains the optional browser editor, public/private
+registry API, component client commands, Compify MCP server, Storybook
+portability addon,
+and a hardened Docker Compose self-hosting baseline. See
+[Product direction](PRODUCT.md) for the supported boundary and roadmap.
 
 ## Repository layout
 

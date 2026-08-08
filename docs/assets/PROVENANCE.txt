@@ -2,8 +2,18 @@
 
 `demo-video.mp4` is a first-party Compify browser-editor recording supplied by
 the project maintainer. `legacy-editor-demo.webp` is a static README thumbnail
-captured from the recording at 12 seconds with FFmpeg.
+captured from the recording at 12 seconds with FFmpeg:
 
-The recording demonstrates the optional legacy browser editor only. It is not a
+```bash
+ffmpeg -ss 12 -i docs/assets/demo-video.mp4 -frames:v 1 \
+  docs/assets/legacy-editor-demo.webp
+```
+
+SHA-256:
+
+- `demo-video.mp4`: `2f54c3b2a84371b12d7e34f0bf8063e60429c7e25557d96319d807f9dbb6c921`
+- `legacy-editor-demo.webp`: `60d2d5cbb84caa6b8d157a63270cfc90833879afbbc1a84b28bff80cc90c234d`
+
+The recording demonstrates the optional browser editor only. It is not a
 compatibility, installation, runtime, accessibility, visual-fidelity, or PMF
 test; executable evidence is documented in `docs/compatibility.md`.
