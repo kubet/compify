@@ -2,12 +2,12 @@
 
 ## Positioning
 
-**Turn selected React Storybook source into reviewable shadcn registry artifacts.**
+**Package selected React component source into reviewable shadcn registry artifacts, using Storybook CSF as the explicit selection boundary.**
 
 Storybook remains the upstream place where a team authors, exercises, tests, and
-documents components. Compify is a translation and distribution layer: it reads
-supported source, lets a maintainer select the intended component surface, and
-produces source-owned artifacts for the shadcn registry ecosystem. It is not a
+documents components. Compify is a packaging and distribution layer: it statically reads
+supported source, lets a maintainer select the intended component surface through
+CSF, and produces source-owned artifacts for the shadcn registry ecosystem. It is not a
 replacement for Storybook, a component marketplace, or a second source of truth.
 
 The official Storybook MCP server is complementary. It helps agents understand
@@ -20,21 +20,26 @@ Teams may use either or both.
 
 The repository currently provides:
 
-- a browser editor and preview for React component source;
+- an optional legacy browser editor whose interactive preview requires an
+  operator-configured Sandpack-compatible bundler;
 - public shadcn-compatible registry items and an index;
 - a Bun-powered CLI for installing and managing published Compify components;
 - source/release-candidate CLI commands that statically inspect a React CSF
-  bundle, export a deterministic registry item, and publish it to a configured
-  authenticated self-hosted API built from the current source candidate;
+  bundle, explain its file/import graph, export a deterministic registry item,
+  prove a cross-app native-shadcn install/build with a local evidence receipt,
+  and optionally publish it to an authenticated self-hosted API;
 - the source/release-candidate `@compify/storybook` manager addon, which displays
   author-provided portability and distribution metadata without inspecting or
   publishing source;
 - a Compify MCP server for searching and reading that registry; and
 - a Docker Compose baseline for self-hosting.
 
-Package-registry availability is not implied. The public repository does **not** claim
-a managed hosted deployment, private registry, organization namespace,
-versioned publishing, or general framework conversion.
+The older CLI 0.1.0 exists on npm; the Storybook CLI/addon release candidates
+are not considered published until explicitly announced. Current-source
+self-hosting supports owner-authenticated private items and immutable v2
+publication revisions. The public repository does **not** claim a managed hosted
+deployment, organization-scoped RBAC, general framework conversion, runtime or
+visual fidelity, or byte-serialization transparency attestations.
 
 ## Next: validate and harden the wedge
 
@@ -43,20 +48,32 @@ inspect locally, export deterministically, and publish one explicitly selected
 story-file bundle to a configured API. The next work is evidence and reliability,
 not a broader promise:
 
-1. Test real pilot repositories and publish an explicit supported-version matrix.
-2. Categorize unsupported syntax and add only patterns repeated across qualified
-   teams.
-3. Prove exported artifacts in separate consumer applications and CI.
-4. Connect CLI diagnostics and addon metadata only after a safe, reviewable
-   contract exists; the addon currently displays author assertions only.
-5. Measure repeat export/install behavior against the 90-day scorecard.
+1. Test real pilot repositories and expand the explicit compatibility matrix.
+   The first pinned shadcn/Next clean-consumer build gate now exists; one fixture
+   is evidence for one shape, not general compatibility.
+2. Test the bounded exact in-package alias rewriting and basic static CSF Next
+   support on qualified repositories. Cross-file re-export catalogs and
+   cross-workspace source remain dominant unresolved blockers; expand only from
+   repeated pilot evidence.
+3. Use the shipped analyzed/installed/built evidence and digest-signed handoff
+   receipts in real pilots. Runtime, visual, accessibility and behavioral claims
+   still require separate explicit test phases.
+4. Harden v2 immutable revision concurrency and policy/audit presentation before
+   promising multi-user governance. Canonical registry semantics are preserved;
+   original JSON byte serialization and transparency-log attestations are not.
+5. Keep the addon inert and author-declared until a digest-bound report contract
+   exists. Prefer official Storybook tools/MCP for upstream context and official
+   shadcn tooling for install; do not expand the overlapping Compify MCP.
+6. Measure repeat export/install behavior against the 90-day scorecard. Build a
+   managed trust plane only after activated teams commit to pay for private
+   operations, approvals, policy and audit—not for local export.
 
 The boundary remains intentionally narrow: React Component Story Format (CSF),
-static imports, text files, and serializable metadata/args. No story module is
+static text graphs, bounded exact in-package aliases, and serializable metadata/args. No story module is
 executed during discovery. Dynamic configuration, arbitrary render functions,
 decorators, loaders, play functions, and framework-specific runtime behavior
-are not promises of faithful conversion. Export currently operates on a whole
-selected story file, not one named story within it.
+are not promises of faithful conversion. A caller may select one exact named story export, but the CSF file remains the
+authorization/context boundary and story-only runtime modules are not installed.
 
 ## Why this order
 

@@ -1,5 +1,6 @@
 import * as shortUUID from 'short-uuid';
 import { Component } from 'src/entities/project/component.entity';
+import { BadRequestException } from '@nestjs/common';
 
 const translator = shortUUID();
 
@@ -18,7 +19,15 @@ export function uuidToShortId(uuid: string): string {
  * @returns The original UUID
  */
 export function shortIdToUuid(shortId: string): string {
-  return translator.toUUID(shortId);
+  if (typeof shortId !== 'string') {
+    throw new BadRequestException('Invalid short id');
+  }
+  try {
+    return translator.toUUID(shortId);
+  } catch {
+    // short-uuid otherwise leaks parser exceptions as an HTTP 500.
+    throw new BadRequestException('Invalid short id');
+  }
 }
 
 export const slugify = (text) => {

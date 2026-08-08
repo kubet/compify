@@ -3,7 +3,7 @@ import os from "os"
 import path from "path"
 import { execFileSync } from "child_process"
 import { afterEach, describe, expect, it } from "vitest"
-import { buildStoryBundle, publishPayload, resolveStoryEntry, toRegistryItem } from "./storybook"
+import { buildStoryBundle, explainInclusion, publishPayload, resolveStoryEntry, toRegistryItem } from "./storybook"
 
 const roots: string[] = []
 function project(files: Record<string, string>, pkg: object = {}) {
@@ -35,6 +35,28 @@ describe("static Storybook bundling", () => {
     const bundle = buildStoryBundle(undefined, { cwd: root })
     expect(bundle.stories[0]).toMatchObject({ exportName: "Dynamic", portable: false })
     expect(bundle.diagnostics).toContainEqual(expect.objectContaining({ code: "DYNAMIC_STORY_ARGS", severity: "warning" }))
+  })
+
+  it("selects one exact story and ignores non-portability in unselected stories", () => {
+    const root = project({
+      "Button.stories.tsx": `import { Button } from "./Button"
+export default { component: Button }
+export const Portable = { args: { label: "Go" } }
+export const Dynamic = { args: makeArgs() }
+`,
+      "Button.tsx": `export const Button = () => null
+`,
+    })
+    const bundle = buildStoryBundle(undefined, { cwd: root, story: "Portable" })
+    expect(bundle.stories).toEqual([{ exportName: "Portable", name: "Portable", args: { label: "Go" }, portable: true }])
+    expect(bundle.diagnostics).not.toContainEqual(expect.objectContaining({ exportName: "Dynamic" }))
+  })
+
+  it("rejects a named-story selection that does not exactly match an exported story", () => {
+    const root = project({ "X.stories.tsx": `export default {}
+export const Primary = {}
+` })
+    expect(() => buildStoryBundle(undefined, { cwd: root, story: "primary" })).toThrow("Story export not found: primary")
   })
 
   it("terminates local import cycles and normalizes CRLF deterministically", () => {
@@ -147,6 +169,23 @@ describe("static Storybook bundling", () => {
     expect(() => resolveStoryEntry("../nope.stories.tsx", root)).toThrow()
   })
 
+
+  it("rejects in-package symlink imports that registry JSON cannot reproduce", () => {
+    const root = project({
+      "Linked.stories.tsx": `import { Linked } from "./Linked"
+export default { component: Linked }
+export const Default = {}
+`,
+      "Linked.tsx": `import { value } from "./alias"
+export const Linked = () => value
+`,
+      "actual.ts": `export const value = null
+`,
+    })
+    fs.symlinkSync(path.join(root, "actual.ts"), path.join(root, "alias.ts"))
+    expect(() => buildStoryBundle(undefined, { cwd: root })).toThrow(/symlink or has mismatched path casing/)
+  })
+
   it("requires explicit selection when entry inference is ambiguous", () => {
     const root = project({ "A.stories.tsx": "export default {}; export const A = {}", "B.stories.tsx": "export default {}; export const B = {}" })
     expect(() => resolveStoryEntry(undefined, root)).toThrow(/Multiple story entries/)
@@ -162,9 +201,233 @@ describe("static Storybook bundling", () => {
     // shadcn registry-item schema: component files use registry:component and
     // therefore do not require the target demanded by generic registry:file.
     expect(item.files.every((f: any) => f.type === "registry:component" && !("target" in f))).toBe(true)
+    const payload = publishPayload(bundle) as any
+    expect(payload.schemaVersion).toBe(2)
+    expect(payload.registryItem).toEqual(item)
+    expect(payload.dependencyVersions).toEqual(bundle.dependencies)
+    expect(payload.digest).toMatch(/^[a-f0-9]{64}$/)
     expect(bundle.dependencies).not.toHaveProperty("@storybook/react")
     fs.writeFileSync(path.join(root, "bad.pem"), "-----BEGIN PRIVATE KEY-----\n")
     fs.writeFileSync(path.join(root, "Fine.tsx"), `import "./bad.pem"\nexport const Fine = () => null`)
     expect(() => buildStoryBundle(undefined, { cwd: root })).toThrow(/secret file/)
   })
+
+  it("statically supports the basic CSF Next preview.meta/meta.story form", () => {
+    const root = project({
+      "Factory.stories.tsx": `import preview from "./preview"
+import { Factory } from "./Factory"
+const meta = preview.meta({ component: Factory })
+export const Primary = meta.story({ name: "Primary action", args: { label: "Go" } })
+`,
+      "preview.ts": `export default { meta: (value: unknown) => value }
+`,
+      "Factory.tsx": `export const Factory = () => null
+`,
+    })
+    const bundle = buildStoryBundle(undefined, { cwd: root })
+    expect(bundle.entry).toBe("Factory.tsx")
+    expect(bundle.stories).toEqual([{ exportName: "Primary", name: "Primary action", args: { label: "Go" }, portable: true }])
+    expect(bundle.diagnostics).not.toContainEqual(expect.objectContaining({ code: "MISSING_META" }))
+  })
+
+
+  it("resolves const-backed args, static spreads, export aliases, and regex story filters", () => {
+    const root = project({
+      "Aliased.stories.tsx": `import { Aliased } from "./Aliased"
+const shared = { disabled: false, nested: { ok: true } }
+const meta = { component: Aliased, excludeStories: /Helper$/ }
+export { meta as default }
+const primary = { args: { ...shared, label: "Go", items: [...[1, 2], 3] } }
+primary.storyName = "Primary action"
+export { primary as Primary }
+const NotAStoryHelper = { args: makeArgs() }
+export { NotAStoryHelper }
+`,
+      "Aliased.tsx": `export const Aliased = () => null
+`,
+    })
+    const bundle = buildStoryBundle(undefined, { cwd: root })
+    expect(bundle.stories).toEqual([{
+      exportName: "Primary",
+      name: "Primary action",
+      args: { disabled: false, nested: { ok: true }, label: "Go", items: [1, 2, 3] },
+      portable: true,
+    }])
+    expect(bundle.diagnostics).not.toContainEqual(expect.objectContaining({ code: "MISSING_META" }))
+  })
+
+  it("follows stylesheet imports and CSS Modules composition in the source graph", () => {
+    const root = project({
+      "Styled.stories.tsx": `import { Styled } from "./Styled"
+export default { component: Styled }
+export const Default = {}
+`,
+      "Styled.tsx": `import styles from "./styles.module.css"
+export const Styled = () => <div className={styles.root} />
+`,
+      "styles.module.css": `@import "./tokens.css";
+.root { composes: base from "./base.module.css"; color: var(--brand); }
+`,
+      "tokens.css": `:root { --brand: red; }
+`,
+      "base.module.css": `.base { display: block; }
+`,
+    })
+    const bundle = buildStoryBundle(undefined, { cwd: root })
+    expect(Object.keys(bundle.files)).toEqual(["base.module.css", "Styled.tsx", "styles.module.css", "tokens.css"])
+    expect(bundle.sourceGraph.files).toEqual({
+      "base.module.css": { sha256: expect.stringMatching(/^[a-f0-9]{64}$/), mediaKind: "stylesheet" },
+      "Styled.tsx": { sha256: expect.stringMatching(/^[a-f0-9]{64}$/), mediaKind: "typescript" },
+      "styles.module.css": { sha256: expect.stringMatching(/^[a-f0-9]{64}$/), mediaKind: "stylesheet" },
+      "tokens.css": { sha256: expect.stringMatching(/^[a-f0-9]{64}$/), mediaKind: "stylesheet" },
+    })
+    expect(bundle.sourceGraph.imports).toEqual([
+      { from: "Styled.tsx", to: "styles.module.css", specifier: "./styles.module.css", resolutionReason: "exact" },
+      { from: "styles.module.css", to: "base.module.css", specifier: "./base.module.css", resolutionReason: "exact" },
+      { from: "styles.module.css", to: "tokens.css", specifier: "./tokens.css", resolutionReason: "exact" },
+    ])
+    expect(explainInclusion(bundle, "tokens.css")).toEqual([
+      { from: "Styled.tsx", to: "styles.module.css", specifier: "./styles.module.css", resolutionReason: "exact" },
+      { from: "styles.module.css", to: "tokens.css", specifier: "./tokens.css", resolutionReason: "exact" },
+    ])
+    // Evidence is an inspection-only sidecar and does not alter wire output.
+    const registryBefore = toRegistryItem(bundle)
+    bundle.sourceGraph.imports.length = 0
+    expect(toRegistryItem(bundle)).toEqual(registryBefore)
+  })
+
+  it("records unresolved transitive imports as deterministic graph evidence", () => {
+    const root = project({
+      "Broken.stories.tsx": `import { Broken } from "./Broken"
+export default { component: Broken }
+export const Default = {}
+`,
+      "Broken.tsx": `import "./missing.css"
+export const Broken = () => null
+`,
+    })
+    const bundle = buildStoryBundle(undefined, { cwd: root })
+    expect(bundle.sourceGraph.imports).toContainEqual({
+      from: "Broken.tsx", to: null, specifier: "./missing.css", resolutionReason: "unresolved-local",
+    })
+    expect(bundle.diagnostics).toContainEqual(expect.objectContaining({ code: "LOCAL_IMPORT_UNRESOLVED", file: "Broken.tsx", severity: "error" }))
+  })
+
+  it("resolves exact package-local tsconfig, baseUrl, and package imports aliases and rewrites them for shadcn consumers", () => {
+    const fixture = path.resolve(__dirname, "../../test-fixtures/storybook-aliases")
+    const bundle = buildStoryBundle("src/components/Button.stories.tsx", { cwd: fixture })
+    expect(bundle.entry).toBe("src/components/Button.tsx")
+    expect(Object.keys(bundle.files)).toEqual(["src/components/Button.tsx", "src/lib/theme.ts", "src/lib/utils.ts"])
+    expect(bundle.files["src/components/Button.tsx"]).toContain('from "../lib/utils"')
+    expect(bundle.files["src/lib/utils.ts"]).toContain('from "./theme"')
+    expect(bundle.files["src/components/Button.tsx"]).not.toContain("#utils")
+    expect(toRegistryItem(bundle).files.map((file: any) => [file.path, file.type])).toEqual([
+      ["src/components/Button.tsx", "registry:component"],
+      ["src/lib/theme.ts", "registry:lib"],
+      ["src/lib/utils.ts", "registry:lib"],
+    ])
+    expect(bundle.sourceGraph.imports).toContainEqual({
+      from: "src/components/Button.tsx", to: "src/lib/utils.ts", specifier: "#utils", resolutionReason: "alias",
+    })
+  })
+
+  it("fails closed when a baseUrl fallback crosses into a nested package", () => {
+    const fixture = path.resolve(__dirname, "../../test-fixtures/storybook-aliases")
+    expect(() => buildStoryBundle("src/components/NestedPackage.stories.tsx", { cwd: fixture })).toThrow(/crosses into a nested package root/)
+  })
+
+  it("fails closed for wildcard, fallback, conditional, external, and inherited aliases", () => {
+    const story = `import { Button } from "@button"
+export default { component: Button }
+export const Primary = {}
+`
+    const component = `import { value } from "#value"
+export const Button = () => value
+`
+    const wildcard = project({
+      "Button.stories.tsx": story.replace("@button", "@ui/button"),
+      "Button.tsx": `export const Button = null
+`,
+      "tsconfig.json": JSON.stringify({ compilerOptions: { paths: { "@ui/*": ["*"] } } }),
+    })
+    expect(() => buildStoryBundle(undefined, { cwd: wildcard })).toThrow(/Wildcard tsconfig paths alias/)
+
+    const fallback = project({
+      "Button.stories.tsx": story,
+      "Button.tsx": `export const Button = null
+`,
+      "tsconfig.json": JSON.stringify({ compilerOptions: { paths: { "@button": ["Button", "fallback"] } } }),
+    })
+    expect(() => buildStoryBundle(undefined, { cwd: fallback })).toThrow(/exactly one static target/)
+
+    const conditional = project({
+      "Button.stories.tsx": `import { Button } from "./Button"
+export default { component: Button }
+export const Primary = {}
+`,
+      "Button.tsx": component,
+      "value.ts": `export const value = null
+`,
+    }, { imports: { "#value": { import: "./value.ts", default: "./value.ts" } } })
+    expect(() => buildStoryBundle(undefined, { cwd: conditional })).toThrow(/one unconditional string target/)
+
+    const external = project({
+      "Button.stories.tsx": story,
+      "tsconfig.json": JSON.stringify({ compilerOptions: { paths: { "@button": ["../outside"] } } }),
+    })
+    expect(() => buildStoryBundle(undefined, { cwd: external })).toThrow(/Could not resolve local import|outside its package root/)
+
+    const outside = project({ "Button.tsx": `export const Button = null
+` })
+    const crossPackage = project({ "Button.stories.tsx": story })
+    fs.writeFileSync(path.join(crossPackage, "tsconfig.json"), JSON.stringify({ compilerOptions: { paths: { "@button": [path.relative(crossPackage, path.join(outside, "Button.tsx"))] } } }))
+    expect(() => buildStoryBundle(undefined, { cwd: crossPackage })).toThrow(/outside its package root/)
+
+    const nestedPackage = project({
+      "Button.stories.tsx": story,
+      "nested/package.json": JSON.stringify({ name: "other-workspace" }),
+      "nested/Button.tsx": `export const Button = null
+`,
+      "tsconfig.json": JSON.stringify({ compilerOptions: { paths: { "@button": ["nested/Button.tsx"] } } }),
+    })
+    expect(() => buildStoryBundle(undefined, { cwd: nestedPackage })).toThrow(/crosses into a nested package root/)
+
+    const externalPackageImport = project({
+      "Button.stories.tsx": `import { Button } from "./Button"
+export default { component: Button }
+export const Primary = {}
+`,
+      "Button.tsx": component,
+    }, { imports: { "#value": "react" } })
+    expect(() => buildStoryBundle(undefined, { cwd: externalPackageImport })).toThrow(/external, absolute, wildcard, or non-portable target/)
+
+    const inherited = project({
+      "Button.stories.tsx": `import { Button } from "./Button"
+export default { component: Button }
+export const Primary = {}
+`,
+      "Button.tsx": `export const Button = null
+`,
+      "tsconfig.json": JSON.stringify({ extends: "../tsconfig.base.json" }),
+    })
+    expect(() => buildStoryBundle(undefined, { cwd: inherited })).toThrow(/tsconfig extends is not supported/)
+  })
+
+  it("fails closed for CSF Next Story.extend inheritance", () => {
+    const root = project({
+      "Factory.stories.tsx": `import preview from "./preview"
+import { Factory } from "./Factory"
+const meta = preview.meta({ component: Factory })
+const Base = meta.story({ args: { label: "Base" } })
+export const Primary = Base.extend({ args: { label: "Go" } })
+`,
+      "preview.ts": `export default { meta: (value: unknown) => value }
+`,
+      "Factory.tsx": `export const Factory = () => null
+`,
+    })
+    const bundle = buildStoryBundle(undefined, { cwd: root })
+    expect(bundle.diagnostics).toContainEqual(expect.objectContaining({ code: "CSF_FACTORY_EXTEND_UNSUPPORTED", severity: "error" }))
+  })
+
 })

@@ -1,7 +1,7 @@
 {
   "name": "@compify/cli",
   "version": "0.2.0",
-  "description": "CLI tool for installing Compify.app components",
+  "description": "Statically package selected React Storybook source as reviewable shadcn registry artifacts",
   "publishConfig": {
     "access": "public"
   },
@@ -10,15 +10,18 @@
     "url": "https://compify.app"
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "LICENSE"
   ],
   "keywords": [
-    "components",
-    "ui",
-    "tailwind",
-    "compify",
-    "cli",
-    "design-system"
+    "storybook",
+    "shadcn",
+    "registry",
+    "react",
+    "source-distribution",
+    "provenance",
+    "components"
   ],
   "type": "module",
   "exports": "./dist/index.js",
@@ -33,7 +36,8 @@
     "test": "vitest run",
     "link": "bun link",
     "unlink": "bun unlink",
-    "prepublishOnly": "bun run test && bun run build"
+    "prepublishOnly": "bun run test && bun run test:package",
+    "test:package": "bun run build && bun scripts/check-package.ts"
   },
   "dependencies": {
     "@babel/parser": "^8.0.4",

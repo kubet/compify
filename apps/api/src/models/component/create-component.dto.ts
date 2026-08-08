@@ -4,6 +4,9 @@ import {
   IsBoolean,
   IsObject,
   IsArray,
+  IsEnum,
+  MaxLength,
+  Matches,
 } from 'class-validator';
 import {
   ComponentVisibility,
@@ -16,6 +19,7 @@ export class CreateComponentDto {
   id?: string;
 
   @IsString()
+  @MaxLength(255)
   name: string;
 
   @IsOptional()
@@ -52,13 +56,17 @@ export class CreateComponentDto {
 
   @IsOptional()
   @IsString()
+  @MaxLength(64)
+  @Matches(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, {
+    message: 'publishingName must be a lowercase slug',
+  })
   publishingName?: string;
 
   @IsOptional()
-  @IsString()
+  @IsEnum(ComponentVisibility)
   visibility?: ComponentVisibility;
 
-  @IsString()
+  @IsEnum(RuntimeLanguage)
   language: RuntimeLanguage;
 
   @IsOptional()

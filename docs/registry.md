@@ -11,10 +11,10 @@ hosted registry. Substitute the origin of the API you operate.
 
 ```bash
 # self-hosted HTTPS origin
-bunx shadcn@latest add https://registry.example.com/r/glass-3d-text.json
+bunx shadcn@4.16.2 add https://registry.example.com/r/glass-3d-text.json
 
 # local Compose API
-bunx shadcn@latest add http://localhost:3009/r/glass-3d-text.json
+bunx shadcn@4.16.2 add http://localhost:3009/r/glass-3d-text.json
 ```
 
 ## Configure a namespace
@@ -32,8 +32,41 @@ Add a registry deployment to `components.json`:
 Then install an available component:
 
 ```bash
-bunx shadcn@latest add @compify/glass-3d-text
+bunx shadcn@4.16.2 add @compify/glass-3d-text
 ```
+
+## Private namespace authentication
+
+Private published items use the same raw `cli_…` credential accepted by
+`storybook publish` and standard shadcn namespace Bearer headers. Keep the token
+in the environment, never in `components.json`:
+
+```json
+{
+  "registries": {
+    "@compify": {
+      "url": "https://registry.example.com/r/{name}.json",
+      "headers": {
+        "Authorization": "Bearer ${COMPIFY_TOKEN}"
+      }
+    }
+  }
+}
+```
+
+```bash
+export COMPIFY_TOKEN=cli_<64-hex-characters>
+bunx shadcn@4.16.2 view @compify/alice/private-button
+bunx shadcn@4.16.2 add @compify/alice/private-button
+```
+
+The token owner must own the private publishing domain. Private items never
+appear in the anonymous registry index, and missing, malformed, revoked, or
+other-user credentials return the same not-found response. The current token is
+account-wide and can also publish; it is not yet a scoped, read-only registry
+credential. Rotate or revoke it from the profile/API if it is exposed. Pin and
+test the shadcn CLI version used by your organization, including authenticated
+`registryDependencies`; header propagation must not be assumed across versions.
 
 ## Storybook relationship
 
@@ -60,6 +93,21 @@ item can contain:
 - `files` — component source selected for distribution;
 - `dependencies` — required external packages; and
 - `docs` / `meta` — descriptive and provenance metadata.
+
+## Latest and immutable revision addresses
+
+A successful v2 publish returns two install surfaces:
+
+- `registryUrl`, the latest reviewed revision for the publishing domain; and
+- `immutableRegistryUrl`, shaped as
+  `/r/<owner>/<name>/<sha256>.json`, which resolves only that digest.
+
+Republishing the same owned name with a new digest appends a revision rather than
+failing on the occupied domain. Repeating an identical digest is idempotent.
+Historical revisions retain their visibility snapshot, so an immutable private
+URL still requires its owner's current Bearer token and becomes inaccessible
+after token revocation. Immutability covers the canonical registry-item object,
+not original request whitespace or a third-party transparency log.
 
 Generated files are derived outputs. Review them and test installation in a
 consumer project rather than assuming Storybook runtime behavior was captured.

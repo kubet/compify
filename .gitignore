@@ -15,3 +15,5 @@ build/
 deploy/private/
 ops/private/
 .github/workflows/deploy-private.yml
+/apps/web/test-results/
+/apps/web/playwright-report/

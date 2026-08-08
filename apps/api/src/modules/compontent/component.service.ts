@@ -173,8 +173,8 @@ export class ComponentService {
 
   async search(
     body: {
-      query: string;
-      page: number;
+      query?: string;
+      page?: number;
       selectedOption?: string[];
       selectedTags?: string[];
     },
@@ -374,6 +374,18 @@ export class ComponentService {
   }
 
   async create(createComponentDto: CreateComponentDto, user: User) {
+    // Source is persisted as a JSON file map and unconditionally parsed by the
+    // editor/read APIs. Reject malformed storage at the write boundary instead
+    // of creating components that can only fail with a 500 when read.
+    try {
+      const parsed: unknown = JSON.parse(createComponentDto.code);
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+        throw new Error('not a file map');
+      }
+    } catch {
+      throw new BadRequestException('Component code must be a JSON file map');
+    }
+
     const dtoSize = Buffer.from(JSON.stringify(createComponentDto)).length;
     const maxSize = (await this.getUserCreateSizeLimit(user.id)) * 1024 * 1024;
     if (dtoSize > maxSize) {
@@ -395,13 +407,6 @@ export class ComponentService {
         createComponentDto?.id,
       );
       Object.assign(component, { publishingDomain });
-    }
-    if (
-      (createComponentDto.visibility === ComponentVisibility.PUBLIC ||
-        createComponentDto.visibility === ComponentVisibility.FREE) &&
-      createComponentDto.isShared
-    ) {
-      this.constructImageService.constructOGImage(id, createComponentDto.name);
     }
     if (id) {
       const foundComponent = await this.componentRepository
@@ -460,6 +465,23 @@ export class ComponentService {
         ...savedComponent,
         visibility: desiredVisibility,
       });
+    }
+
+    // Generate an OG image only after ownership has been established and both
+    // metadata and source are durable. The old pre-authorization call allowed
+    // an update request containing another component's id to rewrite its OG
+    // object before the request was rejected.
+    if (id && requiresVisibilityStaging && createComponentDto.isShared) {
+      try {
+        await this.constructImageService.constructOGImage(
+          id,
+          createComponentDto.name,
+        );
+      } catch (error) {
+        // The component is already durable; a derivative image failure must
+        // not turn a successful save into an ambiguous client-visible error.
+        console.error('Failed to generate component OG image:', error);
+      }
     }
 
     return {
@@ -528,7 +550,26 @@ export class ComponentService {
     };
   }
 
-  async checkDomain(domain: string, id: string) {
+  async checkDomain(publishingName: string, id: string, user: User) {
+    // Accept only the slug portion. Building the namespace server-side prevents
+    // authenticated users from probing private publishing domains owned by
+    // another account.
+    if (
+      typeof publishingName !== 'string' ||
+      publishingName.length > 64 ||
+      !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(publishingName) ||
+      !user?.username
+    ) {
+      throw new BadRequestException('Invalid publishing domain');
+    }
+
+    // An ID is only used to ignore the component currently being edited. Do
+    // not let a caller supply somebody else's ID to exclude a collision.
+    if (id) {
+      await this.checkIfUserIsOwnerOrThrow403(id, user);
+    }
+
+    const domain = `${user.username}/${publishingName}`;
     const q = this.componentRepository
       .createQueryBuilder('component')
       .where('component.publishingDomain = :domain', { domain });
@@ -547,7 +588,13 @@ export class ComponentService {
       .where('component.id = :id', { id })
       .getOne();
 
-    if (!component) {
+    if (
+      !component ||
+      (component.visibility !== ComponentVisibility.PUBLIC &&
+        component.visibility !== ComponentVisibility.FREE)
+    ) {
+      // Do not disclose the existence of private/draft components through the
+      // voting API, and never allow their counters to be mutated by nonowners.
       throw new NotFoundException(`Component with ID "${body.id}" not found`);
     }
 

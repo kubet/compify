@@ -1,3 +1,4 @@
+/* Modified by Compify from CodeSandbox Sandpack v2.19.8; see packages/compify-pack/PROVENANCE.md. */
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -2410,7 +2411,7 @@ var FileTabs = function (_a) {
           var parent_2 = target.parentElement;
           var lastChild = parent_2.lastElementChild;
           (_e = lastChild.querySelector("button")) === null || _e === void 0 ? void 0 : _e.focus();
-          setActiveFile(visibleFiles[-1]);
+          setActiveFile(visibleFiles[visibleFiles.length - 1]);
           break;
         }
     }
@@ -2452,7 +2453,8 @@ var FileTabs = function (_a) {
             title: filePath,
             type: "button",
             children: getTriggerText(filePath)
-          }), closableTabs && visibleFiles.length > 1 && jsxRuntime.jsx("span", {
+          }), closableTabs && visibleFiles.length > 1 && jsxRuntime.jsx("button", {
+            "aria-label": ("Close ").concat(getTriggerText(filePath)),
             className: classNames("close-button", [closeButtonClassName]),
             onClick: function (ev) {
               ev.stopPropagation();
@@ -2462,6 +2464,8 @@ var FileTabs = function (_a) {
               visibility: filePath === activeFile || hoveredIndex === index ? "visible" : "hidden"
             },
             tabIndex: filePath === activeFile ? 0 : -1,
+            title: ("Close ").concat(filePath),
+            type: "button",
             children: jsxRuntime.jsx(CloseIcon, {})
           })]
         }, filePath);

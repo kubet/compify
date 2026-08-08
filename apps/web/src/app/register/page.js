@@ -19,6 +19,8 @@ const RegisterPage = () => {
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState('');
     const [toastType, setToastType] = useState('info');
+    const [submitting, setSubmitting] = useState(false);
+    const [resending, setResending] = useState(false);
     const [turnstileToken, setTurnstileToken] = useState(null);
     const [passwordStrength, setPasswordStrength] = useState({ score: 0, message: '' });
     const router = useRouter();
@@ -67,6 +69,7 @@ const RegisterPage = () => {
     };
 
     const handleRegister = async () => {
+        if (submitting) return;
         if (!firstName.trim()) {
             setToastMessage('First name is required');
             setToastType('error');
@@ -112,6 +115,7 @@ const RegisterPage = () => {
             return;
         }
 
+        setSubmitting(true);
         const resp = await registerUser({
             firstName,
             lastName,
@@ -119,23 +123,27 @@ const RegisterPage = () => {
             password,
             turnstileToken
         });
+        setSubmitting(false);
         if (resp.status === 201) {
             setStep(1);
         } else {
-            setToastMessage(resp.data.message);
+            setToastMessage(resp.data?.message || 'Unable to create account. Please try again.');
             setToastType('error');
             setShowToast(true);
         }
     };
 
     const handleResendVerificationEmail = async () => {
+        if (resending) return;
+        setResending(true);
         const resp = await resendVerificationEmail(email);
+        setResending(false);
         if (resp.status === 201) {
             setToastMessage('Verification email sent successfully');
             setToastType('success');
             setShowToast(true);
         } else {
-            setToastMessage(resp.data.message);
+            setToastMessage(resp.data?.message || 'Unable to resend verification email. Please try again.');
             setToastType('error');
             setShowToast(true);
         }
@@ -152,7 +160,7 @@ const RegisterPage = () => {
                     <h2 className="text-4xl font-bold mb-2 bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent">
                         Create Account For Free
                     </h2>
-                    <p className="text-gray-400">Build once, use anywhere. No credit card required.</p>
+                    <p className="text-gray-400">Review selected Storybook source before distributing it. No credit card required.</p>
                 </motion.div>
 
                 <div className="space-y-6">
@@ -265,7 +273,15 @@ const RegisterPage = () => {
                     </h2>
                     <p className="text-gray-400">
                         We&apos;ve sent you an email to verify your account.
-                        Didn&apos;t receive it? <span className="cursor-pointer text-blue-400 hover:underline" onClick={handleResendVerificationEmail}>Click here to resend</span>.
+                        Didn&apos;t receive it?{' '}
+                        <button
+                            type="button"
+                            className="text-blue-400 hover:underline disabled:cursor-not-allowed disabled:opacity-60"
+                            onClick={handleResendVerificationEmail}
+                            disabled={resending}
+                        >
+                            {resending ? 'Sending…' : 'Click here to resend'}
+                        </button>.
                     </p>
 
                 </motion.div>

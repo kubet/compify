@@ -1,3 +1,4 @@
+// Modified by Compify; see packages/compify-pack/PROVENANCE.md.
 import type { TestError } from "@codesandbox/sandpack-client";
 import * as React from "react";
 

@@ -74,7 +74,7 @@ export async function startMcpServer() {
 
   server.tool(
     "get_component",
-    "Fetch a compify component's full source files and npm dependencies in shadcn registry-item format. Write the files into the project and install the listed dependencies.",
+    "Fetch a Compify registry item for evidence review. Use the official shadcn CLI/MCP—not manual file writes—for consumer installation and alias/dependency handling.",
     {
       name: z
         .string()
@@ -103,7 +103,7 @@ export async function startMcpServer() {
       return textResult(
         [
           `# shadcn (no compify account needed):`,
-          `bunx shadcn@latest add ${getApiUrl()}/r/${clean}.json`,
+          `bunx shadcn@4.16.2 add ${getApiUrl()}/r/${clean}.json`,
           ``,
           `# compify CLI (tracks the component in compify.json):`,
           `compify add @${clean}`,
@@ -112,13 +112,16 @@ export async function startMcpServer() {
     }
   );
 
+  process.stderr.write(
+    "Warning: compify mcp is a compatibility surface. Prefer the official shadcn MCP for registry discovery and installation; this server may be removed unless Compify-specific evidence workflows justify it.\n"
+  );
   await server.connect(new StdioServerTransport());
 }
 
 export const mcp = new Command()
   .name("mcp")
   .description(
-    "run a Model Context Protocol server over stdio for coding agents"
+    "run the deprecated compatibility registry MCP (prefer official shadcn MCP)"
   )
   .action(async () => {
     await startMcpServer();

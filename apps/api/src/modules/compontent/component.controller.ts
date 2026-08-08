@@ -25,6 +25,12 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import { ConstructImageService } from './construct-image.service';
 import sharp from 'sharp';
+import {
+  ForkComponentDto,
+  ReportComponentDto,
+  SearchComponentsDto,
+  UpvoteComponentDto,
+} from 'src/models/component/component-actions.dto';
 @ApiTags('Components')
 @ApiBrowserOrBearerAuth()
 @Controller('component')
@@ -37,13 +43,21 @@ export class ComponentController {
   ) {}
 
   @Post('search')
-  search(@Body() body: any, @GetUser() user: User) {
+  search(@Body() body: SearchComponentsDto, @GetUser() user: User) {
     return this.componentService.search(body, user);
   }
 
   @Get('image/:id')
-  async getImage(@Param('id') id: string, @Res() res: Response) {
+  async getImage(
+    @Param('id') id: string,
+    @GetUser() user: User,
+    @Res() res: Response,
+  ) {
     try {
+      // This authenticated endpoint is used by the private editor. Public
+      // images are served by /c/image/:id; never let any signed-in user use
+      // this route to enumerate another user's private component images.
+      await this.componentService.checkIfUserIsOwnerOrThrow403(id, user);
       const { buffer, mimetype } = await this.minioService.getFile(
         'images',
         id,
@@ -129,7 +143,7 @@ export class ComponentController {
   }
 
   @Post('fork')
-  fork(@Body() body: any, @GetUser() user: User) {
+  fork(@Body() body: ForkComponentDto, @GetUser() user: User) {
     return this.componentService.fork(body, user);
   }
 
@@ -158,19 +172,25 @@ export class ComponentController {
     return this.componentService.findRecentMy(user);
   }
 
+  // Keep fixed routes above the catch-all ID route. Availability is an
+  // authenticated editor operation, not a public registry lookup.
+  @Get('check/domain')
+  checkDomain(
+    @Query('domain') publishingName: string,
+    @Query('id') id: string,
+    @GetUser() user: User,
+  ) {
+    return this.componentService.checkDomain(publishingName, id, user);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string, @GetUser() user: User) {
     return this.componentService.findOne(id, user);
   }
 
   @Post('upvote')
-  upvote(@Body() body: any, @GetUser() user: User) {
+  upvote(@Body() body: UpvoteComponentDto, @GetUser() user: User) {
     return this.componentService.upvote(body, user);
-  }
-
-  @Get('check/domain')
-  checkDomain(@Query('domain') domain: string, @Query('id') id: string) {
-    return this.componentService.checkDomain(domain, id);
   }
 
   @Delete(':id')
@@ -181,10 +201,10 @@ export class ComponentController {
   @Post('report/:id')
   reportComponent(
     @Param('id') id: string,
-    @Body('reason') reason: string,
+    @Body() body: ReportComponentDto,
     @GetUser() user: User,
   ) {
-    return this.componentService.reportComponent(id, reason, user);
+    return this.componentService.reportComponent(id, body.reason, user);
   }
 
   @Post('gif/create')

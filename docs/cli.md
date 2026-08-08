@@ -18,15 +18,16 @@ bun link
 
 ## Storybook commands
 
-All three commands accept an optional story-file argument. When it is omitted,
+All four commands accept an optional story-file argument. When it is omitted,
 the CLI searches under `--cwd` and proceeds only if exactly one matching story
 file exists. Common options are `--cwd`, `--name`, `--description`,
 `--publishing-name`, `--component-entry <path>`, and `--visibility` (`private`,
 `public`, or `unlisted`; default `private`). The CLI normally infers the
 installable component entry from the CSF default meta `component` import;
 `--component-entry` provides an explicit override when that is not possible.
-`public` items are indexed, `unlisted` items are direct-address only, and
-`private` items are owner-only.
+Use `--story <export-name>` to select one exact named story export; without it,
+all named stories in the file must be portable. `public` items are indexed,
+`unlisted` items are direct-address only, and `private` items are owner-only.
 
 ### `compify storybook inspect [entry]`
 
@@ -36,6 +37,7 @@ portability diagnostics.
 
 ```bash
 compify storybook inspect src/Button.stories.tsx
+compify storybook inspect src/Button.stories.tsx --story Primary
 compify storybook inspect src/Button.stories.tsx --json
 ```
 
@@ -48,12 +50,39 @@ Translate the bundle into a local shadcn registry item.
 
 ```bash
 compify storybook export src/Button.stories.tsx \
-  --output .compify/button.registry.json
+  --story Primary --output .compify/button.registry.json
 ```
 
 `-o, --output <file>` chooses the path; otherwise the CLI writes
 `<component-name>.registry.json`. Existing files are refused unless `--force`
 is present.
+
+### `compify storybook handoff [entry]`
+
+Export a selected portable story and install it with native pinned
+`shadcn@4.16.2` into an explicitly separate, already initialized consumer.
+No publish request is made. On success it writes a deterministic, digest-signed
+receipt containing its `installed` or `built` evidence level, exact
+installer/build argv, and hashes of consumer changes. Consumer snapshots are
+bounded to 10,000 entries, 64 directory levels, and 256 MiB; ignored dependency
+and build directories are not traversed, symlinks are never followed, and
+special files are not opened. Existing artifact or receipt files are never
+overwritten. If installation or build fails, no success receipt is written and
+the CLI removes only the unchanged artifact inode it created so a retry is not
+blocked. Native tools may already have changed consumer files; review the working
+tree before retrying.
+
+```bash
+compify storybook handoff src/Button.stories.tsx --story Primary \
+  --consumer ../consumer-app \
+  --build-command bun --build-arg run --build-arg build
+```
+
+The required consumer must be outside the source package tree and contain both
+`package.json` and `components.json`. Build arguments are repeatable argv values;
+commands are never interpreted by a shell. Defaults are
+`.compify/<name>.registry.json` and `.compify/<name>.handoff.json`; override them
+with `--output` and `--receipt`.
 
 ### `compify storybook publish [entry]`
 
@@ -68,7 +97,8 @@ COMPIFY_API_URL=https://api.example.com compify storybook publish \
 The target must be a self-hosted current-source deployment containing
 `POST /cli/publish-story`; the CLI default API does not currently expose that
 endpoint. `--json` emits the server response. Export and publish both refuse
-bundles with error diagnostics or non-portable stories.
+bundles with error diagnostics or non-portable selected stories. When `--story`
+is omitted, every named story in the file is selected and must be portable.
 The story source and Storybook-only dependencies are metadata inputs and are not
 included in the installable component files. The API independently verifies the deterministic payload digest.
 
@@ -103,7 +133,9 @@ environments, set `COMPIFY_TOKEN`. Global options such as `--api-url` and
 - `compify migrate [componentId]` — update installed source; backups are enabled
   by default.
 - `compify remove [components...]` — remove files and manifest entries.
-- `compify mcp` — run the Compify registry MCP server over stdio.
+- `compify mcp` — deprecated compatibility registry MCP. Prefer the official
+  shadcn MCP configured through `components.json`; no new workflow should depend
+  on this command.
 - `compify logout` — clear stored credentials.
 
 Public registry items can also be installed through shadcn tooling; see

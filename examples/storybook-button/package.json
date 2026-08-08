@@ -1,0 +1,7 @@
+{
+  "name": "compify-storybook-button-fixture",
+  "private": true,
+  "peerDependencies": {
+    "react": "^19.0.0"
+  }
+}

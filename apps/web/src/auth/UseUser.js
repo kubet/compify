@@ -49,7 +49,11 @@ export function withAuth(WrappedComponent) {
 
         useEffect(() => {
             if (!isAuthLoading && !isSignedIn) {
-                router.push('/login');
+                const destination = `${window.location.pathname}${window.location.search}`;
+                if (/^\/(?!\/)/.test(destination) && destination !== '/login') {
+                    localStorage.setItem('afterLoginForwardLink', destination);
+                }
+                router.replace('/login');
             }
         }, [isAuthLoading, isSignedIn, router]);
 

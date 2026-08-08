@@ -17,13 +17,16 @@ function GoogleVerifyContent() {
     const verifyGoogleToken = async () => {
       try {
         const usr = await whoAmI();
+        if (usr.status !== 200 || !usr.data?.email) {
+          throw new Error(usr.data?.message || "Google session was not created");
+        }
         setUser(usr.data);
 
         const afterLoginForwardLink = localStorage.getItem(
           "afterLoginForwardLink"
         );
-        if (afterLoginForwardLink) {
-          localStorage.removeItem("afterLoginForwardLink");
+        localStorage.removeItem("afterLoginForwardLink");
+        if (/^\/(?!\/)/.test(afterLoginForwardLink || "")) {
           router.push(afterLoginForwardLink);
         } else {
           router.push("/profile");

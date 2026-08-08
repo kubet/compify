@@ -1,3 +1,4 @@
+// Modified by Compify; see packages/compify-pack/PROVENANCE.md.
 import * as React from "react";
 
 import { useSandpack } from "../../hooks/useSandpack";
@@ -166,7 +167,7 @@ export const FileTabs = ({
         const parent = target.parentElement as HTMLElement;
         const lastChild = parent.lastElementChild as HTMLElement;
         lastChild.querySelector("button")?.focus();
-        setActiveFile(visibleFiles[-1]);
+        setActiveFile(visibleFiles[visibleFiles.length - 1]);
         break;
       }
       default:
@@ -210,7 +211,8 @@ export const FileTabs = ({
               {getTriggerText(filePath)}
             </button>
             {closableTabs && visibleFiles.length > 1 && (
-              <span
+              <button
+                aria-label={`Close ${getTriggerText(filePath)}`}
                 className={classNames("close-button", [closeButtonClassName])}
                 onClick={(ev) => {
                   ev.stopPropagation();
@@ -224,9 +226,11 @@ export const FileTabs = ({
                       : "hidden",
                 }}
                 tabIndex={filePath === activeFile ? 0 : -1}
+                title={`Close ${filePath}`}
+                type="button"
               >
                 <CloseIcon />
-              </span>
+              </button>
             )}
           </div>
         ))}

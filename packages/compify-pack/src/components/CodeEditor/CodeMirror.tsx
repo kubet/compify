@@ -1,3 +1,4 @@
+// Modified by Compify; see packages/compify-pack/PROVENANCE.md.
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { closeBrackets, closeBracketsKeymap } from "@codemirror/autocomplete";
 import {

@@ -1,64 +1,23 @@
 import { BlogShell, PostHeader, P, H2, Code, A } from '../BlogShell';
 
 export const metadata = {
-    title: 'Making a component library your coding agent can use',
-    description:
-        'Agents install UI through CLIs and MCP now. What that means for how components should be distributed.',
+    title: 'Storybook context, approved source, native installation',
+    description: 'Where Storybook AI, Compify and shadcn each fit in an agent-assisted component handoff.',
     alternates: { canonical: 'https://compify.app/blog/agent-ready-components' },
 };
 
 export default function Post() {
-    return (
-        <BlogShell>
-            <PostHeader
-                title="Making a component library your coding agent can use"
-                date="August 5, 2026"
-            />
-
-            <P>
-                Most code shipped this year was written with a coding agent in the loop. Agents
-                don&apos;t browse component galleries — they call tools. If your component library
-                isn&apos;t addressable by a tool call, it doesn&apos;t exist for them.
-            </P>
-
-            <H2>The three layers that matter</H2>
-            <P>
-                <strong className="text-white">A stable address.</strong> An agent needs a name it
-                can pass to an installer. Every published compify component has one:{' '}
-                <code>@you/component-name</code>.
-            </P>
-            <P>
-                <strong className="text-white">A machine-readable format.</strong> We serve the
-                shadcn registry-item format — source files plus npm dependencies in one JSON
-                document. An agent (or the shadcn CLI it drives) can apply it without guessing.
-            </P>
-            <P>
-                <strong className="text-white">A discovery channel.</strong> Two, actually:{' '}
-                <A href="https://compify.app/llms.txt">llms.txt</A> for agents that read the web,
-                and MCP for agents that call tools.
-            </P>
-
-            <H2>Two MCP paths</H2>
-            <P>
-                If the project already uses the official shadcn MCP server, one line of
-                configuration makes compify visible to it:
-            </P>
-            <Code>{`// components.json
-"registries": { "@compify": "https://api.compify.app/r/{name}.json" }`}</Code>
-            <P>
-                If not, the compify CLI ships its own MCP server — three tools
-                (search, fetch, install commands), stdio transport, no auth needed for public
-                components:
-            </P>
-            <Code>claude mcp add compify -- bunx @compify/cli mcp</Code>
-
-            <H2>The test that counts</H2>
-            <P>
-                The measure of agent-readiness isn&apos;t a feature list — it&apos;s whether a cold
-                agent can go from &quot;add a pricing card&quot; to working code in one pass. With
-                the registry + MCP combination, the whole flow is: search, fetch, write files,
-                install deps. Four tool calls, no human copy-paste in between.
-            </P>
-        </BlogShell>
-    );
+    return <BlogShell>
+        <PostHeader title="Storybook context, approved source, native installation" date="August 8, 2026" />
+        <P>Agent access to component documentation is not authorization to distribute source. A trustworthy workflow keeps three responsibilities separate.</P>
+        <H2>1. Storybook owns understanding and tests</H2>
+        <P>The official <A href="https://storybook.js.org/docs/ai/mcp">Storybook MCP/tools</A> expose docs, stories, previews and tests. Its React manifests and MCP APIs are still moving quickly. Compify does not proxy or reproduce them.</P>
+        <H2>2. Compify owns explicit source review</H2>
+        <P>A maintainer selects a local CSF boundary. The CLI statically analyzes the component graph without executing the story, reports unsupported behavior, and emits reviewable registry JSON with a digest and provenance.</P>
+        <Code>compify storybook inspect src/Button.stories.tsx --story Primary</Code>
+        <H2>3. shadcn owns installation</H2>
+        <P>Configure the registry in <code>components.json</code>, then use the official shadcn CLI or MCP so target aliases, dependencies and authentication follow native semantics.</P>
+        <Code>{`"registries": { "@compify": "https://registry.example/r/{name}.json" }`}</Code>
+        <P>The existing <code>compify mcp</code> registry browser is deprecated compatibility surface. The useful future agent capability is approval and verification evidence—not another raw component search tool or an automatic publish button.</P>
+    </BlogShell>;
 }

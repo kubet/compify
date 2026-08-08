@@ -12,6 +12,7 @@ import {
 import { User } from '../user/user.entity';
 import { Theme } from './theme.entity';
 import { Upvote } from './upvote.entity';
+import { ComponentRevision } from './component-revision.entity';
 
 export enum RuntimeLanguage {
   REACT = 'react',
@@ -96,6 +97,9 @@ export class Component {
 
   @OneToMany(() => Upvote, (upvote) => upvote.component)
   upvotes: Upvote[];
+
+  @OneToMany(() => ComponentRevision, (revision) => revision.component)
+  revisions: ComponentRevision[];
 
   @Index()
   @Column({

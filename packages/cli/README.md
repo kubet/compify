@@ -1,225 +1,91 @@
 # Compify CLI
 
+Compify's CLI statically packages selected React component source, using a
+Storybook CSF file as the explicit selection and context boundary, into a
+reviewable shadcn-compatible registry item. It also contains the existing client
+commands for self-hosted Compify registries.
 
-> Full reference: [docs/cli.md](../../docs/cli.md) · shadcn interop: [docs/registry.md](../../docs/registry.md)
-A powerful CLI tool for managing and syncing components from your global registry.
+> [Full CLI reference](../../docs/cli.md) · [Storybook translation](../../docs/storybook.mdx) · [shadcn interop](../../docs/registry.md)
 
-## Features
+## Release status
 
-- 🔐 **Secure Authentication**: Token-based authentication with secure credential storage
-- 🔄 **Smart Component Management**: Add, remove, and update components with ease
-- 📁 **Flexible Organization**: Choose between folder or flat file structures
-- 🔍 **Intelligent Diffing**: Track and review component changes
-- 🔄 **Safe Updates**: Automatic backups during migrations (stored in `.compify-backup` with timestamped versions)
-- 🎯 **Project-Specific Config**: Maintains component metadata in `compify.json`
+npm contains the older `@compify/cli@0.1.0`, but it does not contain the
+Storybook workflow documented here. Version 0.2.0 in this repository is the
+current release candidate and is not published until its release is announced.
+The new commands do not require a managed Compify service: local
+`storybook inspect` and `storybook export` work without an account or server.
 
-## Installation
-
-```bash
-bun add --global @compify/cli
-# or
-bun add --global @compify/cli
-```
-
-## Quick Start
-
-1. **Login to your registry:**
-```bash
-compify login
-```
-
-2. **Add a component:**
-```bash
-compify add <component-id>
-```
-
-3. **Check for updates:**
-```bash
-compify diff
-```
-
-## Commands
-
-### `login`
-
-Authenticate with your Compify registry.
+## Build from source
 
 ```bash
-compify login
-# or with token
-compify login -t <your-token>
+git clone https://github.com/kubet/compify.git
+cd compify/packages/cli
+bun install --frozen-lockfile
+bun run build
+bun link
+compify --help
 ```
 
-### `logout`
+Bun 1.3.9 is the supported runtime and package manager.
 
-Log out from your Compify registry.
+## Review-first Storybook workflow
+
+Run from the React package containing the selected story:
 
 ```bash
-compify logout
+compify storybook inspect src/components/Button.stories.tsx
+compify storybook export src/components/Button.stories.tsx \
+  --story Primary \
+  --output .compify/button.registry.json
 ```
 
-### `list`
-
-List all available components from the registry.
+For a machine-verifiable local install into a separate initialized consumer:
 
 ```bash
-compify list
+compify storybook handoff src/components/Button.stories.tsx --story Primary \
+  --consumer ../consumer-app --build-command bun --build-arg run --build-arg build
 ```
 
-Options:
-- `-s, --silent`: Mute output
+This uses pinned native `shadcn@4.16.2`, never publishes, and writes a digest-signed receipt. A receipt is `built` evidence only when an explicit build command succeeds; otherwise it records `installed` evidence.
 
-### `add`
+Inspection parses source without importing or executing the story module.
+Export follows supported local text imports from the component entry, records
+runtime dependencies and provenance, and refuses unresolved or unsafe input.
+Always review the generated JSON and test it in a separate consumer app.
 
-Add components to your project. Supports both folder and flat organization.
+Use `--component-entry <path>` when `meta.component` cannot be inferred. Use
+`--json` with `inspect` for CI. See the reference for supported syntax,
+diagnostic behavior, file/size limits, and exact options.
+
+## Self-hosted publishing
+
+Publishing is optional and targets an API you operate:
 
 ```bash
-# Interactive mode
-compify add <component-id>
-
-# Non-interactive with flags
-compify add <component-id> --yes --flat
+compify --api-url https://registry.example.com/api login --token <token>
+compify --api-url https://registry.example.com/api storybook publish \
+  src/components/Button.stories.tsx --story Primary --visibility private
 ```
 
-Options:
-- `-y, --yes`: Skip confirmation prompts
-- `-o, --overwrite`: Overwrite existing files
-- `-f, --flat`: Use flat file structure
-- `-p, --path <path>`: Custom installation path
-- `-s, --silent`: Mute output
-- `--all`: Add all available components
-- `--src-dir`: Use source directory structure
+Token creation, private-registry consumption, storage, and production hardening
+are operator responsibilities. Start with [self-hosting](../../docs/self-hosting.md)
+and [publishing](../../docs/publishing.md). Never publish an artifact you have
+not reviewed.
 
-### `remove`
+## Existing registry client
 
-Remove components from your project.
+The CLI also provides `init`, `list`, `add`, `diff`, `migrate`, `remove`, `info`,
+`login`, `logout`, and `mcp` for an existing Compify registry. Run
+`compify <command> --help` and consult the full CLI reference. Native shadcn
+registry installation remains first-class; the Compify CLI is not required to
+consume exported registry-item JSON.
+
+## Development
 
 ```bash
-# Interactive mode
-compify remove
-
-# Remove specific component
-compify remove <component-id>
-
-# Non-interactive
-compify remove <component-id> --yes
+bun run test
+bun run build
 ```
 
-Options:
-- `-y, --yes`: Skip confirmation prompts
-- `-s, --silent`: Mute output
-
-### `diff`
-
-Check for component updates against the registry.
-
-```bash
-# Check all components
-compify diff
-
-# Check specific component
-compify diff <component-id>
-```
-
-Options:
-- `-c, --cwd <path>`: Specify the working directory (defaults to current directory)
-
-### `migrate`
-
-Update components to their latest versions. Automatically creates backups of modified files in the `.compify-backup` directory.
-
-```bash
-# Update all components
-compify migrate
-
-# Update specific component
-compify migrate <component-id>
-```
-
-Options:
-- `-y, --yes`: Skip confirmation prompts
-- `-b, --backup`: Create backups before migrating (default: true)
-- `-s, --silent`: Mute output
-- `-c, --cwd <path>`: Specify the working directory (defaults to current directory)
-
-Note: When backups are enabled (default), each modified file is backed up with a timestamp (e.g. `filename.1234567890.bak`) in the `.compify-backup` directory.
-
-### `info`
-
-Display information about your project and installed components.
-
-```bash
-compify info
-# or as JSON
-compify info --json
-```
-
-Options:
-- `--json`: Output information in JSON format
-- `-c, --cwd <path>`: Specify the working directory (defaults to current directory)
-
-## Configuration
-
-Compify maintains a `compify.json` file in your project root:
-
-```json
-{
-  "components": [
-    {
-      "id": "button-id",
-      "name": "Button"
-    }
-  ],
-  "version": "1.0.0",
-  "componentPath": "src/components"
-}
-```
-
-## Common Workflows
-
-### Adding Multiple Components
-
-```bash
-compify add button-id card-id modal-id
-```
-
-### Updating with Backups
-
-```bash
-# Check for updates
-compify diff
-
-# Migrate with automatic backups
-compify migrate
-```
-
-### Clean Removal
-
-```bash
-# Interactive component selection
-compify remove
-
-# Remove specific components
-compify remove button-id card-id
-```
-
-## Error Handling
-
-- Authentication errors will prompt you to login
-- Network issues will be reported clearly
-- Backup files are created before risky operations
-- Interactive prompts help prevent accidental changes
-
-## Best Practices
-
-1. **Component Organization**:
-   - Use folder structure for complex components
-   - Use flat structure for simple, single-file components
-
-2. **Updates**:
-   - Run `diff` before `migrate` to review changes
-   - Keep backups enabled for safe migrations
-
-3. **Maintenance**:
-   - Regularly check for updates
-   - Clean up unused components with `remove`
+The package is MIT licensed. Report security issues through the repository's
+private vulnerability reporting flow; do not open a public security issue.

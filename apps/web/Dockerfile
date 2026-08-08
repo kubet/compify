@@ -7,6 +7,8 @@ FROM node:22.23.2-bookworm-slim@sha256:d649c27dae7ba0137b3cef5dd75baa422c08dc3d9
 COPY --from=bun-runtime /usr/local/bin/bun /usr/local/bin/bun
 WORKDIR /app
 COPY docs ./docs
+COPY LICENSE THIRD_PARTY_NOTICES.md ./
+COPY licenses ./licenses
 COPY apps/web/package.json apps/web/bun.lock ./apps/web/
 COPY apps/web/scripts ./apps/web/scripts
 # compify-pack is a local file dependency of the web application.
@@ -56,6 +58,9 @@ COPY --from=production-dependencies --chown=compify:bunjs /app/apps/web/node_mod
 COPY --from=build --chown=compify:bunjs /app/apps/web/.next ./.next
 COPY --from=build --chown=compify:bunjs /app/apps/web/public ./public
 COPY --from=build --chown=compify:bunjs /app/apps/web/package.json ./package.json
+COPY --from=build --chown=compify:bunjs /app/THIRD_PARTY_NOTICES.md ./THIRD_PARTY_NOTICES.md
+COPY --from=build --chown=compify:bunjs /app/LICENSE ./LICENSE
+COPY --from=build --chown=compify:bunjs /app/licenses ./licenses
 USER compify
 EXPOSE 3000
 CMD ["node", "./node_modules/next/dist/bin/next", "start"]

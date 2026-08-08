@@ -1,3 +1,4 @@
+/* Modified by Compify from CodeSandbox Sandpack v2.19.8; see packages/compify-pack/PROVENANCE.md. */
 "use client";
 
 'use strict';
@@ -2419,21 +2420,21 @@ var FileTabs = function (_a) {
                 var parent_2 = target.parentElement;
                 var lastChild = parent_2.lastElementChild;
                 (_e = lastChild.querySelector("button")) === null || _e === void 0 ? void 0 : _e.focus();
-                setActiveFile(visibleFiles[-1]);
+                setActiveFile(visibleFiles[visibleFiles.length - 1]);
                 break;
             }
         }
     };
     return (jsxRuntime.jsx("div", tslib.__assign({ className: classNames("tabs", [tabsClassName, className]), translate: "no" }, props, { children: jsxRuntime.jsx("div", { "aria-label": "Select active file", className: classNames("tabs-scrollable-container", [
                 tabsScrollableClassName,
-            ]), role: "tablist", children: visibleFiles.map(function (filePath, index) { return (jsxRuntime.jsxs("div", { "aria-controls": "".concat(filePath, "-").concat(activeFileUniqueId, "-tab-panel"), "aria-selected": filePath === activeFile, className: classNames("tab-container", [tabContainer]), onKeyDown: function (e) { return onKeyDown({ e: e, index: index }); }, onMouseEnter: function () { return setIsHoveredIndex(index); }, onMouseLeave: function () { return setIsHoveredIndex(null); }, role: "tab", children: [jsxRuntime.jsx("button", { className: classNames("tab-button", [buttonClassName, tabButton]), "data-active": filePath === activeFile, id: "".concat(filePath, "-").concat(activeFileUniqueId, "-tab"), onClick: function () { return setActiveFile(filePath); }, tabIndex: filePath === activeFile ? 0 : -1, title: filePath, type: "button", children: getTriggerText(filePath) }), closableTabs && visibleFiles.length > 1 && (jsxRuntime.jsx("span", { className: classNames("close-button", [closeButtonClassName]), onClick: function (ev) {
+            ]), role: "tablist", children: visibleFiles.map(function (filePath, index) { return (jsxRuntime.jsxs("div", { "aria-controls": "".concat(filePath, "-").concat(activeFileUniqueId, "-tab-panel"), "aria-selected": filePath === activeFile, className: classNames("tab-container", [tabContainer]), onKeyDown: function (e) { return onKeyDown({ e: e, index: index }); }, onMouseEnter: function () { return setIsHoveredIndex(index); }, onMouseLeave: function () { return setIsHoveredIndex(null); }, role: "tab", children: [jsxRuntime.jsx("button", { className: classNames("tab-button", [buttonClassName, tabButton]), "data-active": filePath === activeFile, id: "".concat(filePath, "-").concat(activeFileUniqueId, "-tab"), onClick: function () { return setActiveFile(filePath); }, tabIndex: filePath === activeFile ? 0 : -1, title: filePath, type: "button", children: getTriggerText(filePath) }), closableTabs && visibleFiles.length > 1 && (jsxRuntime.jsx("button", { "aria-label": "Close ".concat(getTriggerText(filePath)), className: classNames("close-button", [closeButtonClassName]), onClick: function (ev) {
                             ev.stopPropagation();
                             sandpack.closeFile(filePath);
                         }, style: {
                             visibility: filePath === activeFile || hoveredIndex === index
                                 ? "visible"
                                 : "hidden",
-                        }, tabIndex: filePath === activeFile ? 0 : -1, children: jsxRuntime.jsx(CloseIcon, {}) }))] }, filePath)); }) }) })));
+                        }, tabIndex: filePath === activeFile ? 0 : -1, title: "Close ".concat(filePath), type: "button", children: jsxRuntime.jsx(CloseIcon, {}) }))] }, filePath)); }) }) })));
 };
 
 var RoundedButton = function (_a) {

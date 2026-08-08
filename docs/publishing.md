@@ -37,10 +37,27 @@ to an API that does not currently expose this endpoint, so a bare `login` /
 option and must appear before `storybook`, for example
 `compify --api-url https://api.example.com storybook publish ...`.
 
-Visibility is explicit: `public` is registry-indexed, `unlisted` is available by
-direct address but omitted from discovery/index surfaces, and `private` is
-restricted to its owner. This does not imply a managed hosted endpoint or a
-package-registry release.
+Visibility is explicit: `public` is registry-indexed; `unlisted` is available by
+direct address but omitted from discovery/index surfaces; and `private` is
+absent from the public index and served only when the standard registry request
+carries its owner's CLI token as a Bearer header. See [Registry](./registry.md)
+for `components.json` configuration. This does not imply a managed hosted
+endpoint or scoped enterprise authorization.
+
+For v2 CLI publications, the reviewed registry-item object is the storage source
+of truth: file type/target, dependency categories, Tailwind/CSS fields, docs,
+metadata, story selection and provenance survive without legacy editor remapping.
+Publishing an owned name again appends a numbered digest-addressed revision;
+repeating the same digest is idempotent. Publishes for one domain are serialized
+with a PostgreSQL advisory lock so concurrent v1/v2 requests cannot allocate the
+same revision or race the mutable preview projection. Each component is bounded
+to 100 revisions and 50 MiB of canonical revision data; the API rejects the next
+revision before mutable storage is touched when either limit would be exceeded.
+The response includes the mutable latest `registryUrl` and an immutable
+`immutableRegistryUrl`. The server preserves the canonical artifact semantics,
+but it does not preserve the sender's JSON whitespace/byte serialization or
+provide a transparency-log attestation. Retained v1 publications still use the
+documented reconstructed compatibility path.
 
 See [Storybook translation](./storybook.mdx) for supported input and security
 boundaries. Publishing never means that Compify executed the Storybook story or

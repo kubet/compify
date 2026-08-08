@@ -11,24 +11,24 @@ export const metadata = {
 const posts = [
     {
         slug: 'shadcn-compatible-registry',
-        title: 'Compify is now a shadcn-compatible registry',
-        date: 'August 5, 2026',
+        title: 'Compify emits shadcn-consumable registry items',
+        date: 'August 8, 2026',
         description:
-            'Every public component is installable with bunx shadcn add — no compify account or CLI required.',
+            'What protocol compatibility proves, what it does not, and how private authentication works.',
     },
     {
         slug: 'publish-and-install',
-        title: 'Publish a component, install it anywhere',
-        date: 'August 5, 2026',
+        title: 'Review a Storybook component, then install the artifact',
+        date: 'August 8, 2026',
         description:
-            'The full loop: build in the live editor, publish as @you/name, pull it into any project.',
+            'The bounded workflow from static inspection to a pinned clean-consumer build.',
     },
     {
         slug: 'agent-ready-components',
-        title: 'Making a component library your coding agent can use',
-        date: 'August 5, 2026',
+        title: 'Storybook context, approved source, native installation',
+        date: 'August 8, 2026',
         description:
-            'Agents install UI through CLIs and MCP now. What that means for how components should be distributed.',
+            'Where Storybook AI, Compify and shadcn each fit in an agent-assisted component handoff.',
     },
 ];
 

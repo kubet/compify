@@ -1,11 +1,8 @@
 import { useState, useEffect } from "react";
-import { Button, Chip, InputField } from "../Elements";
-import { Code, Folder, File } from "lucide-react";
+import { Chip } from "../Elements";
 import TemplateCard from "./TemplateCard";
-import { motion } from "framer-motion";
 import NameAndTypeSelector from "./TemplateSelectorSteps/NameAndTypeSelector";
 import { runtimeList } from "./Templates/common";
-import { ProjectCard } from "../Projects";
 import ComponentCard from "../Component/Card";
 import { getExampleComponents } from "@/lib/api";
 
@@ -29,8 +26,7 @@ const ExampleScreen = () => {
     )
 }
 
-const TemplateSelector = ({ onSelectTemplate = () => { }, step, setStep, name, setName }) => {
-    const [projectType, setProjectType] = useState(null);
+const TemplateSelector = ({ onSelectTemplate = () => { }, step, setStep, name, setName, disabled = false }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [nameError, setNameError] = useState('');
@@ -51,17 +47,9 @@ const TemplateSelector = ({ onSelectTemplate = () => { }, step, setStep, name, s
     });
 
     const handleRuntimeSelect = (runtimeId) => {
-        if (nameError) {
-            return;
-        }
-        onSelectTemplate(runtimeId, projectType, name);
+        if (nameError || disabled) return;
+        onSelectTemplate(runtimeId, name);
     };
-
-    const dummyProjects = [
-        { id: 1, name: 'Project 1', description: 'Description for Project 1', componentCount: 10, themes: ['Theme 1', 'Theme 2'], status: 'public' },
-        { id: 2, name: 'Project 2', description: 'Description for Project 2', componentCount: 5, themes: ['Theme 3'], status: 'private' },
-        { id: 3, name: 'Project 3', description: 'Description for Project 3', componentCount: 2, themes: ['Theme 4', 'Theme 5'], status: 'public' },
-    ];
 
     const renderStep = () => {
         switch (step) {
@@ -104,21 +92,6 @@ const TemplateSelector = ({ onSelectTemplate = () => { }, step, setStep, name, s
                             ))}
                         </div>
                     </>
-                );
-            case 2:
-                return (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {dummyProjects.map((project) => (
-                            <ProjectCard
-                                key={project.id}
-                                project={project}
-                                onEdit={() => console.log('Edit', project.id)}
-                                onDelete={() => console.log('Delete', project.id)}
-                                onToggleVisibility={() => console.log('Toggle visibility', project.id)}
-                                controls={false}
-                            />
-                        ))}
-                    </div>
                 );
             case 5:
                 return <ExampleScreen />
