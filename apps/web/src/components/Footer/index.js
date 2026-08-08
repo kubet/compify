@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { InputField } from '../Elements';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Github } from 'lucide-react';
 import { subcribeToNewsletter } from '@/lib/api';
 
 // Utility function for email validation
@@ -34,6 +34,7 @@ const Footer = () => {
         {
             title: 'Connect',
             items: [
+                { title: 'Open source on GitHub', href: 'https://github.com/kubet/compify', github: true, external: true },
                 { title: '𝕏', href: 'https://x.com/compify_app', icon: '𝕏' },
                 { title: 'Discord', href: 'https://discord.gg/FY7SZTVW', icon: 'Discord' },
                 {
@@ -76,8 +77,11 @@ const Footer = () => {
                                         <a
                                             href={item.href}
                                             onClick={item.onClick}
+                                            target={item.external ? '_blank' : undefined}
+                                            rel={item.external ? 'noreferrer' : undefined}
                                             className="group flex items-center text-base text-gray-400 hover:text-white transition-colors duration-200"
                                         >
+                                            {item.github && <Github aria-hidden="true" className="mr-2 h-4 w-4" />}
                                             {item.title}
                                             <ArrowRight className="ml-2 h-4 w-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200" />
                                         </a>

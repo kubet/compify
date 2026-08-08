@@ -4,7 +4,7 @@
 
 Install Bun 1.3.9. Do not use npm, Yarn, or pnpm in this repository.
 
-1. `git clone git@github.com:kubet/compify.git`
+1. `git clone https://github.com/kubet/compify.git` (or use the SSH URL if your GitHub SSH key is configured)
 2. Frontend: `cd apps/web && bun install --frozen-lockfile && cp .env.example .env && bun run dev`
 3. API: `cd apps/api && bun install --frozen-lockfile && cp .env.example .env.stage.local && bun run start:dev`
    (needs local PostgreSQL and MinIO; see `.env.example` for what to fill in)
