@@ -1,11 +1,13 @@
 import React, { useMemo, useCallback, useEffect } from 'react'
 import keyReplace from '../Project/utils';
-import { getCssVariables, getJSONConfig } from '../Project/common/getTokenConfigFiles';
+import { applyThemeConfigFiles, emitThemeConfigFiles } from '../Project/common/getTokenConfigFiles';
 
-function ThemeCompiler({ initialTheme, setTheme, setFilesState }) {
+function ThemeCompiler({ initialTheme, setTheme, setFilesState, onExportError }) {
     const factors = useMemo(() => Array.isArray(initialTheme?.factors) ? initialTheme.factors : [], [initialTheme?.factors]);
     const groups = useMemo(() => initialTheme?.groups || {}, [initialTheme?.groups]);
     const values = useMemo(() => Array.isArray(initialTheme?.values) ? initialTheme.values : [], [initialTheme?.values]);
+
+    useEffect(() => () => onExportError?.(null), [onExportError]);
 
     const getAllTokens = useMemo(() => {
         if (!factors || !groups) return [];
@@ -74,29 +76,19 @@ function ThemeCompiler({ initialTheme, setTheme, setFilesState }) {
             JSON.stringify(updatedFactors) !== JSON.stringify(factors) ||
             JSON.stringify(updatedGroups) !== JSON.stringify(groups) ||
             JSON.stringify(updatedValues) !== JSON.stringify(values);
-        if (updatedValues.length > 0 || Object.values(updatedGroups).some(group => group.isPublic)) {
-            // Get all public group options
-            const publicGroupOptions = Object.values(updatedGroups)
-                .filter(group => group.isPublic)
-                .flatMap(group => group.options || []);
-
-            // Combine updatedValues with public group options
-            const allValues = [...updatedValues, ...publicGroupOptions];
-
-            const cssContent = getCssVariables(allValues);
-            const jsonContent = JSON.stringify(getJSONConfig(allValues), null, 2);
-
-            setFilesState(prev => ({
-                ...prev,
-                '/theme.css': {
-                    code: cssContent,
-                    hidden: false
-                },
-                '/theme.json': {
-                    code: jsonContent,
-                    hidden: false
-                }
-            }));
+        try {
+            const emittedFiles = emitThemeConfigFiles({
+                values: updatedValues,
+                groups: updatedGroups,
+            });
+            setFilesState(prev => applyThemeConfigFiles(prev, emittedFiles));
+            onExportError?.(null);
+        } catch (error) {
+            // Preserve the last known-good files and block saving until the
+            // user fixes the invalid export contract.
+            const message = error instanceof Error ? error.message : String(error);
+            console.error('Theme export validation failed:', error);
+            onExportError?.(message);
         }
         if (hasChanges) {
             setTheme(prev => ({
@@ -106,7 +98,7 @@ function ThemeCompiler({ initialTheme, setTheme, setFilesState }) {
                 values: updatedValues
             }));
         }
-    }, [updateCompiledValues, setFilesState, setTheme, factors, groups, values]);
+    }, [updateCompiledValues, setFilesState, setTheme, factors, groups, values, onExportError]);
 
     return null;
 }

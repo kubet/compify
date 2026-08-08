@@ -61,6 +61,7 @@ function EditComponent() {
     const imageRef = useRef(null);
     const [reportModalOpen, setReportModalOpen] = useState(false);
     const [initialTheme, setInitialTheme] = useState(null);
+    const [themeExportError, setThemeExportError] = useState(null);
     const [isSetup, setIsSetup] = useState(true);
     const [upvoteStatus, setUpvoteStatus] = useState(null);
     const [upvoteCount, setUpvoteCount] = useState(0);
@@ -72,7 +73,6 @@ function EditComponent() {
     const [publishingDomain, setPublishingDomain] = useState('');
     const isSetupServer = useRef(false);
     const gifCaptures = useRef([]);
-
 
     const renderSaveStatus = () => {
         if (privacy === 'draft') return 'Not published';
@@ -244,6 +244,12 @@ function EditComponent() {
         }
     }
     const handleSaveComponent = async (propSetup = null, visibilityOverride = null) => {
+        if (themeExportError) {
+            setToastMessage(`Theme cannot be exported: ${themeExportError}`);
+            setToastType('error');
+            setShowToast(true);
+            return false;
+        }
         const filteredFiles = Object.fromEntries(
             Object.entries(files).filter(([_, fileData]) => fileData.hidden !== true)
         );
@@ -492,6 +498,7 @@ function EditComponent() {
                 setPreviewFile={setPreviewFile}
                 previewFile={previewFile}
                 isSetupServer={isSetupServer.current}
+                onThemeExportError={setThemeExportError}
             />}
             {showToast && (
                 <Toast
