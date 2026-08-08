@@ -14,6 +14,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { uiFrameworkLook, uiLibraries } from '../Templates/common'
 import CardWrapper from '@/components/Elements/CardWrapper'
 import Toast from '@/components/Elements/Toast'
+import { applyThemeConfigFiles } from '@/components/Project/common/getTokenConfigFiles'
 
 function ConfigurationMenu({ initSettings,
     template,
@@ -27,6 +28,7 @@ function ConfigurationMenu({ initSettings,
     changeActiveFile,
     initialTheme,
     setTheme,
+    setFilesState,
     handleLoadTheme,
     id,
     setDefaultOpenBotInput
@@ -136,6 +138,9 @@ function ConfigurationMenu({ initSettings,
         if (checkIncompatibilities(framework)) return;
 
         if (usedUiFrameworks.includes(framework)) {
+            if (framework === 'theme') {
+                setFilesState(prev => applyThemeConfigFiles(prev, null))
+            }
             setUsedUiFrameworks(usedUiFrameworks.filter(id => id !== framework))
         } else {
             initFrameworkConfigFiles(framework);
