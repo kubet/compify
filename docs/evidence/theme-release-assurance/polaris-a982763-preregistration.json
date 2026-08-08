@@ -1,0 +1,167 @@
+{
+  "artifacts": {
+    "checksums": "SHA256SUMS",
+    "manifest": "manifest.json",
+    "root": "docs/evidence/theme-release-assurance/polaris-a982763/"
+  },
+  "businessEvidence": "none; owner approval, outreach, payment, real destinations, approval, repeat, renewal, and PMF are outside this replay",
+  "changedCssCustomProperties": [
+    "--p-color-bg-fill-brand-disabled",
+    "--p-color-bg-fill-disabled",
+    "--p-color-bg-fill-hover",
+    "--p-color-bg-fill-secondary",
+    "--p-color-bg-fill-secondary-selected",
+    "--p-color-bg-fill-tertiary",
+    "--p-color-bg-surface-tertiary",
+    "--p-color-border-gradient-active-experimental",
+    "--p-color-border-gradient-experimental",
+    "--p-color-border-gradient-hover-experimental",
+    "--p-color-border-gradient-selected-experimental",
+    "--p-color-button-gradient-bg-fill-active-experimental",
+    "--p-color-button-gradient-bg-fill-selected-experimental",
+    "--p-color-icon-brand",
+    "--p-color-icon-disabled",
+    "--p-color-icon-secondary",
+    "--p-color-text-brand-on-bg-fill-disabled",
+    "--p-color-text-disabled",
+    "--p-color-tooltip-tail-down-border",
+    "--p-color-tooltip-tail-down-border-experimental",
+    "--p-color-tooltip-tail-up-border",
+    "--p-color-tooltip-tail-up-border-experimental"
+  ],
+  "claimBoundary": {
+    "allowed": [
+      "offline technical replay",
+      "public OSS source fixture",
+      "static lexical evidence",
+      "install/build evidence when a declared check succeeds"
+    ],
+    "forbidden": [
+      "VTR",
+      "pilot",
+      "customer",
+      "partner",
+      "endorsement",
+      "production adoption",
+      "user validation",
+      "runtime or visual proof",
+      "PMF"
+    ]
+  },
+  "classification": {
+    "notImpacted": "Not available in this replay; absence never proves non-impact.",
+    "observed-direct": "A supported literal var(--name) use emitted by styleContract.uses matches the preregistered changed set.",
+    "unknown": "Every other selection, including absent, computed, escaped, runtime, unsupported, or failed inspection."
+  },
+  "compify": {
+    "cliVersion": "0.2.0-unpublished-source",
+    "installer": "shadcn@4.16.2",
+    "repository": "https://github.com/kubet/compify",
+    "runtime": "bun@1.3.9",
+    "sourceSha": "82c1fc0084d04ded10d505b7f2fa6c3bdef1e634"
+  },
+  "destinations": [
+    {
+      "declaredCheck": [
+        "bun",
+        "run",
+        "build"
+      ],
+      "definitionStyle": "hex/rgb literals",
+      "id": "vite-a",
+      "kind": "disposable React TypeScript Vite/shadcn consumer",
+      "styleFile": "src/index.css"
+    },
+    {
+      "declaredCheck": [
+        "bun",
+        "run",
+        "build"
+      ],
+      "definitionStyle": "oklch literals",
+      "id": "vite-b",
+      "kind": "disposable React TypeScript Vite/shadcn consumer",
+      "styleFile": "src/index.css"
+    }
+  ],
+  "gates": {
+    "acceptedBundlesMustPassBothDeclaredDestinationChecks": true,
+    "allTenRemainInDenominator": true,
+    "minimumInspectableSelections": 7,
+    "receiptMustDetectCopiedSidecarMutation": true,
+    "sameInputMustBeDeterministic": true,
+    "scannerHandAuditMustMatchSupportedLiterals": true
+  },
+  "handoffRule": "Attempt both destinations only for selections accepted by inspect. Retain every install/build failure and perform no undocumented source repair.",
+  "kind": "compify.theme-release-assurance.offline-replay-preregistration",
+  "registeredDate": "2026-08-08",
+  "repeatability": {
+    "ignoreFields": [],
+    "inspectRunsPerSelection": 2,
+    "requireSemanticJsonEquality": true
+  },
+  "schemaVersion": 1,
+  "selectionRule": "Ten common component Default exports chosen and frozen before running Compify; failures remain in the denominator and are never replaced.",
+  "selections": [
+    {
+      "id": "appprovider",
+      "storyExport": "Default",
+      "storyFile": "polaris-react/src/components/AppProvider/AppProvider.stories.tsx"
+    },
+    {
+      "id": "avatar",
+      "storyExport": "Default",
+      "storyFile": "polaris-react/src/components/Avatar/Avatar.stories.tsx"
+    },
+    {
+      "id": "badge",
+      "storyExport": "Default",
+      "storyFile": "polaris-react/src/components/Badge/Badge.stories.tsx"
+    },
+    {
+      "id": "banner",
+      "storyExport": "Default",
+      "storyFile": "polaris-react/src/components/Banner/Banner.stories.tsx"
+    },
+    {
+      "id": "box",
+      "storyExport": "Default",
+      "storyFile": "polaris-react/src/components/Box/Box.stories.tsx"
+    },
+    {
+      "id": "button",
+      "storyExport": "Default",
+      "storyFile": "polaris-react/src/components/Button/Button.stories.tsx"
+    },
+    {
+      "id": "card",
+      "storyExport": "Default",
+      "storyFile": "polaris-react/src/components/Card/Card.stories.tsx"
+    },
+    {
+      "id": "text",
+      "storyExport": "Default",
+      "storyFile": "polaris-react/src/components/Text/Text.stories.tsx"
+    },
+    {
+      "id": "textfield",
+      "storyExport": "Default",
+      "storyFile": "polaris-react/src/components/TextField/TextField.stories.tsx"
+    },
+    {
+      "id": "tooltip",
+      "storyExport": "Default",
+      "storyFile": "polaris-react/src/components/Tooltip/Tooltip.stories.tsx"
+    }
+  ],
+  "source": {
+    "archivedFixture": true,
+    "baseSha": "d07c5f1cb64a621aa53d587a0442a3f46922a368",
+    "changeTitle": "Clean up experimental dark tokens (#12467)",
+    "headSha": "a9827635844e9c43093c901966dbe8b623380e96",
+    "license": "MIT",
+    "licenseUrl": "https://github.com/Shopify/polaris-react-archive/blob/a9827635844e9c43093c901966dbe8b623380e96/LICENSE.md",
+    "repository": "https://github.com/Shopify/polaris-react-archive"
+  },
+  "status": "preregistered-technical-only"
+}
