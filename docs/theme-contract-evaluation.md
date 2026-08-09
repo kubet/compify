@@ -93,6 +93,10 @@ justify widening tsconfig evaluation or building a token graph. The exact
 preregistration, denominator, logs, manifest, and checksums are retained under
 [`evidence/theme-release-assurance/`](evidence/theme-release-assurance/).
 
+## Source/theme atomicity design gate
+
+The browser resolver is now bounded, but current component source and theme persistence still use separate mutation domains. The reviewed design target is documented in [`source-theme-atomicity.md`](source-theme-atomicity.md). It uses immutable, version-addressed source objects and one aggregate PostgreSQL state revision/CAS so source, authored theme, and bounded component metadata commit or conflict together. That document is design-only: no aggregate revision schema, endpoint, bucket, migration, backfill, or activation claim exists yet.
+
 ## Candidate package gate
 
 A private `packages/theme` experiment may start only when all of the following exist:
