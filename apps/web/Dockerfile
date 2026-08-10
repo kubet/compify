@@ -52,7 +52,13 @@ ENV NODE_ENV=production \
     PORT=3000 \
     HOSTNAME=0.0.0.0
 WORKDIR /app
-RUN groupadd --system --gid 1001 bunjs && \
+# Next starts through its checked-in binary; the npm client is not a runtime
+# dependency. Remove the bundled global Node package-manager trees so unused
+# client vulnerabilities do not ship in the production image.
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack /opt/yarn-* && \
+    rm -f /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack \
+      /usr/local/bin/yarn /usr/local/bin/yarnpkg /usr/local/bin/pnpm /usr/local/bin/pnpx && \
+    groupadd --system --gid 1001 bunjs && \
     useradd --system --uid 1001 --gid bunjs --home-dir /app compify
 COPY --from=production-dependencies --chown=compify:bunjs /app/apps/web/node_modules ./node_modules
 COPY --from=build --chown=compify:bunjs /app/apps/web/.next ./.next
