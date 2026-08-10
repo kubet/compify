@@ -37,8 +37,8 @@ export default function Layout({ children }) {
           ]}
           sidebar={{
             banner: (
-              <Link className="docs-sidebar-cta" href="/create">
-                <BookOpen size={16} /> Build your first component
+              <Link className="docs-sidebar-cta" href="/docs/getting-started">
+                <BookOpen size={16} /> Inspect a Storybook story
               </Link>
             ),
           }}

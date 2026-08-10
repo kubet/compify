@@ -10,6 +10,16 @@ The following redistributed artifacts retain their upstream terms.
 License 2.0. The complete-tree baseline and modified paths are verified; see `packages/compify-pack/LICENSE` and
 `packages/compify-pack/PROVENANCE.md`.
 
+## react-uswds compatibility fixture
+
+`examples/external-react-uswds-button` contains four unmodified files from
+TrussWorks' `react-uswds` at commit
+`03fd50acc356f793ad353b8ce93744255ef22ac7`, used only as a qualified external
+compatibility fixture. The files remain under Apache License 2.0. Exact upstream
+provenance and checksums are recorded in
+`examples/external-react-uswds-button/UPSTREAM.md`; the complete license is at
+`examples/external-react-uswds-button/LICENSE`.
+
 ## Tailwind CSS browser compiler
 
 `apps/web/src/utils/tailwindv4.js` contains a bundled Tailwind CSS browser

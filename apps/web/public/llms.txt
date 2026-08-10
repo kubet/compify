@@ -1,24 +1,52 @@
 # Compify
 
-> Build UI components in a live browser editor, publish them as @user/name,
-> and install them anywhere via the shadcn registry protocol or the compify CLI.
+> Package selected React component source into reviewable shadcn registry
+> artifacts, using Storybook CSF as the explicit selection boundary.
 
-## For coding agents
+Storybook remains upstream for authoring, tests, and documentation. Compify
+statically inspects supported React CSF source; it does not execute stories or
+promise runtime, visual, behavioral, or accessibility fidelity.
 
-- Install a public component into a shadcn project:
-  `bunx shadcn@latest add https://api.compify.app/r/<name>.json`
-- Or configure the namespace once in components.json:
-  `"registries": { "@compify": "https://api.compify.app/r/{name}.json" }`
-  then: `bunx shadcn@latest add @compify/<name>`
-- Public component index (shadcn registry.json format):
-  https://api.compify.app/r/registry.json
-- Component metadata: GET https://api.compify.app/c/info/<id>
-- Live preview pages (public, no auth): https://compify.app/view/@<user>/<name>
-- compify CLI: `compify add @<user>/<name>` (docs: https://compify.app/docs#cli)
-- MCP server for agents: `compify mcp` — tools: search_components, get_component, get_install_commands (docs: https://compify.app/docs#mcp)
+## Source-candidate workflow
+
+The Storybook commands are present in the current repository source/release
+candidate. The older npm CLI is 0.1.0; do not assume the source candidate has
+been published unless a release announcement says so.
+
+- Inspect one selected CSF boundary:
+  `compify storybook inspect src/components/Button.stories.tsx --story Primary`
+- Export deterministic registry JSON for review:
+  `compify storybook export src/components/Button.stories.tsx --story Primary --output .compify/button.registry.json`
+- Verify the local artifact with the pinned client used by this repository:
+  `bunx shadcn@4.16.2 add .compify/button.registry.json`
+
+See https://compify.app/docs/storybook and the exact evidence matrix at
+https://compify.app/docs/compatibility.
+
+## Configured registry installation
+
+A configured Compify API can serve reviewed registry items. A namespace is not
+built into shadcn: add the deployment to the target project's `components.json`:
+
+```json
+{
+  "registries": {
+    "@compify": "https://registry.example.com/r/{name}.json"
+  }
+}
+```
+
+Then install an available item with the pinned client:
+`bunx shadcn@4.16.2 add @compify/<name>`
+
+Use the origin of the Compify API you operate. Private items require the Bearer
+header configuration documented at https://compify.app/docs/registry. The
+official Storybook tools provide upstream context, and official shadcn tooling
+owns downstream installation semantics.
 
 ## Docs
 
-- Registry interop: https://compify.app/docs#registry
-- CLI reference: https://compify.app/docs#cli
-- Publishing: https://compify.app/docs#publishing
+- Getting started: https://compify.app/docs/getting-started
+- Storybook translation: https://compify.app/docs/storybook
+- Registry and namespace configuration: https://compify.app/docs/registry
+- Compatibility and unsupported shapes: https://compify.app/docs/compatibility

@@ -24,7 +24,7 @@ COPY package.json bun.lock ./
 RUN --mount=type=cache,id=api-bun-production,target=/root/.bun/install/cache,sharing=locked \
     bun install --frozen-lockfile --production
 
-FROM bun-runtime AS runtime
+FROM bun-runtime AS application-base
 ENV NODE_ENV=production \
     STAGE=prod \
     PORT=3009
@@ -35,6 +35,13 @@ COPY --from=production-dependencies --chown=compify:bunjs /app/node_modules ./no
 COPY --from=build --chown=compify:bunjs /app/dist ./dist
 COPY --chown=compify:bunjs package.json ./
 COPY --chown=compify:bunjs files ./files
+
+FROM application-base AS migration
+USER compify
+CMD ["sh", "-c", "bun ./node_modules/typeorm/cli.js migration:run -d dist/data-source.js"]
+
+FROM application-base AS runtime
+RUN rm -rf dist/migrations dist/migration-tests dist/data-source.*
 USER compify
 EXPOSE 3009
-CMD ["sh", "-c", "bun ./node_modules/typeorm/cli.js migration:run -d dist/data-source.js && exec bun dist/main.js"]
+CMD ["bun", "dist/main.js"]

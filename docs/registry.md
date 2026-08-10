@@ -3,9 +3,12 @@ title: Registry
 description: Consume Compify artifacts through a shadcn-compatible registry deployment.
 ---
 
-A configured Compify API can serve public components in shadcn registry-item
-format. This describes the protocol surface; it does not promise a managed
-hosted registry. Substitute the origin of the API you operate.
+A configured Compify API can serve components in shadcn registry-item format.
+The CLI's default `https://api.compify.app` origin is a project-operated public
+alpha; it is available but is not a generally available managed registry or
+SLA. The examples below deliberately use an operator-controlled origin. A
+self-hosted operator owns its access policy, credentials, retention, backups,
+upgrades, and availability.
 
 ## One-off install
 

@@ -9,7 +9,7 @@ const ThemeSelectionInterface = ({ onSelectOption }) => {
   const options = [
     {
       title: "AI Quick Setup",
-      description: "Let AI design your perfect theme",
+      description: "Create a theme with AI assistance",
       icon: <Wand2 size={24} />,
       bg: 'bg-gradient-to-r from-blue-500 to-purple-500 opacity-70',
       time: "2 minutes",

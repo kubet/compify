@@ -40,8 +40,10 @@ executable with your MCP client:
 }
 ```
 
-The MCP client must inherit the path containing the linked executable. The older npm CLI does not contain this 0.2 compatibility server; use the built
-release candidate until publication is announced.
+The MCP client must inherit the path containing the linked executable. The only
+published CLI, `@compify/cli@0.1.0`, does not contain this compatibility server;
+use the built `0.2.0` source candidate until publication is explicitly
+announced. A manifest version is not a release.
 
 ## Compatibility tools
 

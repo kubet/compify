@@ -63,7 +63,7 @@ function HelpThemeContent() {
         {
             icon: Palette,
             title: "Groups",
-            description: "Collections of related tokens that can be made available at the application level. Perfect for color palettes and value sets."
+            description: "Collections of related tokens that can be made available at the application level. Useful for color palettes and value sets."
         },
         {
             icon: Box,

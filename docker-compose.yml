@@ -1,5 +1,9 @@
 name: compify
 
+x-api-build: &api-build
+  context: ./apps/api
+  dockerfile: Dockerfile
+
 services:
   postgres:
     image: postgres:16.14-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777
@@ -18,6 +22,28 @@ services:
       timeout: 5s
       retries: 10
       start_period: 10s
+
+  postgres-role-bootstrap:
+    image: postgres:16.14-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      POSTGRES_ROLE_PHASE: bootstrap
+      POSTGRES_USER: ${POSTGRES_USER:-compify}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-compify}
+      LEGACY_DATABASE_OWNER: ${POSTGRES_USER:-compify}
+      DB_MIGRATOR_PASSWORD: ${DB_MIGRATOR_PASSWORD:?Set DB_MIGRATOR_PASSWORD in .env}
+      DB_RUNTIME_PASSWORD: ${DB_RUNTIME_PASSWORD:?Set DB_RUNTIME_PASSWORD in .env}
+    volumes:
+      - ./deploy/postgres-roles.sh:/opt/compify/postgres-roles.sh:ro
+    entrypoint: ["/opt/compify/postgres-roles.sh"]
+    restart: "no"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
 
   minio:
     image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z@sha256:a1ea29fa28355559ef137d71fc570e508a214ec84ff8083e39bc5428980b015e
@@ -88,10 +114,81 @@ services:
         mc admin policy create local compify-app /tmp/compify-app-policy.json
         mc admin policy attach local compify-app --user "$${MINIO_APP_ACCESS_KEY}"
 
+  api-migrate:
+    build:
+      <<: *api-build
+      target: migration
+    depends_on:
+      postgres-role-bootstrap:
+        condition: service_completed_successfully
+    environment:
+      NODE_ENV: production
+      STAGE: prod
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USERNAME: compify_migrator
+      DB_PASSWORD: ${DB_MIGRATOR_PASSWORD:?Set DB_MIGRATOR_PASSWORD in .env}
+      DB_DATABASE: ${POSTGRES_DB:-compify}
+      DB_SYNCHRONIZE: "false"
+      PGOPTIONS: "-c role=compify_owner"
+    command:
+      - sh
+      - -ec
+      - >-
+        bun -e 'const {Client}=require("pg"); const c=new Client({host:process.env.DB_HOST,port:Number(process.env.DB_PORT),user:process.env.DB_USERNAME,password:process.env.DB_PASSWORD,database:process.env.DB_DATABASE}); await c.connect();
+        const r=await c.query("select session_user,current_user"); await c.end();
+        if(r.rows[0].session_user!=="compify_migrator"||r.rows[0].current_user!=="compify_owner")process.exit(1)' &&
+        bun ./node_modules/typeorm/cli.js migration:run -d dist/data-source.js
+    restart: "no"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m,mode=1777
+
+  postgres-role-grants:
+    image: postgres:16.14-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777
+    depends_on:
+      api-migrate:
+        condition: service_completed_successfully
+    environment:
+      POSTGRES_ROLE_PHASE: grants
+      POSTGRES_DB: ${POSTGRES_DB:-compify}
+      DB_MIGRATOR_PASSWORD: ${DB_MIGRATOR_PASSWORD:?Set DB_MIGRATOR_PASSWORD in .env}
+    volumes:
+      - ./deploy/postgres-roles.sh:/opt/compify/postgres-roles.sh:ro
+    entrypoint: ["/opt/compify/postgres-roles.sh"]
+    restart: "no"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+  postgres-role-check:
+    image: postgres:16.14-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777
+    depends_on:
+      postgres-role-grants:
+        condition: service_completed_successfully
+    environment:
+      POSTGRES_ROLE_PHASE: verify
+      POSTGRES_DB: ${POSTGRES_DB:-compify}
+      LEGACY_DATABASE_OWNER: ${POSTGRES_USER:-compify}
+      DB_RUNTIME_PASSWORD: ${DB_RUNTIME_PASSWORD:?Set DB_RUNTIME_PASSWORD in .env}
+    volumes:
+      - ./deploy/postgres-roles.sh:/opt/compify/postgres-roles.sh:ro
+    entrypoint: ["/opt/compify/postgres-roles.sh"]
+    restart: "no"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
   api:
     build:
-      context: ./apps/api
-      dockerfile: Dockerfile
+      <<: *api-build
+      target: runtime
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
@@ -101,8 +198,8 @@ services:
     tmpfs:
       - /tmp:rw,noexec,nosuid,size=64m,mode=1777
     depends_on:
-      postgres:
-        condition: service_healthy
+      postgres-role-check:
+        condition: service_completed_successfully
       minio-init:
         condition: service_completed_successfully
     environment:
@@ -115,8 +212,8 @@ services:
       AUTH_COOKIE_SAME_SITE: ${AUTH_COOKIE_SAME_SITE:-lax}
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_USERNAME: ${POSTGRES_USER:-compify}
-      DB_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      DB_USERNAME: compify_runtime
+      DB_PASSWORD: ${DB_RUNTIME_PASSWORD:?Set DB_RUNTIME_PASSWORD in .env}
       DB_DATABASE: ${POSTGRES_DB:-compify}
       DB_SYNCHRONIZE: "false"
       JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}

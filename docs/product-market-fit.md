@@ -3,7 +3,7 @@ title: Product-market-fit evidence plan
 description: Market signals, target users, alternatives, falsification tests, and 90-day measures for the Storybook wedge.
 ---
 
-_Last evidence review: 2026-08-07. This is a research plan, not proof of demand or product-market fit._
+_Last evidence review: 2026-08-10. This is a research plan, not proof of demand or product-market fit._
 
 ## Hypothesis and narrow wedge
 
@@ -21,10 +21,12 @@ As of **2026-08-08**, Compify has no demonstrated product-market fit. The
 API reported **12 downloads** for `@compify/cli` during 2026-07-08 through
 2026-08-06; the npm registry still marked **0.1.0** as `latest`, and
 `@compify/storybook` was not published. These figures are a baseline, not a
-failure verdict: the release candidate has not been distributed. They do mean
-that code quality, ecosystem size, downloads of adjacent tools, and synthetic
-E2E fixtures must not be presented as adoption, retention, willingness to pay,
-or PMF.
+failure verdict: the release-candidate packages have not been distributed. The
+project-operated public-alpha API being reachable—including its current
+Storybook publish route—is a deployment fact, not a package release, managed
+service launch, user count, or adoption signal. These figures do mean that code
+quality, ecosystem size, downloads of adjacent tools, and synthetic E2E fixtures
+must not be presented as adoption, retention, willingness to pay, or PMF.
 
 The next credible evidence is not traffic. It is a **Verified Cross-App Handoff
 (VCH)** from a non-demo external library: intentional story selection, reviewed
@@ -32,6 +34,15 @@ artifact digest, native shadcn installation into a different repository, and a
 successful destination typecheck/build captured in a local receipt. The hard
 retention signal is a second distinct-component VCH by the same qualified team
 within 30 days.
+
+The repository now includes one maintainer-operated technical replay against a
+pinned external `react-uswds` Button fixture: static inspection, native pinned
+shadcn installation, exact source preservation, explicit destination rendering,
+and a production build pass. Its Storybook preview stylesheet is intentionally
+outside the selected graph, so it is not visual-fidelity evidence. Because no
+external team selected, reviewed, or repeated that handoff, this replay is
+compatibility evidence only—not a qualified pilot, activation, adoption,
+retention, endorsement, or PMF evidence.
 
 The proposed sequence is deliberately small:
 

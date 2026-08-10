@@ -707,8 +707,20 @@ export function buildStoryBundle(input?: string, options: BuildStoryOptions = {}
   const lower = new Map<string, string>(); for (const key of Object.keys(sortedFiles)) { const old = lower.get(key.toLowerCase()); if (old && old !== key) throw new Error(`Case-colliding paths are not portable: ${old} and ${key}`); lower.set(key.toLowerCase(), key) }
   const dependencies: Record<string, string> = {}
   for (const dep of [...dependencyNames].sort()) {
-    if (typeof versions[dep] === "string") dependencies[dep] = versions[dep]
-    else diagnostics.push({ severity: "error", code: "UNDECLARED_DEPENDENCY", message: `Bare import ${dep} is not declared in package.json` })
+    const version = versions[dep]
+    if (typeof version !== "string") {
+      diagnostics.push({ severity: "error", code: "UNDECLARED_DEPENDENCY", message: `Bare import ${dep} is not declared in package.json` })
+      continue
+    }
+    const normalizedVersion = version.trim()
+    // Registry items must not transfer workspace paths, arbitrary URLs, VCS
+    // sources, package-manager protocols, or other machine-local specifiers to
+    // a consumer. Standard npm versions/ranges/tags contain none of these.
+    if (!normalizedVersion || /^[a-z][a-z0-9+.-]*:/i.test(normalizedVersion) || /^git@/i.test(normalizedVersion) || /[\/#]/.test(normalizedVersion)) {
+      diagnostics.push({ severity: "error", code: "NONPORTABLE_DEPENDENCY_SPEC", message: `Bare import ${dep} uses a nonportable dependency specifier: ${version}` })
+      continue
+    }
+    dependencies[dep] = normalizedVersion
   }
   const entry = componentPath ? posixRelative(root, componentPath) : ""
   const baseName = path.basename(storyPath).replace(/\.stories\.[^.]+$/, "")
@@ -776,7 +788,7 @@ export function toRegistryItem(bundle: StoryBundle) {
     name: bundle.name,
     type: "registry:component",
     ...(bundle.description ? { description: bundle.description } : {}),
-    dependencies: Object.keys(bundle.dependencies),
+    dependencies: Object.entries(bundle.dependencies).map(([name, version]) => `${name}@${version}`),
     files: Object.entries(bundle.files).map(([filePath, content]) => ({
       path: filePath,
       type: registryFileType(bundle.entry, filePath),

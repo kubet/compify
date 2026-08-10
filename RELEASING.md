@@ -30,6 +30,17 @@ Before tagging:
    bundles, dependency audit output, and any documented license exceptions.
 7. Build both runtime images from the exact commit, scan them, generate SBOMs,
    record immutable digests, and complete the self-host black-box smoke test.
+8. Re-enable repository Actions deliberately and require the aggregate CI and
+   CodeQL checks for the exact commit; local evidence cannot substitute for the
+   protected remote gates.
+9. Treat GitHub tags/releases and npm packages as separate identities. Verify
+   each artifact's actual manifest, source commit, checksum, and provenance;
+   never infer npm provenance from a similarly named repository tag.
+10. If public web/API surfaces are part of the announcement, deploy the exact
+    reviewed commit and atomically align the landing page, `llms.txt`, API
+    contract, and GitHub repository description. Re-run live black-box checks
+    before announcing. A source-only release must instead say the legacy public
+    surfaces have not yet been aligned.
 
 ## Tag and artifacts
 

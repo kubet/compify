@@ -64,7 +64,7 @@ const Footer = () => {
                     <div className="space-y-6">
                         <h3 className="text-3xl font-bold text-white">Compify</h3>
                         <p className="text-base text-gray-400 leading-relaxed max-w-xs">
-                            Find the perfect components for your next big idea.
+                            Package selected React CSF source into reviewable shadcn registry artifacts.
                         </p>
                     </div>
 
@@ -124,7 +124,7 @@ const Footer = () => {
 
                 <div className="pt-8 border-t border-white/10">
                     <div className="flex flex-col md:flex-row justify-center items-center gap-4">
-                        <p className="text-sm text-gray-400">&copy; 2025 Compify. All rights reserved.</p>
+                        <p className="text-sm text-gray-400">&copy; 2026 Compify. All rights reserved.</p>
                     </div>
                 </div>
             </div>

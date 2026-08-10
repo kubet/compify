@@ -3,7 +3,7 @@ title: Ecosystem and cloud strategy
 description: Where Compify fits beside Storybook AI and shadcn, and the evidence required before a managed cloud.
 ---
 
-_Last reviewed: 2026-08-08. This is a falsifiable product strategy, not a promise
+_Last reviewed: 2026-08-10. This is a falsifiable product strategy, not a promise
 that cloud, enterprise, or future Storybook integrations are shipped._
 
 ## The missing layer
@@ -99,6 +99,12 @@ Do not call the artifact verified until the declared stages pass. Do not claim
 monorepo, alias, asset, runtime or visual fidelity from schema acceptance.
 
 ## Open source and managed cloud
+
+The project-operated `api.compify.app` deployment is a public alpha used to
+exercise the current API surface. It is not the managed cloud described below,
+does not carry a managed-service SLA, and is not evidence that organizations
+want or pay for the proposed trust plane. Self-hosted installations remain the
+responsibility of their operators.
 
 The durable model is **open portability engine, paid managed trust plane**.
 

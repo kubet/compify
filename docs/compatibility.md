@@ -3,7 +3,7 @@ title: Compatibility and verification
 description: Exact versions, evidence levels, verified fixtures, and unsupported repository shapes.
 ---
 
-_Last verified: 2026-08-08. Compatibility is evidence for the exact matrix below,
+_Last verified: 2026-08-10. Compatibility is evidence for the exact matrix below,
 not a claim about `latest` or every Storybook/shadcn project._
 
 ## Status vocabulary
@@ -27,21 +27,33 @@ The wording will be narrowed in the next schema revision.
 
 ## Release-candidate matrix
 
+These version labels identify the tested source checkout, not release status.
+The repository's `v0.1.0` GitHub source tag already contains a CLI `0.2.0`
+manifest, while npm independently serves an older `@compify/cli@0.1.0` from
+different source history. They are distinct historical artifacts. The current
+CLI `0.2.0` and addon `0.1.0` manifests below are unpublished candidates.
+
 | Layer | Verified version/input | Evidence |
 | --- | --- | --- |
 | Runtime/package manager | Bun 1.3.9 | Frozen installs, package builds and tests in CI. |
 | Compify CLI | `@compify/cli@0.2.0` source candidate | Unit tests, deterministic digest cases, packed-tarball install/help smoke. |
 | Storybook syntax | Synthetic classic CSF2/CSF3 `.js/.jsx/.ts/.tsx/.mjs/.cjs` cases | Static parser unit tests. This is syntax evidence, not a full Storybook runtime matrix. |
-| Storybook addon | 8.6.14, 9.1.20, 10.2.10 package selectors | Packed addon resolves its manager/parameter entry points. No browser/framework integration claim. |
+| Storybook addon | `@compify/storybook@0.1.0` source candidate; 8.6.14, 9.1.20, 10.2.10 package selectors | Packed addon resolves its manager/parameter entry points. No browser/framework integration claim. |
 | Registry consumer | shadcn CLI **4.16.2** | Golden item resolves and installs through a local registry-item path. |
 | Clean consumers | Next.js **15.5.23**, React/React DOM **19.2.8**, TypeScript **5.9.3** | `scripts/shadcn-consumer-smoke.ts` produces `built` handoff receipts after native shadcn installs and production builds for both a relative TSX/CSS graph and exact tsconfig/baseUrl/package-import aliases. |
-| Self-host distribution | Current Compose images, PostgreSQL 16.14, MinIO pinned releases | Account/token creation, v2 public/private publish, immutable revision retrieval, native authenticated shadcn install, destination build and revocation run against the real stack. |
+| Qualified external source | TrussWorks `react-uswds` Button at commit `03fd50acc356f793ad353b8ce93744255ef22ac7`, exact `DefaultButton` story | The vendored, checksummed Apache-2.0 fixture passes static inspection with a one-file graph and no diagnostics; pinned native shadcn preserves the reviewed source and declared dependency ranges; the clean consumer explicitly renders it and builds. Upstream preview CSS is outside the graph, so this is **not** USWDS styling, visual, behavior, accessibility, endorsement, or broad compatibility evidence. |
+| Self-host distribution | Current Compose images, PostgreSQL 16.14, MinIO pinned releases | Account/token creation, v2 public/private publish, immutable revision retrieval, native authenticated shadcn install, destination build and revocation run against the real stack. This is operator-run baseline evidence, not managed hosting. |
+| Default public API | `https://api.compify.app` public alpha (route checked 2026-08-10) | Its live OpenAPI document contains `POST /cli/publish-story`, and an unauthenticated POST fails with the expected CLI Bearer-token challenge. This is route-presence evidence, not an SLA or GA managed-service claim. |
 | Browser auth | Playwright **1.62.1**, Chromium | Anonymous public/docs access, protected redirect, registration, cookie login and poisoned-forward-link rejection run against the real stack. |
 
-The consumer smoke fixture lives at `examples/consumer-next-ts`; the selected
-source lives at `examples/storybook-button`. CI pins the shadcn version instead
-of using `latest`. Adding a version to this table requires a committed fixture
-and a passing install/build gate.
+The consumer smoke fixture lives at `examples/consumer-next-ts`; synthetic
+sources live at `examples/storybook-button` and CLI test fixtures. The qualified
+external source and its exact license/provenance hashes live at
+`examples/external-react-uswds-button`. CI copies that fixture outside the
+Compify Git checkout before inspection so provenance is not misattributed to the
+enclosing repository. CI pins the shadcn version instead of using `latest`.
+Adding a version or upstream selection to this table requires a committed,
+licensed, checksummed fixture and a passing install/build gate.
 
 ## Supported source shape today
 
@@ -98,7 +110,8 @@ that corpus, so those figures are historical baseline evidence, not current
 acceptance measurements. These are research estimates, not benchmark guarantees. Modern
 re-export/alias/workspace catalogs approached zero without architectural changes,
 while conventional colocated single-package stories were materially better.
-This is why v0.2 is a narrow pilot candidate, not general Storybook conversion.
+This is why the unreleased `0.2.0` source candidate is a narrow pilot, not a
+released or general Storybook conversion claim.
 
 Representative upstream shapes:
 

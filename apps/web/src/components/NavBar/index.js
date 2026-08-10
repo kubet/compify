@@ -18,7 +18,7 @@ function NavBar() {
 
   const notLoggedInLinks = useMemo(() => ([
     { title: "Workflow", href: "/#workflow" },
-    { title: "For teams", href: "/#users" },
+    { title: "Install", href: "/#installation" },
     { title: "Limits", href: "/#limits" },
     { title: "Docs", href: "/docs/getting-started" },
     { title: "Registry", href: "/search" },
@@ -87,6 +87,7 @@ function NavBar() {
               transition={{ duration: 0.1 }}
             >
               <button
+                type="button"
                 className="text-white p-2"
                 onClick={toggleMenu}
                 aria-label="Toggle navigation menu"
@@ -99,9 +100,10 @@ function NavBar() {
           </div>
         </nav>
       </div>
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
+      <div id="mobile-menu">
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
@@ -131,9 +133,10 @@ function NavBar() {
                 fullWidth
               />
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

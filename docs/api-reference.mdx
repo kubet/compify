@@ -4,7 +4,11 @@ description: Discover Compify endpoints through its generated OpenAPI 3 document
 ---
 
 The API generates its contract directly from the NestJS controllers and DTOs.
-The document therefore stays aligned with the deployed API version.
+The document therefore stays aligned with each deployed API version. The
+project-operated `https://api.compify.app` public alpha currently publishes this
+contract, including `POST /cli/publish-story`; self-hosted operators publish the
+contract for their own deployed checkout. Alpha route availability is not a
+managed-service SLA.
 
 <Cards>
   <Card
@@ -36,16 +40,19 @@ ${NEXT_PUBLIC_API_URL}/api/docs
 
 | Scheme           | Transport                       | Used by                               |
 | ---------------- | ------------------------------- | ------------------------------------- |
-| Browser session  | HttpOnly `compify_auth` cookie  | Browser-authenticated endpoints       |
-| Bearer JWT       | `Authorization: Bearer <token>` | Non-browser authenticated API clients |
-| CLI token        | `x-cli-token: <token>`          | CLI registry operations               |
-| Internal API key | `x-api-key: <token>`            | Restricted server-to-server endpoints |
+| Browser session  | HttpOnly `compify_auth` cookie        | Browser-authenticated endpoints       |
+| Bearer JWT       | `Authorization: Bearer <token>`       | Non-browser authenticated API clients |
+| CLI Bearer token | `Authorization: Bearer <cli_token>` | Storybook publish and private registry reads |
+| Legacy CLI token | `x-cli-token: <cli_token>`            | Existing CLI component operations     |
+| Internal API key | `x-api-key: <token>`                  | Restricted server-to-server endpoints |
 
 The Swagger interface deliberately disables request submission. Use the JSON
 contract with your preferred OpenAPI client generator or testing tool.
 
 ## Stability
 
-The current contract version is `1.0`. Treat undocumented fields as internal,
-handle standard HTTP errors, and pin generated clients to the OpenAPI document
-from the Compify version you deploy.
+The generated OpenAPI contract reports version `1.0`; that document version is
+not a statement that the API, public-alpha service, or unpublished packages are
+stable or generally available. Treat undocumented fields as internal, handle
+standard HTTP errors, and pin generated clients to the OpenAPI document from the
+Compify checkout you deploy.

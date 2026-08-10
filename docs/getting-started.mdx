@@ -12,10 +12,15 @@ description: Build Compify with Bun and translate a supported Storybook story lo
 
 ## Build the current source
 
-The older `@compify/cli@0.1.0` exists on npm, but the Storybook commands and
-addon described here are the 0.2 source/release candidate. Build this checkout
-until their publication is explicitly announced. No managed hosted service is
-implied.
+The repository's only Git tag/GitHub Release is `v0.1.0`, whose snapshot
+already contains a CLI `0.2.0` manifest. npm separately serves an older
+`@compify/cli@0.1.0` artifact from different source history; it is not the
+package produced by that tag. The current CLI `0.2.0` and matching
+`@compify/storybook@0.1.0` manifests are source candidates. Build this checkout until publication
+is explicitly announced. The project-operated default API is available as a
+public alpha and includes the current Storybook publish route, but it is not a
+generally available managed service or SLA; self-hosted operators remain
+responsible for their deployments.
 
 ```bash
 git clone https://github.com/kubet/compify.git

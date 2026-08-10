@@ -7,7 +7,8 @@ and compatibility contracts.
 
 ## [Unreleased]
 
-## [0.2.0] - 2026-08-08
+The `0.2.0` CLI and `0.1.0` Storybook addon manifests below are release
+candidates. This section does not represent a tag or package publication.
 
 ### Added
 
@@ -18,6 +19,7 @@ and compatibility contracts.
 - Storybook product-market-fit research, falsification criteria, adoption measures, documentation, and first-class CI coverage.
 - Explicit `--story <export-name>` selection, a zero-account golden fixture, and packed-CLI release validation.
 - A pinned shadcn 4.16.2 → clean Next.js 15.5.23 production-build gate, compatibility matrix, ecosystem/cloud strategy, governance, and support policy.
+- A licensed, checksummed `react-uswds` Button fixture provides qualified external static-inspect, native-install, exact-source, dependency-range, and destination-build evidence while explicitly excluding upstream preview styling and visual fidelity.
 - Owner-authenticated private registry items through standard shadcn namespace Bearer headers.
 - Fail-closed static support for the basic CSF Next `preview.meta` / `meta.story` factory form.
 - Published Storybook registry responses preserve the reviewed source paths and Compify digest/provenance metadata instead of applying legacy editor remapping.
@@ -37,6 +39,7 @@ and compatibility contracts.
 - The overlapping Compify registry MCP is now compatibility-only and deprecated in favor of official Storybook and shadcn agent surfaces.
 - Unimplemented hard-coded project routes were removed rather than presenting sample state as a working OSS feature.
 - The optional legacy browser-editor recording is labeled separately from the evidence-backed Storybook distribution workflow.
+- Registry items preserve reviewed npm dependency specifiers instead of silently resolving every dependency from an unqualified package name; workspace, local, and remote-source specs fail portability checks.
 
 ### Security
 
@@ -48,8 +51,13 @@ and compatibility contracts.
 - Per-domain advisory serialization and bounded immutable-revision storage prevent concurrent revision corruption and authenticated storage exhaustion.
 - Publishing-name availability is confined to the authenticated user's namespace, and handoff consumer snapshots are bounded, no-follow, and retry-safe after native command failure.
 - Sandpack provenance is reconstructed and CI-verified against immutable v2.19.8 source; all 14 modified upstream files carry change notices and the internal package is non-publishable.
+- Docker Compose separates bootstrap, SET-only migrator/owner, and runtime PostgreSQL credentials and images; fail-closed policy replay verifies exact role membership, database/schema/relation/column/type/default ACLs, classified ownership, password rotation, and negative runtime privileges.
 
-## [0.1.0] - 2026-08-07
+## GitHub source snapshot `v0.1.0` - 2026-08-07
+
+This immutable repository tag already contains a CLI manifest numbered `0.2.0`.
+It is not the source of npm's independently published `@compify/cli@0.1.0`,
+whose recorded source commit is outside this repository history.
 
 ### Added
 

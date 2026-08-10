@@ -38,8 +38,9 @@ The older CLI 0.1.0 exists on npm; the Storybook CLI/addon release candidates
 are not considered published until explicitly announced. Current-source
 self-hosting supports owner-authenticated private items and immutable v2
 publication revisions. The public repository does **not** claim a managed hosted
-deployment, organization-scoped RBAC, general framework conversion, runtime or
-visual fidelity, or byte-serialization transparency attestations.
+service or SLA for its project-operated public alpha, organization-scoped RBAC,
+general framework conversion, runtime or visual fidelity, or byte-serialization
+transparency attestations.
 
 ## Next: validate and harden the wedge
 
@@ -49,8 +50,11 @@ story-file bundle to a configured API. The next work is evidence and reliability
 not a broader promise:
 
 1. Test real pilot repositories and expand the explicit compatibility matrix.
-   The first pinned shadcn/Next clean-consumer build gate now exists; one fixture
-   is evidence for one shape, not general compatibility.
+   Two synthetic shadcn/Next clean-consumer shapes and one pinned external
+   `react-uswds` Button source now pass the build gate. The external replay omits
+   upstream preview styling and was operated by this repository's maintainer;
+   it is narrow technical compatibility evidence, not a pilot, adoption, visual
+   fidelity, or general compatibility.
 2. Test the bounded exact in-package alias rewriting and basic static CSF Next
    support on qualified repositories. Cross-file re-export catalogs and
    cross-workspace source remain dominant unresolved blockers; expand only from

@@ -31,6 +31,8 @@ jobs:
       - run: bun scripts/release-check.ts
       - run: bun scripts/supply-chain-check.ts
       - run: bun scripts/verify-sandpack-provenance.ts
+      - run: sh -n deploy/postgres-roles.sh && bash -n scripts/postgres-role-smoke.sh
+      - run: shellcheck deploy/postgres-roles.sh scripts/postgres-role-smoke.sh
       - run: docker compose --env-file deploy/self-host.env.example config --quiet
 
   changes:
@@ -61,6 +63,7 @@ jobs:
               - '.github/workflows/ci.yml'
               - 'packages/cli/**'
               - 'examples/storybook-button/**'
+              - 'examples/external-react-uswds-button/**'
               - 'examples/consumer-next-ts/**'
               - 'scripts/shadcn-consumer-smoke.ts'
             pack:
@@ -79,7 +82,8 @@ jobs:
               - 'packages/compify-pack/**'
               - 'docs/**'
               - 'docker-compose.yml'
-              - 'deploy/self-host.env.example'
+              - 'deploy/**'
+              - 'scripts/postgres-role-smoke.sh'
               - 'scripts/self-host-smoke.ts'
               - 'scripts/distribution-smoke.ts'
               - 'packages/cli/**'
@@ -101,6 +105,7 @@ jobs:
       - run: bun install --frozen-lockfile
       - run: bun audit
       - run: bun run lint
+      - run: bun run test:unit
       - run: bun run build
 
   compify-pack:
@@ -227,9 +232,11 @@ jobs:
     needs: changes
     if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.selfhost == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     env:
       POSTGRES_PASSWORD: compify-ci-postgres-only
+      DB_MIGRATOR_PASSWORD: compify-ci-migrator-only-00000000
+      DB_RUNTIME_PASSWORD: compify-ci-runtime-only-0000000000
       MINIO_ROOT_PASSWORD: compify-ci-minio-root-only
       MINIO_APP_SECRET_KEY: compify-ci-minio-app-only
       JWT_SECRET: compify-ci-jwt-secret-never-use-in-production
@@ -239,13 +246,35 @@ jobs:
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
           bun-version: 1.3.9
-      - name: Build and start the self-host stack
+      - name: Verify legacy database conversion and exact role policy
+        run: scripts/postgres-role-smoke.sh
+      - name: Reset the legacy fixture for a genuinely fresh install
+        run: docker compose down -v --remove-orphans
+      - name: Build and start a fresh least-privilege self-host stack
         run: docker compose up --build -d --wait
       - name: Build CLI for distribution E2E
         working-directory: packages/cli
         run: bun install --frozen-lockfile && bun run build
-      - name: Verify migration startup is idempotent
+      - name: Verify separated roles, images, and migration idempotence
         run: |
+          set -euo pipefail
+          before=$(
+            docker compose exec -T postgres psql -U compify -d compify -Atqc \
+              "SELECT coalesce(jsonb_agg(to_jsonb(m) ORDER BY m.id)::text,'[]') FROM migrations m"
+          )
+          docker compose run --rm --no-deps postgres-role-bootstrap
+          docker compose run --rm --no-deps api-migrate
+          docker compose run --rm --no-deps postgres-role-grants
+          docker compose run --rm --no-deps postgres-role-check
+          after=$(
+            docker compose exec -T postgres psql -U compify -d compify -Atqc \
+              "SELECT coalesce(jsonb_agg(to_jsonb(m) ORDER BY m.id)::text,'[]') FROM migrations m"
+          )
+          test "$before" = "$after"
+          docker compose run --rm --no-deps api-migrate sh -ec \
+            'test -e dist/data-source.js; test -d dist/migrations'
+          docker compose exec -T api sh -ec \
+            'test ! -e dist/data-source.js; test ! -d dist/migrations; ! env | grep -Eq "^(POSTGRES_|DB_MIGRATOR_)"'
           docker compose restart api
           docker compose up -d --wait api
       - name: Verify the running product and registry lifecycle
@@ -266,8 +295,8 @@ jobs:
         env:
           DB_HOST: 127.0.0.1
           DB_PORT: 5432
-          DB_USERNAME: compify
-          DB_PASSWORD: compify-ci-postgres-only
+          DB_USERNAME: compify_runtime
+          DB_PASSWORD: compify-ci-runtime-only-0000000000
           DB_DATABASE: compify
           MINIO_ENDPOINT: 127.0.0.1
           MINIO_PORT: 9000

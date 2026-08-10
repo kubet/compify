@@ -20,8 +20,9 @@ The CLI infers the installable component entry from the CSF default meta
 `--component-entry src/components/Button.tsx` to inspect, export, or publish.
 The story file and Storybook-only dependencies are not installed.
 
-Review the exported JSON and component source before publishing. Then authenticate against
-the API you operate and publish the same explicit selection:
+Review the exported JSON and component source before publishing. Then authenticate
+against the selected API and publish the same explicit selection (this example
+uses an operator-controlled self-hosted origin):
 
 ```bash
 COMPIFY_API_URL=https://api.example.com compify login -t <token>
@@ -30,19 +31,24 @@ COMPIFY_API_URL=https://api.example.com compify storybook publish \
   --publishing-name button --visibility public
 ```
 
-`https://api.example.com` must be a self-hosted deployment of the current source
-release candidate, including `POST /cli/publish-story`. The CLI default points
-to an API that does not currently expose this endpoint, so a bare `login` /
-`storybook publish` sequence will not work. `--api-url` is an equivalent global
-option and must appear before `storybook`, for example
+`https://api.example.com` represents a self-hosted deployment that implements
+the current-source `POST /cli/publish-story` contract. The CLI default is
+`https://api.compify.app`; that project-operated deployment currently exposes
+the same route as a public alpha, so a bare `login` / `storybook publish`
+sequence can use it with a valid token. This does not announce a generally
+available managed service, SLA, or package release. Use the explicit self-hosted
+origin when your operator must control source, credentials, retention, backups,
+and upgrades. `--api-url` is an equivalent global option and must appear before
+`storybook`, for example
 `compify --api-url https://api.example.com storybook publish ...`.
 
 Visibility is explicit: `public` is registry-indexed; `unlisted` is available by
 direct address but omitted from discovery/index surfaces; and `private` is
 absent from the public index and served only when the standard registry request
 carries its owner's CLI token as a Bearer header. See [Registry](./registry.md)
-for `components.json` configuration. This does not imply a managed hosted
-endpoint or scoped enterprise authorization.
+for `components.json` configuration. Neither the project-operated alpha nor the
+self-host baseline provides a managed-service SLA or organization-scoped
+enterprise authorization.
 
 For v2 CLI publications, the reviewed registry-item object is the storage source
 of truth: file type/target, dependency categories, Tailwind/CSS fields, docs,

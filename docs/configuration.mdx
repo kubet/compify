@@ -4,9 +4,12 @@ description: Configure public origins, secrets, storage, authentication, email, 
 ---
 
 Compify reads configuration from environment variables. Start from
-`deploy/self-host.env.example`; never commit the populated file.
+`deploy/self-host.env.example`; never commit the populated file. These settings
+belong to an operator-controlled source/release-candidate deployment. They do
+not turn the Compose baseline into managed hosting or a production
+certification.
 
-## Required production settings
+## Required settings for an exposed operator deployment
 
 | Variable                  | Purpose                                                                     |
 | ------------------------- | --------------------------------------------------------------------------- |
@@ -19,8 +22,10 @@ Compify reads configuration from environment variables. Start from
 | `JWT_SECRET`              | User session signing secret; use a long random value                        |
 | `INTERNAL_API_TOKEN`      | Private web-to-API operations                                               |
 | `AUTH_COOKIE_SAME_SITE`   | Browser cookie policy; use `none` only for HTTPS cross-site web/API origins |
-| `POSTGRES_*`              | PostgreSQL database credentials                                             |
-| `MINIO_*`                 | S3-compatible object-storage credentials and ports                          |
+| `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | PostgreSQL bootstrap/break-glass credentials             |
+| `DB_MIGRATOR_PASSWORD`    | Password used only by the one-shot migration role                            |
+| `DB_RUNTIME_PASSWORD`     | Password used by the non-owner, long-running API role                        |
+| `MINIO_*`                 | S3-compatible root/app credentials and ports                                 |
 
 <Callout type="warn" title="Build-time browser variables">
   `NEXT_PUBLIC_*` values are compiled into the web image. Rebuild the web
@@ -39,9 +44,12 @@ providers whose data-handling terms are acceptable for your deployment.
 
 ## Database lifecycle
 
-Production schema synchronization is disabled. The API container runs committed
-TypeORM migrations before starting. Back up PostgreSQL before upgrading and test
-restoration regularly.
+Schema synchronization is disabled. The long-running API image does not contain
+or run migrations. Compose uses separate one-shot bootstrap, migration, grant,
+and role-verification jobs; the API starts only after those jobs and storage
+initialization succeed. Back up PostgreSQL before upgrading, run the release
+jobs on every upgrade, and test restoration regularly. See
+[Self-hosting](./self-hosting.md) for the operator procedure.
 
 ## Validation
 
