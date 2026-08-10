@@ -1,6 +1,7 @@
 import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
+import { createHash } from "node:crypto";
 
 const root = resolve(import.meta.dir, "..");
 function run(command: string[], cwd = root, env: Record<string, string> = {}) {
@@ -11,6 +12,14 @@ function run(command: string[], cwd = root, env: Record<string, string> = {}) {
     stderr: "inherit",
   });
   if (result.exitCode !== 0) throw new Error(`${command.join(" ")} failed`);
+}
+function capture(command: string[], cwd = root) {
+  const result = Bun.spawnSync(command, { cwd, stdout: "pipe", stderr: "inherit" });
+  if (result.exitCode !== 0) throw new Error(`${command.join(" ")} failed`);
+  return result.stdout.toString();
+}
+function sha256(file: string) {
+  return createHash("sha256").update(readFileSync(file)).digest("hex");
 }
 
 const temp = mkdtempSync(join(tmpdir(), "compify-shadcn-consumer-"));
@@ -41,6 +50,7 @@ try {
     "src/Button.stories.tsx", "--story", "Primary",
     "--cwd", join(root, "examples/storybook-button"), "--consumer", consumer,
     "--output", artifact, "--receipt", receiptPath,
+    "--style-contract-output", join(temp, "button.style-contract.json"),
     "--build-command", "bun", "--build-arg", "run", "--build-arg", "build",
   ], root, { NEXT_TELEMETRY_DISABLED: "1" });
 
@@ -75,7 +85,8 @@ try {
     "src/components/Button.stories.tsx", "--story", "Primary",
     "--component-entry", "src/components/Button.tsx", "--cwd", aliasRoot,
     "--consumer", aliasConsumer, "--output", join(temp, "alias.registry.json"),
-    "--receipt", aliasReceipt, "--build-command", "bun", "--build-arg", "run",
+    "--receipt", aliasReceipt, "--style-contract-output", join(temp, "alias.style-contract.json"),
+    "--build-command", "bun", "--build-arg", "run",
     "--build-arg", "build",
   ], root, { NEXT_TELEMETRY_DISABLED: "1" });
   const aliasButton = join(aliasConsumer, "src/components/Button.tsx");
@@ -90,7 +101,87 @@ try {
     throw new Error("exact-alias handoff did not produce built evidence");
   }
 
-  console.log("Compify handoff produced built receipts for relative and exact-alias graphs in clean Next.js consumers.");
+  // Qualified external fixture: verify every unmodified upstream input, then
+  // copy it outside this repository so Compify does not misattribute the
+  // enclosing Compify Git commit as upstream provenance.
+  const externalFixture = join(root, "examples/external-react-uswds-button");
+  const externalFixtureHashes: Record<string, string> = {
+    "LICENSE": "a6cba85bc92e0cff7a450b1d873c0eaa2e9fc96bf472df0247a26bec77bf3ff9",
+    "package.json": "7031107e1ec3c6bae64c41a0b1015af0032f5302bb15999340f41e0fb0348388",
+    "src/components/Button/Button.stories.tsx": "a829e6ed810f5864222649595523ab1d2d248d0277b940bf0bafe4c58f1d0c93",
+    "src/components/Button/Button.tsx": "2b7df31389ffd92912115396ec7253fdfa3f5a63493dddef3fd0331358b951bc",
+  };
+  for (const [file, expected] of Object.entries(externalFixtureHashes)) {
+    if (sha256(join(externalFixture, file)) !== expected) {
+      throw new Error(`vendored external fixture checksum changed: ${file}`);
+    }
+  }
+  const externalSource = join(temp, "external-react-uswds-button");
+  cpSync(externalFixture, externalSource, { recursive: true });
+  const externalInspection = JSON.parse(capture([
+    "bun", join(root, "packages/cli/dist/index.js"), "storybook", "inspect",
+    "src/components/Button/Button.stories.tsx", "--story", "DefaultButton",
+    "--cwd", externalSource, "--json",
+  ]));
+  if (!externalInspection.portable || externalInspection.diagnostics.length !== 0) {
+    throw new Error("qualified react-uswds Button selection is no longer statically portable");
+  }
+  if (externalInspection.digest !== "336189c7ba356928a6d8973fc48e2bb2de7ac9ce2105ccccf57399df8df1eccb") {
+    throw new Error(`qualified external bundle digest changed: ${externalInspection.digest}`);
+  }
+  if (externalInspection.packageFiles.join() !== "src/components/Button/Button.tsx") {
+    throw new Error("qualified external fixture no longer has the reviewed one-file graph");
+  }
+  if (externalInspection.styleContract.uses.length || externalInspection.styleContract.bundledDefinitions.length) {
+    throw new Error("qualified external fixture unexpectedly gained bundled style evidence");
+  }
+
+  const externalConsumer = join(temp, "external-consumer");
+  cpSync(join(root, "examples/consumer-next-ts"), externalConsumer, {
+    recursive: true,
+    filter: (source) => !["node_modules", ".next", ".env"].includes(source.split("/").at(-1) || ""),
+  });
+  await Bun.write(join(externalConsumer, "components.json"), `${JSON.stringify(components, null, 2)}
+`);
+  await Bun.write(join(externalConsumer, "src/app/page.tsx"), `import { Button } from "@/components/Button/Button";
+export default function Page() {
+  return <main><Button type="button">Click Me</Button></main>;
+}
+`);
+  run(["bun", "install", "--frozen-lockfile"], externalConsumer);
+  const externalArtifact = join(temp, "react-uswds-button.registry.json");
+  const externalReceipt = join(temp, "react-uswds-button.handoff.json");
+  run([
+    "bun", join(root, "packages/cli/dist/index.js"), "storybook", "handoff",
+    "src/components/Button/Button.stories.tsx", "--story", "DefaultButton",
+    "--cwd", externalSource, "--consumer", externalConsumer,
+    "--output", externalArtifact, "--receipt", externalReceipt,
+    "--style-contract-output", join(temp, "react-uswds-button.style-contract.json"),
+    "--build-command", "bun", "--build-arg", "run", "--build-arg", "build",
+  ], root, { NEXT_TELEMETRY_DISABLED: "1" });
+  if (sha256(externalArtifact) !== "0ea583918003ca21278d8eb2fad5007e74c20a20c4d0e163b103c704aea3167b") {
+    throw new Error("qualified external registry artifact digest changed");
+  }
+  const externalItem = JSON.parse(readFileSync(externalArtifact, "utf8"));
+  if (JSON.stringify(externalItem.dependencies) !== JSON.stringify([
+    "classnames@^2.3.2",
+    "react@^16.x || ^17.x || ^18.x || ^19.x",
+  ])) {
+    throw new Error("qualified external artifact did not preserve reviewed dependency ranges");
+  }
+  if (JSON.parse(readFileSync(externalReceipt, "utf8")).evidenceLevel !== "built") {
+    throw new Error("qualified external handoff did not produce built evidence");
+  }
+  const externalConsumerPackage = JSON.parse(readFileSync(join(externalConsumer, "package.json"), "utf8"));
+  if (externalConsumerPackage.dependencies?.classnames !== "^2.3.2" ||
+      externalConsumerPackage.dependencies?.react !== "^16.x || ^17.x || ^18.x || ^19.x") {
+    throw new Error("native shadcn installation did not retain the reviewed dependency ranges in the consumer manifest");
+  }
+  if (sha256(join(externalConsumer, "src/components/Button/Button.tsx")) !== "2b7df31389ffd92912115396ec7253fdfa3f5a63493dddef3fd0331358b951bc") {
+    throw new Error("native shadcn installation changed the reviewed upstream Button source");
+  }
+
+  console.log("Compify handoff produced built receipts for two synthetic graphs and one qualified external react-uswds Button graph.");
 } finally {
   rmSync(temp, { recursive: true, force: true });
 }

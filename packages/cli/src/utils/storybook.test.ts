@@ -82,7 +82,33 @@ export const Primary = {}
     const bundle = buildStoryBundle(undefined, { cwd: root })
     expect(Object.keys(bundle.files)).toEqual(["Dynamic.tsx", "helper.ts", "Lazy.tsx"])
     expect(bundle.dependencies).toEqual({ lodash: "4.17.21", react: "^19.0.0" })
+    expect(toRegistryItem(bundle).dependencies).toEqual(["lodash@4.17.21", "react@^19.0.0"])
     expect(bundle.diagnostics).not.toContainEqual(expect.objectContaining({ code: "DYNAMIC_IMPORT_UNRESOLVED" }))
+  })
+
+  it.each([
+    "workspace:*",
+    "file:../internal-helper",
+    "github:example/internal-helper",
+    "example/internal-helper#deadbeef",
+    "git@github.com:example/internal-helper.git",
+    "https://packages.invalid/internal-helper.tgz",
+  ])("rejects non-registry dependency specifier %s", (specifier) => {
+    const root = project({
+      "Workspace.stories.tsx": `import { Workspace } from "./Workspace"
+export default { component: Workspace }
+export const Default = {}
+`,
+      "Workspace.tsx": `import { helper } from "internal-helper"
+export const Workspace = () => helper
+`,
+    }, { dependencies: { "internal-helper": specifier } })
+    const bundle = buildStoryBundle(undefined, { cwd: root })
+    expect(bundle.dependencies).toEqual({})
+    expect(bundle.diagnostics).toContainEqual(expect.objectContaining({
+      code: "NONPORTABLE_DEPENDENCY_SPEC",
+      severity: "error",
+    }))
   })
 
   it("rejects nonliteral import() and require() targets", () => {
@@ -198,6 +224,7 @@ export const Linked = () => value
     expect(item.type).toBe("registry:component"); expect(item.meta.compify.stories[0].exportName).toBe("Basic")
     expect(bundle.entry).toBe("Fine.tsx"); expect(bundle.provenance.storyPath).toBe("Fine.stories.tsx")
     expect(item.files.map((f: any) => f.path)).toEqual(["Fine.tsx", "styles.css"])
+    expect(item.dependencies).toEqual([])
     // shadcn registry-item schema: component files use registry:component and
     // therefore do not require the target demanded by generic registry:file.
     expect(item.files.every((f: any) => f.type === "registry:component" && !("target" in f))).toBe(true)

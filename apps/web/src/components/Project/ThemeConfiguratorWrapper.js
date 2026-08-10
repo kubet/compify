@@ -63,7 +63,7 @@ function ThemeConfiguratorWrapper({ initialTheme, setTheme, componentId, setDefa
                     Design Your Theme
                 </h3>
                 <p className="text-gray-400 text-sm mb-5 max-w-[280px]">
-                    Customize colors, spacing, and more to match your brand perfectly
+                    Customize colors, spacing, and more to match your brand
                 </p>
                 <div className="flex flex-col items-center gap-3 w-full max-w-[280px]">
                     <LabelButton

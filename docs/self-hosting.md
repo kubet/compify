@@ -1,9 +1,15 @@
 ---
 title: Self-hosting
-description: Run Compify with Docker Compose, PostgreSQL, MinIO, migrations, and production-safe configuration.
+description: Run the operator-controlled Compify baseline with Docker Compose, PostgreSQL, MinIO, and explicit migrations.
 ---
 
-This deployment is intended for a reproducible local or single-server Compify installation. It builds the API and web applications from the checked-out source and runs them with PostgreSQL and MinIO. The Compose project also runs a one-shot initializer that creates the four object-storage buckets expected by the API.
+This source/release-candidate deployment is a reproducible local or single-server
+Compify baseline. It builds the API and web applications from the checked-out
+source and runs them with PostgreSQL and MinIO. It is not a Compify-managed
+service, high-availability platform, or production certification: the operator
+owns TLS, access, credentials, monitoring, backups, upgrades, incident response,
+and recovery. The Compose project also runs one-shot release jobs for database
+roles/migrations and object-storage initialization.
 
 ## Requirements
 
@@ -31,7 +37,7 @@ Open:
 - API readiness check: [http://localhost:3009/ready](http://localhost:3009/ready)
 - MinIO console: [http://localhost:9001](http://localhost:9001)
 
-Follow startup logs with `docker compose logs -f api web`. `minio-init` is expected to exit successfully after creating `components`, `images`, `public`, and `projects`; it is not a long-running service.
+Follow startup logs with `docker compose logs -f api web`. `postgres-role-bootstrap`, `api-migrate`, `postgres-role-grants`, `postgres-role-check`, and `minio-init` are expected to exit successfully; they are release jobs, not long-running services. The API starts only after the database role verifier and object-storage initializer pass.
 
 ## Configuration
 
@@ -101,13 +107,17 @@ enabled flag false keeps the corresponding UI and server enforcement disabled.
 
 The API connects over the private Compose network, so `DB_HOST`, the internal database port, `MINIO_ENDPOINT`, and the internal MinIO port are set in `docker-compose.yml`. Configure credentials through:
 
-- `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`
+- `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` (bootstrap/break-glass only)
+- `DB_MIGRATOR_PASSWORD` (one-shot migrations only)
+- `DB_RUNTIME_PASSWORD` (long-running API only)
 - `MINIO_ROOT_USER`, `MINIO_ROOT_PASSWORD` (administrative initialization only)
 - `MINIO_APP_ACCESS_KEY`, `MINIO_APP_SECRET_KEY` (least-privilege API access)
 
 `*_PORT` variables change host-side published ports. `*_BIND_ADDRESS` defaults to `127.0.0.1`; do not widen database or object-storage bindings without a firewall. Named volumes `postgres-data` and `minio-data` retain data across container recreation.
 
-The API runs the compiled TypeORM migrations before starting and uses `DB_SYNCHRONIZE=false` in this deployment. Migration failure stops the API container instead of starting it against a partially upgraded schema. Back up the database before every upgrade.
+The bootstrap job creates fixed `compify_owner`, `compify_migrator`, and `compify_runtime` roles. The API image contains no migration entrypoint or compiled migration files and connects only as the non-owner, non-superuser runtime role. A separate migration image connects as the migrator and assumes the non-login owner; a versioned allowlist then grants runtime CRUD only on current application tables plus required enum-type usage, excluding migration and quarantine evidence. `DB_SYNCHRONIZE=false` remains mandatory. Migration or role-policy failure prevents API startup. Generate all three database passwords independently, keep `.env` mode `0600`, and back up before every upgrade.
+
+The PostgreSQL database must be dedicated to Compify. On an existing Compose volume, `POSTGRES_USER` remains the legacy object owner and bootstrap login; changing it does not rotate an initialized cluster. The bootstrap and post-migration policy jobs refuse unclassified public-schema relations, enum/domain types, application functions, `SECURITY DEFINER` functions, or unexpected owners instead of taking them over. Only invoker-security functions belonging to the allowlisted `uuid-ossp`, `pg_trgm`, and `btree_gin` extensions may remain in `public`. The policy revokes database connection from `PUBLIC`, revokes public schema/table/sequence privileges, and grants only the named roles. Runtime and migrator password changes are applied idempotently by the bootstrap job; rotate the bootstrap credential through an authenticated PostgreSQL administrator procedure.
 
 ### Authentication and optional integrations
 
@@ -178,18 +188,26 @@ docker compose exec -T postgres sh -c   'psql -U "$POSTGRES_USER" -d "$POSTGRES_
 
 ```sh
 git pull --ff-only
+# Put the proxy in maintenance mode, drain in-flight writes, and stop all writers.
+docker compose stop web api
 docker compose build --pull
-docker compose up -d --remove-orphans
+docker compose up -d --wait postgres minio
+# Release jobs must run in order on every upgrade. --no-deps prevents implicit replay.
+docker compose run --rm --no-deps postgres-role-bootstrap
+docker compose run --rm --no-deps api-migrate
+docker compose run --rm --no-deps postgres-role-grants
+docker compose run --rm --no-deps postgres-role-check
+docker compose up -d --remove-orphans minio-init api web
 docker compose ps
 ```
 
-Take backups first. Rebuilding is required when public web variables or source dependencies change.
+Take and test backups before starting. Keep the reverse proxy in maintenance mode until `/ready` and the black-box checks pass. The first role conversion acquires catalog/object locks and must never overlap an old API writer. Never run an older API against a newer incompatible schema or restore the former API-as-superuser migration command. Prefer backup restore for destructive/schema-incompatible rollback. Rebuilding is required when public web variables or source dependencies change.
 
 ## Troubleshooting
 
 - **Web calls a localhost API/CDN or the editor bundler is unavailable:** required public build URLs were absent or an old web image is running. Set `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_CDN_URL`, `NEXT_PUBLIC_BUNDLER_URL`, and `NEXT_PUBLIC_SITE_URL`, then rebuild `web`.
 - **CORS errors:** `FRONTEND_URL` must exactly match the browser origin, including scheme and port.
-- **API waits at startup:** inspect `postgres`, `minio`, and `minio-init` logs. The API intentionally waits for database health and successful bucket initialization.
+- **API waits at startup:** inspect `postgres-role-bootstrap`, `api-migrate`, `postgres-role-grants`, `postgres-role-check`, `postgres`, `minio`, and `minio-init` logs. The API intentionally waits for verified database policy, database health, and successful bucket initialization.
 - **Login/register integration errors:** configure the relevant email, Turnstile, OAuth, or Stripe credentials for the integration being used and confirm migrations completed successfully.
 - **Port collision:** change the host-side `*_PORT` value in `.env`; do not change container-internal service ports.
 - **Clean local reset:** run `docker compose down -v` only if all local database and object data may be destroyed, then `docker compose up -d --build`.

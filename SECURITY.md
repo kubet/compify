@@ -2,13 +2,21 @@
 
 ## Supported versions
 
-Security fixes are applied to the latest `0.2.x` repository release and to `main`.
+The repository's only Git tag/GitHub Release is `v0.1.0`; that source
+snapshot already contains a CLI manifest numbered `0.2.0`. npm independently
+serves an older `@compify/cli@0.1.0` package whose recorded source commit is not
+in this repository history. The tag and npm package are therefore distinct
+historical artifacts, not two names for one release. Current fixes land on
+`main` and, when warranted, in a new reviewed release; immutable historical
+artifacts are not silently replaced. A manifest or changelog entry does not
+create a release, and there is no released current-source `0.2.x` line yet.
 
-| Version | Supported |
-| ------- | --------- |
-| 0.2.x   | Yes       |
-| 0.1.x   | Security fixes only until 0.2.1 |
-| < 0.1   | No        |
+| Version or channel | Security status |
+| ------------------ | --------------- |
+| `main` (unreleased source candidate) | Receives fixes |
+| GitHub source tag `v0.1.0` | Reports accepted; fixes require a new release |
+| npm `@compify/cli@0.1.0` (independent older artifact) | Reports accepted; fixes require a new package release |
+| Earlier artifacts | Not maintained |
 
 ## Reporting a vulnerability
 
@@ -24,9 +32,12 @@ disrupting production while researching.
 
 ## Scope
 
-- compify.app, api.compify.app, cdn.compify.app
-- This repository (`apps/web`, `apps/api`, `packages/*`, deployment artifacts)
-- The supported Docker Compose self-host configuration
+- The project-operated public-alpha surfaces at compify.app, api.compify.app,
+  and cdn.compify.app. Alpha availability is not a managed-service SLA, but
+  security reports for these deployments are in scope.
+- This repository (`apps/web`, `apps/api`, `packages/*`, deployment artifacts).
+- The Docker Compose self-host baseline. Its operator remains responsible for
+  infrastructure, configuration, access control, monitoring, and recovery.
 
 ## Notes for contributors and operators
 

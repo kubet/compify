@@ -1,5 +1,5 @@
 import React, { useCallback, useState, useEffect } from 'react'
-import { PricingCard } from '../LandingSections/Sections'
+import PricingCard from './PricingCard'
 import { cancelSubscription, getAllPlans, getCheckoutSession, getUserSubscriptionPlans, performUpgradeSubscription, previewUpgradeSubscription } from '@/lib/api';
 import { useUser } from '@/auth/UseUser';
 import { AnimatePresence } from 'framer-motion';

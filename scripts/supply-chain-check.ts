@@ -40,6 +40,12 @@ for (const [index, line] of read("docker-compose.yml").split("\n").entries()) {
 // Only these reviewed packages are public. A new non-private manifest must not
 // silently become publishable, and public packages must carry registry metadata.
 const publicPackages = new Set(["packages/cli/package.json", "packages/storybook/package.json"]);
+// These manifests are unmodified parser inputs, never workspace packages or
+// publication roots. The external exception is checksummed in its UPSTREAM.md.
+const sourceFixtures = new Set([
+  "examples/storybook-button/package.json",
+  "examples/external-react-uswds-button/package.json",
+]);
 const packageFiles: string[] = [];
 const ignoredTrees = new Set([".git", ".next", "node_modules", "dist", "build", "coverage"]);
 function findManifests(directory: string): void {
@@ -55,6 +61,7 @@ packageFiles.sort();
 for (const manifest of packageFiles) {
   const pkg = JSON.parse(read(manifest));
   const isPublic = publicPackages.has(manifest);
+  const isSourceFixture = sourceFixtures.has(manifest) || manifest.includes("/test-fixtures/");
   if (isPublic) {
     if (pkg.private === true) fail(`${manifest} is allowlisted for release but marked private`);
     if (pkg.license !== "MIT") fail(`${manifest} must declare its MIT license`);
@@ -62,12 +69,10 @@ for (const manifest of packageFiles) {
       fail(`${manifest} must ship a LICENSE`);
     if (pkg.repository?.directory !== manifest.replace(/\/package\.json$/, ""))
       fail(`${manifest} has missing or incorrect repository.directory metadata`);
-  } else if (pkg.private !== true) {
+  } else if (!isSourceFixture && pkg.private !== true) {
     fail(`${manifest} must be private unless added to the reviewed public-package allowlist`);
   }
   const lockfile = join(root, manifest, "../bun.lock");
-  // Source/parser fixtures are package-boundary inputs, not independently installed roots.
-  const isSourceFixture = manifest === "examples/storybook-button/package.json" || manifest.includes("/test-fixtures/");
   if (!isSourceFixture && !existsSync(lockfile))
     fail(`${manifest} has no bun.lock for frozen installs`);
 }

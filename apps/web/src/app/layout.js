@@ -1,4 +1,4 @@
-import { cdnUrl, siteUrl } from '@/constains';
+import { siteUrl } from '@/constains';
 import NavBar from "@/components/NavBar";
 import "./globals.css";
 import { UserProvider } from '@/auth/UseUser';
@@ -21,14 +21,16 @@ export const metadata = {
   openGraph: {
     type: 'website',
     siteName: 'Compify',
-    images: [`${cdnUrl}/default-og.webp`],
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Compify Storybook-to-shadcn handoff' }],
     locale: 'en_US',
-    title: 'Compify - Build Beautiful UI Components | Modern Component Library',
+    title: 'Compify — Reviewable Storybook to shadcn artifacts',
     description: 'Statically package selected React component source, using Storybook CSF as the review boundary, into deterministic shadcn registry artifacts.',
   },
   twitter: {
     card: 'summary_large_image',
-    // creator: '@yourtwitter', // TODO: add twitter handle
+    title: 'Compify — Reviewable Storybook to shadcn artifacts',
+    description: 'Statically package selected React component source, using Storybook CSF as the review boundary, into deterministic shadcn registry artifacts.',
+    images: ['/og-image.png'],
   },
   robots: {
     index: true,

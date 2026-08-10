@@ -9,8 +9,12 @@ shadcn registry item; it does not replace Storybook or promise faithful capture
 of Storybook runtime behavior.
 
 The CLI and `@compify/storybook` addon described here are present in the current
-repository source/release candidate. Their presence does not imply a managed
-hosted service or package-registry release.
+repository source candidate. The current CLI `0.2.0` and addon `0.1.0`
+manifests are not published releases. The repository's `v0.1.0` GitHub source
+tag already contains a CLI `0.2.0` manifest; npm's older
+`@compify/cli@0.1.0` came from different source history, so the two historical
+artifacts must not be conflated. The project-operated API is a public alpha
+rather than a generally available managed service or SLA.
 
 ## CLI workflow
 
@@ -224,8 +228,12 @@ commands, publish files, or create a local bridge. Only HTTP(S) preview URLs are
 clickable. Its status is an author assertion, not the result of CLI inspection.
 
 Use the CLI separately for static inspection, export, and authenticated publish.
-Publishing requires `COMPIFY_API_URL` or the global `--api-url` to target a
-self-hosted current-source deployment containing `POST /cli/publish-story`; the
-CLI's default API does not currently expose it. `public` items are indexed,
-`unlisted` items are direct-address only, and `private` items are owner-only.
-The addon and CLI do not currently synchronize metadata automatically.
+The default `https://api.compify.app` currently includes
+`POST /cli/publish-story` as a project-operated public-alpha surface. Set
+`COMPIFY_API_URL` or the global `--api-url` to use an operator-controlled
+self-hosted API implementing the same current-source contract. Neither option
+turns the unpublished CLI/addon candidates into releases; the alpha has no
+managed-service SLA, while a self-hosted operator owns its service obligations.
+`public` items are indexed, `unlisted` items are direct-address only, and
+`private` items are owner-only. The addon and CLI do not currently synchronize
+metadata automatically.

@@ -5,11 +5,14 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Bun 1.3.9](https://img.shields.io/badge/Bun-1.3.9-f9f1e1?logo=bun)](https://bun.sh/)
 
-**Build React components once. Preview, share, and install them anywhere.**
+**Turn a reviewed, supported React CSF source graph into a deterministic shadcn handoff.**
 
-Compify is an open-source component platform and CLI with a live browser editor,
-a shadcn-compatible registry, and a Storybook-aware workflow for moving reviewed
-React components between applications.
+Compify is experimental open-source tooling for statically inspecting selected
+React Storybook source, producing a reviewable shadcn registry artifact, and
+recording an explicit consumer build. The repository also contains an optional
+legacy browser editor and registry/API surfaces; those are not evidence of broad
+Storybook compatibility, visual fidelity, adoption, or a generally available
+managed platform.
 
 <p align="center">
   <a href="https://compify.app/demo-video.mp4">
@@ -31,8 +34,9 @@ React components between applications.
 
 Moving a component between applications is rarely just copying one file. The
 review boundary can include local imports, aliases, styles, runtime packages,
-and consumer-specific installation behavior. Compify makes that boundary
-explicit and fail-closed:
+and consumer-specific installation behavior. Within the statically selected source
+graph, Compify makes checked boundaries explicit and rejects detected unsupported
+or nonportable inputs instead of silently omitting them:
 
 - **Select deliberately:** a CSF story export is the entry boundary.
 - **Inspect statically:** supported source is parsed without importing or
@@ -46,9 +50,12 @@ explicit and fail-closed:
 
 ## Account-free quick start
 
-The Storybook workflow in this repository is the `@compify/cli@0.2.0` release
-candidate. npm still contains the older `0.1.0`, so build the candidate from
-source until the package release is explicitly announced:
+The Storybook workflow in this repository is an unpublished
+`@compify/cli@0.2.0` source candidate. The repository's historical `v0.1.0`
+GitHub tag already contains a CLI `0.2.0` manifest; npm independently serves an
+older `@compify/cli@0.1.0` artifact from different source history. Do not treat
+the tag and package as one release. Build the candidate from source until a
+package release is explicitly announced:
 
 ```bash
 git clone https://github.com/kubet/compify.git

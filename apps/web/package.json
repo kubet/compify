@@ -9,6 +9,7 @@
     "start": "NODE_ENV=production next start",
     "lint": "eslint . --max-warnings=0",
     "postinstall": "bun run scripts/prepare-local-assets.ts",
+    "test:unit": "bun test src",
     "test:e2e": "playwright test"
   },
   "dependencies": {

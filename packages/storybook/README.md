@@ -6,7 +6,14 @@ Packed-package selection is tested with Storybook 8.6.14, 9.1.20, and 10.2.10 as
 
 ## Availability and installation
 
-This package and the matching CLI workflow are present in repository source. That does not imply a package-registry release or managed hosted availability. If a package release is available, install it with:
+This package and the matching CLI workflow are present in repository source.
+The repository's `v0.1.0` GitHub source tag already contains a CLI `0.2.0`
+manifest. npm independently serves an older `@compify/cli@0.1.0` from different
+source history; those are distinct historical artifacts. The current CLI
+`0.2.0` and this addon's `0.1.0` manifests identify source candidates, not
+published packages. The project-operated default API is a public alpha rather
+than a generally available managed service or SLA. If an addon package release
+is explicitly announced, install it with:
 
 ```sh
 bun add -D @compify/storybook
@@ -41,7 +48,7 @@ const compify = {
   status: "portable",
   component: "@acme/button",
   registry: "https://registry.example.com/r/acme/button.json",
-  installCommand: "bunx shadcn@latest add https://registry.example.com/r/acme/button.json",
+  installCommand: "bunx shadcn@4.16.2 add https://registry.example.com/r/acme/button.json",
   previewUrl: "https://storybook.example.com/?path=/story/button--primary",
   reasons: ["Uses only public package dependencies"],
 } satisfies CompifyParameters;
@@ -53,9 +60,17 @@ export const Primary = {
 
 Supported statuses are `portable`, `partial`, `not-portable`, and `unknown`. Commands are shown as text and are never executed. `cli.setupCommand`, `cli.installCommand`, and a project-specific `cli.publishCommand` may override displayed guidance.
 
-If metadata is missing, the panel shows the static CLI workflow. The CLI must likewise be built from this repository or installed from an available release; the commands do not claim that a managed publish target is available.
+If metadata is missing, the panel shows the static CLI workflow. The CLI must
+likewise be built from this repository or installed from an explicitly
+announced release that contains the Storybook commands; the published `0.1.0`
+does not. The commands do not claim that a managed publish target is available.
 
-If a CLI release is available, Bun can run it without a global install (`bunx @compify/cli storybook inspect ...`) or install it with `bun add -g @compify/cli`. From repository source, run `bun install && bun run build && bun link` in `packages/cli`, then invoke the linked `compify` executable.
+Once a CLI release containing the Storybook commands is explicitly announced,
+Bun can run it without a global install
+(`bunx @compify/cli storybook inspect ...`) or install it with
+`bun add -g @compify/cli`. The published `0.1.0` CLI does not contain this
+workflow. From repository source, run `bun install && bun run build && bun link`
+in `packages/cli`, then invoke the linked `compify` executable.
 
 ```sh
 # Inspect first; add --json for machine-readable diagnostics.
@@ -65,15 +80,18 @@ compify storybook inspect src/components/Button.stories.tsx --json
 compify storybook export src/components/Button.stories.tsx \
   --name button --output .compify/button.registry.json
 
-# After review, target a self-hosted current-source API and publish privately.
+# After review, target an operator-controlled self-hosted API and publish privately.
 COMPIFY_API_URL=https://api.example.com compify login -t <token>
 COMPIFY_API_URL=https://api.example.com compify storybook publish \
   src/components/Button.stories.tsx \
   --publishing-name button --visibility private
 ```
 
-The publish target must deploy the current source release candidate, including
-`POST /cli/publish-story`; the CLI default API does not currently expose it.
+The publish target must implement the current-source
+`POST /cli/publish-story` contract. The default `https://api.compify.app`
+currently exposes that route as a project-operated public alpha; the explicit
+URL above selects a self-hosted API instead. Alpha availability is not a
+managed-service SLA, and self-hosted service obligations belong to its operator.
 The story path may be omitted only when exactly one supported `*.stories.*` file can be inferred. Other relevant flags include `--cwd`, `--description`, `--visibility public|private|unlisted`, and `--json` on inspect/publish. After publishing, set the registry address, install command, and preview URL in `parameters.compify`; the addon does not synchronize these automatically.
 
 ## Compatibility matrix

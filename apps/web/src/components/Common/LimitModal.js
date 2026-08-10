@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import Modal from '@/components/Elements/Modal';
-import { PricingCard } from '../LandingSections/Sections';
+import PricingCard from '../Payment/PricingCard';
 import { useUser } from '@/auth/UseUser';
 import { AnimatePresence } from 'framer-motion';
 import { getAllPlans, getUserSubscriptionUsage } from '@/lib/api';

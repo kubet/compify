@@ -4,8 +4,10 @@ description: Inspect Storybook source and manage Compify components with the Bun
 ---
 
 The current source/release candidate provides local Storybook translation and
-the existing Compify component-management commands. Package-registry or managed
-hosted-service availability is not implied.
+the existing Compify component-management commands. The only npm-published CLI
+is the older `@compify/cli@0.1.0`; the `0.2.0` manifest in this checkout is not a
+release. The default API is a project-operated public alpha, not a generally
+available managed hosted service or SLA.
 
 ## Build from source
 
@@ -112,10 +114,14 @@ COMPIFY_API_URL=https://api.example.com compify storybook publish \
   src/Button.stories.tsx --publishing-name button --visibility public
 ```
 
-The target must be a self-hosted current-source deployment containing
-`POST /cli/publish-story`; the CLI default API does not currently expose that
-endpoint. `--json` emits the server response. Export and publish both refuse
-bundles with error diagnostics or non-portable selected stories. When `--story`
+The target must implement the current-source `POST /cli/publish-story`
+contract. The CLI default, `https://api.compify.app`, currently exposes that
+route as a public-alpha deployment, so a bare command uses it when a valid token
+has been stored. Set `COMPIFY_API_URL` or the global `--api-url` for an
+operator-controlled self-hosted API. Endpoint availability does not turn the
+alpha deployment into a managed-service or compatibility commitment. `--json`
+emits the server response. Export and publish both refuse bundles with error
+diagnostics or non-portable selected stories. When `--story`
 is omitted, every named story in the file is selected and must be portable.
 The story source and Storybook-only dependencies are metadata inputs and are not
 included in the installable component files. The API independently verifies the deterministic payload digest.
@@ -132,11 +138,12 @@ compify --api-url https://api.example.com login -t <token>
 COMPIFY_API_URL=https://api.example.com compify list
 ```
 
-For Storybook publishing, always select the self-hosted release-candidate API
-explicitly; bare commands use the default API where the publish endpoint is not
-currently deployed. `login` validates the token before storing it in the OS keychain. For headless
-environments, set `COMPIFY_TOKEN`. Global options such as `--api-url` and
-`--web-url` must appear before the subcommand.
+Bare commands use the project-operated public-alpha API; select a self-hosted
+API explicitly when your operator must control source, credentials, retention,
+backups, upgrades, and availability. `login` validates the token against the
+selected API before storing it in the OS keychain, and credentials are isolated
+by API origin. For headless environments, set `COMPIFY_TOKEN`. Global options
+such as `--api-url` and `--web-url` must appear before the subcommand.
 
 ## Existing component commands
 

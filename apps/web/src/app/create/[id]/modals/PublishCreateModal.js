@@ -57,7 +57,7 @@ function PublishCreateModal({ publishModalOpen,
         : null;
     const isRegistryVisible = selectedVisibility === 'public' || selectedVisibility === 'free';
     const installCommand = registryPath && isRegistryVisible
-        ? `bunx shadcn@latest add ${baseUrl}/r/${registryPath}.json`
+        ? `bunx shadcn@4.16.2 add ${baseUrl}/r/${registryPath}.json`
         : !isRegistryVisible
             ? 'Choose Public or Unlisted to enable registry installation'
             : 'Set a publishing domain to get your shadcn install command';

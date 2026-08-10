@@ -132,7 +132,7 @@ export default function ComponentDisplay({ data }) {
     const { name, description, language, usedUiFrameworks, upvotesCount, publishingDomain } = data;
     const registryPath = publishingDomain?.replace(/^compify\//, '');
     const installCommand = registryPath
-        ? `bunx shadcn@latest add ${baseUrl}/r/${registryPath}.json`
+        ? `bunx shadcn@4.16.2 add ${baseUrl}/r/${registryPath}.json`
         : null;
 
     const handleInstallCopy = async () => {
