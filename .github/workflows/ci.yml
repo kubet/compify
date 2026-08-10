@@ -272,11 +272,24 @@ jobs:
           )
           test "$before" = "$after"
           docker compose run --rm --no-deps api-migrate sh -ec \
-            'test -e dist/data-source.js; test -d dist/migrations'
+            'test -e dist/data-source.js; test -d dist/migrations; test ! -e /usr/local/lib/node_modules/npm; test ! -e /usr/local/lib/node_modules/corepack; ! command -v npm; ! command -v npx; ! command -v corepack; ! command -v yarn; ! command -v pnpm'
           docker compose exec -T api sh -ec \
-            'test ! -e dist/data-source.js; test ! -d dist/migrations; ! env | grep -Eq "^(POSTGRES_|DB_MIGRATOR_)"'
+            'test ! -e dist/data-source.js; test ! -d dist/migrations; test ! -e /usr/local/lib/node_modules/npm; test ! -e /usr/local/lib/node_modules/corepack; ! command -v npm; ! command -v npx; ! command -v corepack; ! command -v yarn; ! command -v pnpm; ! env | grep -Eq "^(POSTGRES_|DB_MIGRATOR_)"'
+          docker compose exec -T web sh -ec \
+            'test ! -e /usr/local/lib/node_modules/npm; test ! -e /usr/local/lib/node_modules/corepack; ! command -v npm; ! command -v npx; ! command -v corepack; ! command -v yarn; ! command -v pnpm'
           docker compose restart api
           docker compose up -d --wait api
+      - name: Reject secrets or fixed high/critical runtime-image vulnerabilities
+        run: |
+          set -euo pipefail
+          scanner='aquasec/trivy:0.73.0@sha256:7cced7cae583819fc7806d4cbc0dbbc7cad18b99f7d3e235192e6da8c091045c'
+          for image in compify-api:latest compify-api-migrate:latest compify-web:latest; do
+            docker run --rm \
+              -v /var/run/docker.sock:/var/run/docker.sock \
+              -v "${{ runner.temp }}/trivy-cache:/root/.cache/" \
+              "$scanner" image --quiet --scanners vuln,secret --ignore-unfixed \
+              --severity HIGH,CRITICAL --exit-code 1 "$image"
+          done
       - name: Verify the running product and registry lifecycle
         run: bun scripts/self-host-smoke.ts
       - name: Install browser E2E dependencies

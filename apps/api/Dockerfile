@@ -24,12 +24,20 @@ COPY package.json bun.lock ./
 RUN --mount=type=cache,id=api-bun-production,target=/root/.bun/install/cache,sharing=locked \
     bun install --frozen-lockfile --production
 
-FROM bun-runtime AS application-base
+# Reuse the patched Node/bookworm base that already runs the pinned Bun binary
+# during builds. The older Bun Debian runtime snapshot contains fixed upstream
+# OS CVEs. Node package managers are build-only here, so remove their global
+# trees and shims from both production targets before copying dependencies.
+FROM bun-node AS application-base
 ENV NODE_ENV=production \
     STAGE=prod \
-    PORT=3009
+    PORT=3009 \
+    BUN_RUNTIME_TRANSPILER_CACHE_PATH=0
 WORKDIR /app
-RUN groupadd --system --gid 1001 bunjs && \
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack /opt/yarn-* && \
+    rm -f /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack \
+      /usr/local/bin/yarn /usr/local/bin/yarnpkg /usr/local/bin/pnpm /usr/local/bin/pnpx && \
+    groupadd --system --gid 1001 bunjs && \
     useradd --system --uid 1001 --gid bunjs --home-dir /app compify
 COPY --from=production-dependencies --chown=compify:bunjs /app/node_modules ./node_modules
 COPY --from=build --chown=compify:bunjs /app/dist ./dist
