@@ -7,11 +7,11 @@ import type {
   SandpackMessage,
   UnsubscribeFunction,
   SandpackClient,
-} from '@codesandbox/sandpack-client';
+} from '@compify/sandpack-client';
 import {
   loadSandpackClient,
   extractErrorDetails,
-} from '@codesandbox/sandpack-client';
+} from '@compify/sandpack-client';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type {

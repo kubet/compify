@@ -1,9 +1,10 @@
+// Modified by Compify; see packages/compify-pack/PROVENANCE.md.
 import type {
   ListenerFunction,
   SandpackClient,
   SandpackMessage,
   UnsubscribeFunction,
-} from "@codesandbox/sandpack-client";
+} from "@compify/sandpack-client";
 import * as React from "react";
 
 import type { ClientPropsOverride } from "../contexts/utils/useClient";

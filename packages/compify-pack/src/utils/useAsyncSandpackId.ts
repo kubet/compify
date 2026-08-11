@@ -1,5 +1,5 @@
 // Modified by Compify; see packages/compify-pack/PROVENANCE.md.
-import type { SandpackBundlerFiles } from '@codesandbox/sandpack-client';
+import type { SandpackBundlerFiles } from '@compify/sandpack-client';
 import { useId as useReactId } from 'react';
 
 import { generateRandomId } from './stringUtils';

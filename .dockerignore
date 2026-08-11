@@ -2,6 +2,7 @@
 **/.next
 **/dist
 !packages/compify-pack/dist
+!packages/compify-pack/sandpack-client/dist
 .git
 .github
 **/.gitignore

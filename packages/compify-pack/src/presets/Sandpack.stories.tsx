@@ -1,3 +1,4 @@
+// Modified by Compify; see packages/compify-pack/PROVENANCE.md.
 import { LanguageSupport, StreamLanguage } from "@codemirror/language";
 import { shell } from "@codemirror/legacy-modes/mode/shell";
 import React from "react";
@@ -44,7 +45,7 @@ export default function App() {
 export const Layout: React.FC = () => (
   <>
     <p>Console</p>
-    <Sandpack options={{ layout: "console" }} template="node" />
+    <Sandpack options={{ layout: "console" }} template="react" />
 
     <p>Tests</p>
     <Sandpack options={{ layout: "tests" }} template="test-ts" />

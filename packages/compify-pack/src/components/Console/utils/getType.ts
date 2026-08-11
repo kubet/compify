@@ -1,4 +1,5 @@
-import type { SandpackMessageConsoleMethods } from "@codesandbox/sandpack-client";
+// Modified by Compify; see packages/compify-pack/PROVENANCE.md.
+import type { SandpackMessageConsoleMethods } from "@compify/sandpack-client";
 
 export const getType = (
   message: SandpackMessageConsoleMethods

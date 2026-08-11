@@ -49,7 +49,7 @@ const Footer = () => {
             ]
         },
         { title: 'Resources', items: [{ title: 'Blog', href: '/blog' }, { title: 'Docs', href: '/docs' }, { title: 'Registry', href: 'https://api.compify.app/r/registry.json' }] },
-        { title: 'Legal', items: [{ title: 'Terms of Service', href: '/terms' }, { title: 'Privacy Policy', href: '/privacy' }] },
+        { title: 'Legal', items: [{ title: 'Terms of Service', href: '/terms' }, { title: 'Privacy Policy', href: '/privacy' }, { title: 'Source code', href: '/source' }] },
     ];
 
     return (

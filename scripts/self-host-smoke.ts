@@ -109,6 +109,27 @@ await expectResponse(
   200,
   includes('"status":"ready"')
 );
+await expectResponse(
+  "API corresponding-source offer",
+  `${apiUrl}/source`,
+  200,
+  (_response, body) => {
+    const offer = JSON.parse(body);
+    if (offer.license !== "AGPL-3.0-only")
+      throw new Error("source offer has the wrong license");
+    const expectedRevision = process.env.SOURCE_REVISION?.trim();
+    if (expectedRevision && offer.revision !== expectedRevision)
+      throw new Error("source offer does not identify the deployed revision");
+    if (!String(offer.source).startsWith("https://"))
+      throw new Error("source offer is not an HTTPS location");
+  }
+);
+await expectResponse(
+  "web corresponding-source page",
+  `${webUrl}/source`,
+  200,
+  includes("Source code", "GNU Affero General Public License")
+);
 await expectResponse("web home", webUrl, 200, (_response, body) => {
   if (!body.toLowerCase().includes("compify"))
     throw new Error("home page does not identify Compify");
@@ -159,6 +180,7 @@ await expectResponse(
     }
     for (const path of [
       "/health",
+      "/source",
       "/component/my",
       "/cli/get-all",
       "/c/fetch/sitemap/all",
@@ -342,7 +364,9 @@ if (
   typeof publishBody.registryUrl !== "string" ||
   !publishBody.registryUrl.startsWith(`${apiUrl}/r/`)
 ) {
-  throw new Error(`registry publish failed with HTTP ${publishResponse.status}`);
+  throw new Error(
+    `registry publish failed with HTTP ${publishResponse.status}`
+  );
 }
 console.log("ok - registry publish and object upload (201)");
 

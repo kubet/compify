@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "lib": [
+      "es2015",
+      "es2016",
+      "es2017",
+      "ES2019",
+      "dom"
+    ],
+    "strict": true,
+    "sourceMap": false,
+    "emitDeclarationOnly": true,
+    "declaration": true,
+    "allowSyntheticDefaultImports": true,
+    "noImplicitAny": true,
+    "outDir": "dist",
+    "skipLibCheck": true,
+    "types": [
+      "node",
+      "mime-db"
+    ]
+  },
+  "include": [
+    "./src"
+  ],
+  "exclude": [
+    "node_modules",
+    "src/**/*.test.ts"
+  ]
+}

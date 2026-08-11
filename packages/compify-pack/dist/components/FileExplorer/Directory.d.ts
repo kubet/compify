@@ -1,4 +1,4 @@
-import type { SandpackBundlerFiles } from "@codesandbox/sandpack-client";
+import type { SandpackBundlerFiles } from "@compify/sandpack-client";
 import * as React from "react";
 import type { SandpackOptions } from "../../types";
 import type { SandpackFileExplorerProp } from ".";

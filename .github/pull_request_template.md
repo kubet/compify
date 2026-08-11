@@ -10,6 +10,8 @@
 - [ ] Ran `git diff --check`
 - [ ] Confirmed no secrets, private infrastructure details, or generated environment files are included
 - [ ] Updated documentation and OpenAPI metadata when applicable
+- [ ] Confirmed this PR is non-copyrightable/maintainer-authored, or obtained
+      maintainer confirmation that the required contributor agreement is complete
 
 ## Security and compatibility
 

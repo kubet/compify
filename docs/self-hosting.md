@@ -26,6 +26,7 @@ From the repository root:
 ```sh
 cp deploy/self-host.env.example .env
 # Edit .env and replace JWT_SECRET, INTERNAL_API_TOKEN, and storage/database passwords.
+export SOURCE_REVISION="$(git rev-parse HEAD)"
 docker compose build
 docker compose up -d
 docker compose ps
@@ -202,6 +203,30 @@ docker compose ps
 ```
 
 Take and test backups before starting. Keep the reverse proxy in maintenance mode until `/ready` and the black-box checks pass. The first role conversion acquires catalog/object locks and must never overlap an old API writer. Never run an older API against a newer incompatible schema or restore the former API-as-superuser migration command. Prefer backup restore for destructive/schema-incompatible rollback. Rebuilding is required when public web variables or source dependencies change.
+
+## Corresponding source offer
+
+Compify's current original code is `AGPL-3.0-only`. Before a production build,
+set `SOURCE_REVISION` to the exact 40-character commit being deployed. If the
+checkout contains operator modifications that are not available at the upstream
+repository, publish the complete modified Corresponding Source—including build
+and installation material—at a no-charge immutable location, set `SOURCE_URL`
+to that location, and set `SOURCE_REPOSITORY` to the HTTPS repository that owns
+the deployed commit. These values also control legal-document links and OCI
+source labels. Do not point a modified deployment only at upstream Compify.
+
+Verify both offers after deployment:
+
+```bash
+curl -fsS "$BACKEND_URL/source"
+curl -fsS "$FRONTEND_URL/source"
+```
+
+The API response must identify `AGPL-3.0-only`, the exact revision, and the
+source location. The web page must show the same pinned revision or configured
+source URL. Published container images must also carry exact OCI source,
+revision, and license labels. A blank/`unknown` revision is acceptable only for
+an explicitly unpinned development build, never a release or production image.
 
 ## Troubleshooting
 

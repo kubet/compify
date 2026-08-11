@@ -31,14 +31,14 @@ These version labels identify the tested source checkout, not release status.
 The repository's `v0.1.0` GitHub source tag already contains a CLI `0.2.0`
 manifest, while npm independently serves an older `@compify/cli@0.1.0` from
 different source history. They are distinct historical artifacts. The current
-CLI `0.2.0` and addon `0.1.0` manifests below are unpublished candidates.
+CLI `0.3.0` and addon `0.2.0` manifests below are unpublished AGPL candidates.
 
 | Layer | Verified version/input | Evidence |
 | --- | --- | --- |
 | Runtime/package manager | Bun 1.3.9 | Frozen installs, package builds and tests in CI. |
-| Compify CLI | `@compify/cli@0.2.0` source candidate | Unit tests, deterministic digest cases, packed-tarball install/help smoke. |
+| Compify CLI | `@compify/cli@0.3.0` source candidate | Unit tests, deterministic digest cases, packed-tarball install/help smoke. |
 | Storybook syntax | Synthetic classic CSF2/CSF3 `.js/.jsx/.ts/.tsx/.mjs/.cjs` cases | Static parser unit tests. This is syntax evidence, not a full Storybook runtime matrix. |
-| Storybook addon | `@compify/storybook@0.1.0` source candidate; 8.6.14, 9.1.20, 10.2.10 package selectors | Packed addon resolves its manager/parameter entry points. No browser/framework integration claim. |
+| Storybook addon | `@compify/storybook@0.2.0` source candidate; 8.6.14, 9.1.20, 10.2.10 package selectors | Packed addon resolves its manager/parameter entry points. No browser/framework integration claim. |
 | Registry consumer | shadcn CLI **4.16.2** | Golden item resolves and installs through a local registry-item path. |
 | Clean consumers | Next.js **15.5.23**, React/React DOM **19.2.8**, TypeScript **5.9.3** | `scripts/shadcn-consumer-smoke.ts` produces `built` handoff receipts after native shadcn installs and production builds for both a relative TSX/CSS graph and exact tsconfig/baseUrl/package-import aliases. |
 | Qualified external source | TrussWorks `react-uswds` Button at commit `03fd50acc356f793ad353b8ce93744255ef22ac7`, exact `DefaultButton` story | The vendored, checksummed Apache-2.0 fixture passes static inspection with a one-file graph and no diagnostics; pinned native shadcn preserves the reviewed source and declared dependency ranges; the clean consumer explicitly renders it and builds. Upstream preview CSS is outside the graph, so this is **not** USWDS styling, visual, behavior, accessibility, endorsement, or broad compatibility evidence. |

@@ -1,5 +1,6 @@
+// Modified by Compify; see packages/compify-pack/PROVENANCE.md.
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import type { SandpackBundlerFiles } from "@codesandbox/sandpack-client";
+import type { SandpackBundlerFiles } from "@compify/sandpack-client";
 import LZString from "lz-string";
 import * as React from "react";
 

@@ -20,4 +20,20 @@ describe('AppController readiness', () => {
       ServiceUnavailableException,
     );
   });
+
+  it('publishes the AGPL corresponding-source offer', () => {
+    const previousRevision = process.env.SOURCE_REVISION;
+    const previousUrl = process.env.SOURCE_URL;
+    process.env.SOURCE_REVISION = 'a'.repeat(40);
+    delete process.env.SOURCE_URL;
+    expect(controller.sourceOffer()).toEqual({
+      license: 'AGPL-3.0-only',
+      source: `https://github.com/kubet/compify/tree/${'a'.repeat(40)}`,
+      revision: 'a'.repeat(40),
+    });
+    if (previousRevision === undefined) delete process.env.SOURCE_REVISION;
+    else process.env.SOURCE_REVISION = previousRevision;
+    if (previousUrl === undefined) delete process.env.SOURCE_URL;
+    else process.env.SOURCE_URL = previousUrl;
+  });
 });
