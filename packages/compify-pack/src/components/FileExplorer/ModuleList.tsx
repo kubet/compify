@@ -1,4 +1,5 @@
-import type { SandpackBundlerFiles } from "@codesandbox/sandpack-client";
+// Modified by Compify; see packages/compify-pack/PROVENANCE.md.
+import type { SandpackBundlerFiles } from "@compify/sandpack-client";
 import * as React from "react";
 
 import type { SandpackOptions } from "../../types";

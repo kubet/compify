@@ -128,3 +128,11 @@ bun run typecheck
 bun run build
 bun run test:package
 ```
+
+## License
+
+Repository states of this package containing the current notice are
+`AGPL-3.0-only` and include the preferred source and build configuration in the
+package tarball. Earlier MIT-licensed source candidates retain their prior
+grant. See the repository `LICENSING.md` for the transition boundary and
+commercial licensing contact.

@@ -1,4 +1,4 @@
-import type { SandpackBundlerFiles } from "@codesandbox/sandpack-client";
+import type { SandpackBundlerFiles } from "@compify/sandpack-client";
 import type { SandboxEnvironment, SandpackFiles, SandpackPredefinedTemplate, SandpackProviderProps, TemplateFiles } from "../..";
 export interface FilesState {
     files: SandpackBundlerFiles;

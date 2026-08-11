@@ -50,3 +50,10 @@ owns downstream installation semantics.
 - Storybook translation: https://compify.app/docs/storybook
 - Registry and namespace configuration: https://compify.app/docs/registry
 - Compatibility and unsupported shapes: https://compify.app/docs/compatibility
+
+## License and source
+
+Current original Compify code is `AGPL-3.0-only`; listed third-party material
+retains its own terms, and earlier copies validly released under MIT retain that
+prior grant. The deployed source offer is at https://compify.app/source and the
+repository is https://github.com/kubet/compify.

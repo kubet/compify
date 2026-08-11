@@ -1,3 +1,4 @@
+// Modified by Compify; see packages/compify-pack/PROVENANCE.md.
 import React, { useState } from "react";
 
 import { SandpackCodeEditor, SandpackPreview } from "..";
@@ -149,56 +150,17 @@ export const ImperativeReset: React.FC = () => {
   );
 };
 
-export const StandaloneMode = () => (
-  <SandpackProvider
-    files={{
-      "/.eslintrc.js": `module.exports = {
-  rules: { 
-    "no-unused-vars": "error",
-    "no-console": "error",
-  },
-  parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module'
-  },
-}`,
-      "/index.js": `const helloWorld = "";
-
-console.log("foo");`,
-
-      "/package.json": JSON.stringify({
-        devDependencies: {
-          eslint: "^8.0.1",
-        },
-        scripts: { start: "eslint index.js" },
-      }),
-    }}
-    options={{ visibleFiles: ["/index.js", "/.eslintrc.js"] }}
-    template="node"
-  >
-    <SandpackLayout>
-      <SandpackCodeEditor />
-      <SandpackConsole standalone />
-    </SandpackLayout>
-  </SandpackProvider>
-);
-
 export const MaxMessageCount = () => {
-  const [mode, setMode] = useState("client");
   const [maxMessageCount, setMaxMessageCount] = useState(5);
 
   return (
     <>
       <SandpackProvider
-        key={mode}
         files={{
           "/index.js": `new Array(10).fill('').forEach((_, i) => console.log(i));`,
-          "/package.json": JSON.stringify({
-            scripts: { start: "node index.js" },
-          }),
         }}
         options={{ visibleFiles: ["/index.js"], recompileDelay: 500 }}
-        template={mode === "client" ? "vanilla" : "node"}
+        template="vanilla"
       >
         <SandpackLayout>
           <SandpackCodeEditor />
@@ -207,30 +169,14 @@ export const MaxMessageCount = () => {
             standalone
           />
         </SandpackLayout>
-        <div
-          style={{
-            marginTop: 32,
-            display: "flex",
-            flexDirection: "column",
-            gap: 8,
-            justifyItems: "left",
-            width: "fit-content",
-          }}
-        >
-          <button
-            onClick={() => setMode(mode === "client" ? "server" : "client")}
-          >
-            Toggle mode: {mode}
-          </button>
-          <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-            <span>Max Message Count</span>
-            <input
-              onChange={(e) => setMaxMessageCount(+e.target.value)}
-              type="number"
-              value={maxMessageCount}
-            />
-          </label>
-        </div>
+        <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          <span>Max Message Count</span>
+          <input
+            onChange={(event) => setMaxMessageCount(+event.target.value)}
+            type="number"
+            value={maxMessageCount}
+          />
+        </label>
       </SandpackProvider>
     </>
   );
@@ -264,10 +210,6 @@ export const StaticTemplate: React.FC = () => {
       template="static"
     />
   );
-};
-
-export const NodeTemplate: React.FC = () => {
-  return <Sandpack options={{ showConsole: true }} template="node" />;
 };
 
 export const ReactTemplate: React.FC = () => {

@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { usePathname } from "next/navigation";
 import { useUser } from "@/auth/UseUser";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu } from "lucide-react";
+import { Github, Menu } from "lucide-react";
 import PreloadLink from "@/utils/pre-fetch";
 
 function NavBar() {
@@ -17,6 +17,7 @@ function NavBar() {
         { title: "Templates", href: "/templates" },
         { title: "Create", href: "/create" },
         { title: "My Components", href: "/my-components" },
+        { title: "Source", href: "/source" },
       ]
     : [
         { title: "Features", href: "/#features" },
@@ -33,7 +34,11 @@ function NavBar() {
 
   return (
     <div
-      className={`site-navbar fixed top-0 left-0 w-full z-[9999] ${pathname === "/" ? "border-b border-white/5" : ""} bg-black backdrop-blur-sm ${isOpen ? "bg-opacity-80" : "bg-opacity-50"}`}
+      className={`site-navbar fixed top-0 left-0 w-full z-[9999] ${
+        pathname === "/" ? "border-b border-white/5" : ""
+      } bg-black backdrop-blur-sm ${
+        isOpen ? "bg-opacity-80" : "bg-opacity-50"
+      }`}
     >
       <div className="mx-auto max-w-7xl px-4">
         <nav className="flex justify-between items-center w-full py-4">
@@ -55,12 +60,24 @@ function NavBar() {
               <PreloadLink
                 key={link.href}
                 href={link.href}
-                className={`${pathname === link.href ? "text-white" : "text-gray-300"
-                  } hover:text-white transition-colors`}
+                className={`${
+                  pathname === link.href ? "text-white" : "text-gray-300"
+                } hover:text-white transition-colors`}
               >
                 {link.title}
               </PreloadLink>
             ))}
+            {!isSignedIn && (
+              <a
+                href="https://github.com/kubet/compify"
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Compify source on GitHub"
+                className="inline-flex h-6 w-6 items-center justify-center rounded text-gray-300 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              >
+                <Github size={20} aria-hidden="true" />
+              </a>
+            )}
           </div>
           <div className="hidden md:block">
             <PreloadLink
@@ -95,31 +112,45 @@ function NavBar() {
         <AnimatePresence>
           {isOpen && (
             <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-          >
-            <div className="relative z-10 max-w-7xl mx-auto px-4 py-4 space-y-4 h-full overflow-y-auto">
-              {navLinks.map((link) => (
-                <PreloadLink
-                  key={link.href}
-                  href={link.href}
-                  className={`block py-2 text-lg ${pathname === link.href ? "text-white" : "text-gray-300"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+            >
+              <div className="relative z-10 max-w-7xl mx-auto px-4 py-4 space-y-4 h-full overflow-y-auto">
+                {navLinks.map((link) => (
+                  <PreloadLink
+                    key={link.href}
+                    href={link.href}
+                    className={`block py-2 text-lg ${
+                      pathname === link.href ? "text-white" : "text-gray-300"
                     } hover:text-white transition-colors`}
+                    onClick={() => setIsOpen(false)}
+                  >
+                    {link.title}
+                  </PreloadLink>
+                ))}
+                {!isSignedIn && (
+                  <a
+                    href="https://github.com/kubet/compify"
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="Compify source on GitHub"
+                    className="flex min-h-11 items-center gap-2 rounded py-2 text-lg text-gray-300 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <Github size={20} aria-hidden="true" />
+                    GitHub
+                  </a>
+                )}
+                <PreloadLink
+                  href={accountHref}
+                  className="flex h-10 w-full items-center justify-center rounded-xl border border-white/10 px-6 text-sm font-medium text-white underline shadow-[inset_0_0_0_1px_rgba(255,255,255,0.2)] transition-colors hover:bg-white/5"
                   onClick={() => setIsOpen(false)}
                 >
-                  {link.title}
+                  {buttonText}
                 </PreloadLink>
-              ))}
-              <PreloadLink
-                href={accountHref}
-                className="flex h-10 w-full items-center justify-center rounded-xl border border-white/10 px-6 text-sm font-medium text-white underline shadow-[inset_0_0_0_1px_rgba(255,255,255,0.2)] transition-colors hover:bg-white/5"
-                onClick={() => setIsOpen(false)}
-              >
-                {buttonText}
-              </PreloadLink>
-            </div>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>

@@ -17,6 +17,7 @@ export default async function sitemap() {
       changeFrequency: "weekly",
       priority: page.slugs.length === 0 ? 0.8 : 0.65,
     })),
+    { url: `${siteUrl}/source`, changeFrequency: "weekly", priority: 0.7 },
     { url: `${siteUrl}/blog`, changeFrequency: "weekly", priority: 0.6 },
     {
       url: `${siteUrl}/blog/shadcn-compatible-registry`,

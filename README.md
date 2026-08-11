@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/kubet/compify/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/kubet/compify/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/kubet/compify/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/kubet/compify/actions/workflows/codeql.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
 [![Bun 1.3.9](https://img.shields.io/badge/Bun-1.3.9-f9f1e1?logo=bun)](https://bun.sh/)
 
 **Turn a reviewed, supported React CSF source graph into a deterministic shadcn handoff.**
@@ -51,7 +51,7 @@ or nonportable inputs instead of silently omitting them:
 ## Account-free quick start
 
 The Storybook workflow in this repository is an unpublished
-`@compify/cli@0.2.0` source candidate. The repository's historical `v0.1.0`
+`@compify/cli@0.3.0` AGPL source candidate. The repository's historical `v0.1.0`
 GitHub tag already contains a CLI `0.2.0` manifest; npm independently serves an
 older `@compify/cli@0.1.0` artifact from different source history. Do not treat
 the tag and package as one release. Build the candidate from source until a
@@ -168,6 +168,13 @@ in the [self-hosting guide](docs/self-hosting.md).
 
 ## License
 
-Original Compify code is MIT-licensed. The vendored `compify-pack` Sandpack
-derivative retains its upstream Apache-2.0 license; see
-`packages/compify-pack/PROVENANCE.md`.
+Original Compify code in repository states containing the current license
+notice is licensed under `AGPL-3.0-only`. Organizations that need different
+terms may ask about a separately signed commercial license. Earlier copies
+validly received under MIT remain under that grant; published history is not
+rewritten. The vendored `compify-pack` Sandpack derivative and other third-party
+material retain their upstream terms.
+
+See [LICENSING.md](LICENSING.md), [TRADEMARKS.md](TRADEMARKS.md),
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md), and
+[packages/compify-pack/PROVENANCE.md](packages/compify-pack/PROVENANCE.md).

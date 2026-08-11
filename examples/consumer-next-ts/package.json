@@ -1,6 +1,7 @@
 {
   "name": "compify-next-consumer-fixture",
   "private": true,
+  "license": "AGPL-3.0-only",
   "scripts": {
     "build": "next build"
   },

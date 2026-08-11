@@ -1,4 +1,4 @@
-import type { TestError } from "@codesandbox/sandpack-client";
+import type { TestError } from "@compify/sandpack-client";
 import React from "react";
 type TestStatus = "idle" | "running" | "pass" | "fail";
 export interface Test {

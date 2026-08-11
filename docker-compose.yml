@@ -3,6 +3,9 @@ name: compify
 x-api-build: &api-build
   context: ./apps/api
   dockerfile: Dockerfile
+  args:
+    SOURCE_REVISION: ${SOURCE_REVISION:-unknown}
+    SOURCE_REPOSITORY: ${SOURCE_REPOSITORY:-https://github.com/kubet/compify}
 
 services:
   postgres:
@@ -208,6 +211,9 @@ services:
       PORT: 3009
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
       BACKEND_URL: ${BACKEND_URL:-http://localhost:3009}
+      SOURCE_URL: ${SOURCE_URL:-}
+      SOURCE_REVISION: ${SOURCE_REVISION:-}
+      SOURCE_REPOSITORY: ${SOURCE_REPOSITORY:-https://github.com/kubet/compify}
       TRUST_PROXY_HOPS: ${TRUST_PROXY_HOPS:-0}
       AUTH_COOKIE_SAME_SITE: ${AUTH_COOKIE_SAME_SITE:-lax}
       DB_HOST: postgres
@@ -244,7 +250,13 @@ services:
     ports:
       - "${API_BIND_ADDRESS:-127.0.0.1}:${API_PORT:-3009}:3009"
     healthcheck:
-      test: ["CMD", "bun", "-e", "fetch('http://localhost:3009/ready').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      test:
+        [
+          "CMD",
+          "bun",
+          "-e",
+          "fetch('http://localhost:3009/ready').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))",
+        ]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -262,6 +274,11 @@ services:
         NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${TURNSTILE_SITE_KEY:-}
         NEXT_PUBLIC_TURNSTILE_ENABLED: ${TURNSTILE_ENABLED:-false}
         NEXT_PUBLIC_GOOGLE_OAUTH_ENABLED: ${GOOGLE_OAUTH_ENABLED:-false}
+        NEXT_PUBLIC_SOURCE_URL: ${SOURCE_URL:-}
+        NEXT_PUBLIC_SOURCE_REVISION: ${SOURCE_REVISION:-}
+        NEXT_PUBLIC_SOURCE_REPOSITORY: ${SOURCE_REPOSITORY:-https://github.com/kubet/compify}
+        SOURCE_REVISION: ${SOURCE_REVISION:-unknown}
+        SOURCE_REPOSITORY: ${SOURCE_REPOSITORY:-https://github.com/kubet/compify}
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
@@ -279,7 +296,13 @@ services:
     ports:
       - "${WEB_BIND_ADDRESS:-127.0.0.1}:${WEB_PORT:-3000}:3000"
     healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://localhost:3000').then(r=>{if(r.status>=500)process.exit(1)}).catch(()=>process.exit(1))"]
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://localhost:3000').then(r=>{if(r.status>=500)process.exit(1)}).catch(()=>process.exit(1))",
+        ]
       interval: 10s
       timeout: 5s
       retries: 10

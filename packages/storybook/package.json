@@ -1,8 +1,8 @@
 {
   "name": "@compify/storybook",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Renderer-neutral Storybook manager addon for displaying Compify portability and distribution metadata.",
-  "license": "MIT",
+  "license": "AGPL-3.0-only",
   "type": "module",
   "main": "./dist/preset.cjs",
   "types": "./dist/preset.d.cts",
@@ -26,8 +26,14 @@
   },
   "files": [
     "dist",
+    "src",
+    "tsup.config.ts",
+    "tsconfig.json",
+    "bun.lock",
+    "scripts",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "COPYRIGHT.md"
   ],
   "scripts": {
     "clean": "rm -rf dist",

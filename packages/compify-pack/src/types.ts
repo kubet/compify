@@ -1,3 +1,4 @@
+// Modified by Compify; see packages/compify-pack/PROVENANCE.md.
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import type { LanguageSupport } from "@codemirror/language";
@@ -12,7 +13,7 @@ import type {
   UnsubscribeFunction,
   SandpackLogLevel,
   NpmRegistry,
-} from "@codesandbox/sandpack-client";
+} from "@compify/sandpack-client";
 import type React from "react";
 
 import type { ClientPropsOverride } from "./contexts/utils/useClient";

@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "",
   "private": true,
-  "license": "MIT",
+  "license": "AGPL-3.0-only",
   "scripts": {
     "build": "nest build && tsc-alias -p tsconfig.build.json",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
@@ -47,7 +47,6 @@
     "monacopilot": "^0.17.4",
     "multer": "^2.2.0",
     "nanoid": "^5.0.7",
-    "node-webpmux": "^3.2.0",
     "openai": "^4.58.1",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",

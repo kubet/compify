@@ -11,21 +11,24 @@ certification.
 
 ## Required settings for an exposed operator deployment
 
-| Variable                  | Purpose                                                                     |
-| ------------------------- | --------------------------------------------------------------------------- |
-| `FRONTEND_URL`            | Browser origin allowed by API CORS and used in redirects                    |
-| `BACKEND_URL`             | Public API origin and OpenAPI server URL                                    |
-| `NEXT_PUBLIC_API_URL`     | API origin compiled into the web application                                |
-| `NEXT_PUBLIC_SITE_URL`    | Canonical public web origin                                                 |
-| `NEXT_PUBLIC_CDN_URL`     | Origin that serves editor assets and public media                           |
-| `NEXT_PUBLIC_BUNDLER_URL` | Sandpack bundler that executes interactive previews                         |
-| `JWT_SECRET`              | User session signing secret; use a long random value                        |
-| `INTERNAL_API_TOKEN`      | Private web-to-API operations                                               |
-| `AUTH_COOKIE_SAME_SITE`   | Browser cookie policy; use `none` only for HTTPS cross-site web/API origins |
-| `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | PostgreSQL bootstrap/break-glass credentials             |
-| `DB_MIGRATOR_PASSWORD`    | Password used only by the one-shot migration role                            |
-| `DB_RUNTIME_PASSWORD`     | Password used by the non-owner, long-running API role                        |
-| `MINIO_*`                 | S3-compatible root/app credentials and ports                                 |
+| Variable                                            | Purpose                                                                     |
+| --------------------------------------------------- | --------------------------------------------------------------------------- |
+| `FRONTEND_URL`                                      | Browser origin allowed by API CORS and used in redirects                    |
+| `BACKEND_URL`                                       | Public API origin and OpenAPI server URL                                    |
+| `NEXT_PUBLIC_API_URL`                               | API origin compiled into the web application                                |
+| `NEXT_PUBLIC_SITE_URL`                              | Canonical public web origin                                                 |
+| `NEXT_PUBLIC_CDN_URL`                               | Origin that serves editor assets and public media                           |
+| `NEXT_PUBLIC_BUNDLER_URL`                           | Sandpack bundler that executes interactive previews                         |
+| `SOURCE_REVISION`                                   | Exact 40-character deployed commit for API, web, and OCI source offers      |
+| `SOURCE_URL`                                        | Optional immutable HTTPS override containing modified Corresponding Source  |
+| `SOURCE_REPOSITORY`                                 | HTTPS repository used by source links and OCI provenance labels             |
+| `JWT_SECRET`                                        | User session signing secret; use a long random value                        |
+| `INTERNAL_API_TOKEN`                                | Private web-to-API operations                                               |
+| `AUTH_COOKIE_SAME_SITE`                             | Browser cookie policy; use `none` only for HTTPS cross-site web/API origins |
+| `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | PostgreSQL bootstrap/break-glass credentials                                |
+| `DB_MIGRATOR_PASSWORD`                              | Password used only by the one-shot migration role                           |
+| `DB_RUNTIME_PASSWORD`                               | Password used by the non-owner, long-running API role                       |
+| `MINIO_*`                                           | S3-compatible root/app credentials and ports                                |
 
 <Callout type="warn" title="Build-time browser variables">
   `NEXT_PUBLIC_*` values are compiled into the web image. Rebuild the web
@@ -54,6 +57,8 @@ jobs on every upgrade, and test restoration regularly. See
 ## Validation
 
 The API rejects missing core settings, malformed ports and URLs, invalid boolean
-flags, short JWT secrets, and partially configured integration groups during
-startup. Use `/ready` for orchestration readiness and `/health` only for process
+flags, short JWT secrets, partially configured integration groups, and a
+production configuration without an exact source revision during startup. An
+immutable HTTPS source location may override the download URL but does not
+replace that revision. Use `/ready` for orchestration readiness and `/health` only for process
 liveness.

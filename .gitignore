@@ -10,6 +10,7 @@ build/
 
 # compify-pack ships its built output (installed as a file: dependency)
 !packages/compify-pack/dist/
+!packages/compify-pack/sandpack-client/dist/
 
 # Hosted production automation is private; keep only generic self-host assets.
 deploy/private/

@@ -97,5 +97,5 @@ bun run test
 bun run build
 ```
 
-The package is MIT licensed. Report security issues through the repository's
+Repository states of this package containing the current license are `AGPL-3.0-only` and include preferred source/build material in the package tarball. Earlier MIT-licensed repository states retain their prior grant. Report security issues through the repository's
 private vulnerability reporting flow; do not open a public security issue.

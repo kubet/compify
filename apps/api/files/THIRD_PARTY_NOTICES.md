@@ -1,35 +1,28 @@
 # Third-party notices
 
-Compify's original source is distributed under the repository MIT license.
-The following redistributed artifacts retain their upstream terms.
-
-## Sandpack derivative (`packages/compify-pack`)
-
-`compify-pack` is a private internal derivative of CodeSandbox Sandpack v2.19.8
-(commit `83a494906a61517ea597ae94b26e1972f0c67777`) and retains Apache
-License 2.0. The complete-tree baseline and modified paths are verified; see `packages/compify-pack/LICENSE` and
-`packages/compify-pack/PROVENANCE.md`.
-
-## Tailwind CSS browser compiler
-
-`apps/web/src/utils/tailwindv4.js` contains a bundled Tailwind CSS browser
-compiler identified by the artifact as version 4.0.0. Tailwind CSS is Copyright Tailwind Labs, Inc. and distributed under the MIT
-License. The complete copyright and permission notice is included at
-`licenses/tailwindcss-LICENSE`.
+Original Compify source in repository states containing the current notice is
+distributed under `AGPL-3.0-only`; see `COMPIFY-LICENSE` and `LICENSING.md`. Earlier
+MIT-licensed repository states retain their prior grant. The following
+redistributed artifacts retain their upstream terms.
 
 ## SUSE font
 
-`apps/web/public/fonts/SUSE.ttf` and `apps/api/files/SUSE.ttf` redistribute the
-SUSE typeface under the SIL Open Font License 1.1. The license text is included at `apps/web/public/fonts/OFL.txt` and
-`apps/api/files/OFL.txt` so it remains present in both runtime images.
+`SUSE.ttf` redistributes the SUSE typeface under the SIL Open Font License 1.1.
+The license text is included at `OFL.txt` in the API runtime payload.
 
-## node-webpmux
+## Sharp/libvips runtime
 
-The API directly redistributes `node-webpmux`, Copyright ApeironTsuka, under
-LGPL-3.0-or-later. Its source is available at
-<https://github.com/ApeironTsuka/node-webpmux>. The complete license is included
-at `licenses/node-webpmux-COPYING.LESSER` and in the installed package.
+The API and web images use Sharp with platform-specific prebuilt libvips
+`8.18.3` packages version `1.3.2`, distributed under
+`LGPL-3.0-or-later` together with dependencies under the licenses listed in
+`sharp-libvips-THIRD_PARTY_NOTICES.md`. Exact complete source and build
+material are pinned in `SHARP-LIBVIPS-SOURCE.md`; the LGPLv3 and
+incorporated GPLv3 texts are included at `LGPL-3.0-or-later.txt` and
+`GPL-3.0-only.txt`.
 
 Dependency packages installed from the Bun lockfiles retain their respective
-licenses. Generated SBOMs should be produced for each release artifact so the
-exact transitive dependency inventory matches that release.
+licenses. Shipped dependency trees include permissive, MPL, and LGPL components
+whose notice, source, relinking, or other obligations are not replaced by the
+Compify license or a commercial agreement. Generate and review an SBOM for each
+platform-specific package and image so the exact transitive inventory and
+required license/source payload match that artifact.

@@ -7,12 +7,20 @@ and compatibility contracts.
 
 ## [Unreleased]
 
-The `0.2.0` CLI and `0.1.0` Storybook addon manifests below are release
-candidates. This section does not represent a tag or package publication.
+The `0.3.0` CLI and `0.2.0` Storybook addon manifests below are AGPL
+source candidates. This section does not represent a tag or package publication.
+
+### Changed
+
+- Original Compify code in repository states containing the new notice is now offered under `AGPL-3.0-only`, with a truthful prospective boundary for earlier MIT-licensed copies, preserved third-party exceptions, an explicit exact-revision network-source-offer mechanism, and separately negotiated commercial licensing availability.
+- Replaced the bundled Sustainable Use License server emulator with a verified
+  Apache-2.0 browser-runtime/static Sandpack client subset; server-backed
+  templates now fail closed and artifact gates prove the former implementation
+  is absent.
 
 ### Added
 
-- Release candidates `@compify/cli@0.2.0` and `@compify/storybook@0.1.0`; package publication remains a separate, explicit release action.
+- Release candidates `@compify/cli@0.3.0` and `@compify/storybook@0.2.0`; package publication remains a separate, explicit release action.
 - Storybook-first CLI commands to statically inspect React CSF, export a validated shadcn registry item, and publish a reviewed component graph to a configured Compify API.
 - A renderer-neutral `@compify/storybook` manager addon for explicit portability, registry, install, and preview metadata.
 - Bearer-authenticated `POST /cli/publish-story` with deterministic digests, provenance, strict file/path/content limits, and public, unlisted, or private visibility.

@@ -108,7 +108,7 @@ responsibility of their operators.
 
 The durable model is **open portability engine, paid managed trust plane**.
 
-Must remain MIT and local-first:
+Must remain `AGPL-3.0-only` and local-first:
 
 - parser/resolver, diagnostics, policy interface and security checks;
 - inspect/export, open artifact/evidence schemas and verification fixtures;
@@ -160,7 +160,7 @@ consumer apps and a real recent source handoff. The strategy passes only with:
 
 If direct native registry authoring or versioned packages win most comparisons,
 reposition the static engine as a registry policy/provenance tool. If OSS utility
-works but cloud willingness-to-pay does not, keep the MIT project honest rather
+works but cloud willingness-to-pay does not, keep the open-source project honest rather
 than manufacturing a paywall.
 
 OSS telemetry remains off by default. Pilot evidence should be consented and

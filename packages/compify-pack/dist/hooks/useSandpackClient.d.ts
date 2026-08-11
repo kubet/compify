@@ -1,4 +1,4 @@
-import type { ListenerFunction, SandpackClient, SandpackMessage, UnsubscribeFunction } from "@codesandbox/sandpack-client";
+import type { ListenerFunction, SandpackClient, SandpackMessage, UnsubscribeFunction } from "@compify/sandpack-client";
 import * as React from "react";
 import type { ClientPropsOverride } from "../contexts/utils/useClient";
 import type { SandpackState } from "../types";

@@ -1,7 +1,8 @@
+// Modified by Compify; see packages/compify-pack/PROVENANCE.md.
 /**
  * @jest-environment jsdom
  */
-import type { SandpackBundlerFile } from "@codesandbox/sandpack-client/src";
+import type { SandpackBundlerFile } from "@compify/sandpack-client";
 import { renderHook, act } from "@testing-library/react-hooks";
 
 import { VANILLA_TEMPLATE } from "../../templates";
