@@ -55,6 +55,51 @@ test("public product and docs remain anonymous", async ({ page }) => {
   ).toHaveAttribute("href", /github\.com\/kubet\/compify/);
 });
 
+test("source logo sits beside the account action only on the landing page", async ({
+  page,
+}) => {
+  await page.route("**/user/whoami", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ email: "owner@example.com" }),
+    })
+  );
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/");
+
+  const profile = page.getByRole("link", { name: "Profile", exact: true });
+  const source = page.getByRole("link", {
+    name: "Compify source on GitHub",
+  });
+  await expect(profile).toBeVisible();
+  await expect(source).toBeVisible();
+  const [profileBox, sourceBox] = await Promise.all([
+    profile.boundingBox(),
+    source.boundingBox(),
+  ]);
+  expect(profileBox).not.toBeNull();
+  expect(sourceBox).not.toBeNull();
+  expect(
+    Math.abs(
+      profileBox.y +
+        profileBox.height / 2 -
+        (sourceBox.y + sourceBox.height / 2)
+    )
+  ).toBeLessThanOrEqual(1);
+  expect(profileBox.x - (sourceBox.x + sourceBox.width)).toBeGreaterThanOrEqual(
+    0
+  );
+  expect(profileBox.x - (sourceBox.x + sourceBox.width)).toBeLessThanOrEqual(
+    12
+  );
+
+  await page.goto("/create");
+  await expect(
+    page.getByRole("link", { name: "Compify source on GitHub" })
+  ).toHaveCount(0);
+});
+
 test("navbar links remain reliable across repeated hash and route navigation", async ({
   page,
 }) => {

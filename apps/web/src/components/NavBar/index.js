@@ -66,17 +66,19 @@ function NavBar() {
                 {link.title}
               </PreloadLink>
             ))}
-            <a
-              href="https://github.com/kubet/compify"
-              target="_blank"
-              rel="noreferrer"
-              aria-label="Compify source on GitHub"
-              className="inline-flex h-11 w-11 items-center justify-center rounded text-gray-300 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-            >
-              <Github size={20} aria-hidden="true" />
-            </a>
           </div>
-          <div className="hidden md:block">
+          <div className="hidden items-center gap-2 md:flex">
+            {pathname === "/" && (
+              <a
+                href="https://github.com/kubet/compify"
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Compify source on GitHub"
+                className="inline-flex h-10 w-10 items-center justify-center rounded text-gray-300 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              >
+                <Github size={20} aria-hidden="true" />
+              </a>
+            )}
             <PreloadLink
               href={accountHref}
               className="flex h-10 items-center justify-center rounded-xl border border-white/10 px-6 text-sm font-medium text-white underline shadow-[inset_0_0_0_1px_rgba(255,255,255,0.2)] transition-colors hover:bg-white/5"
@@ -127,23 +129,27 @@ function NavBar() {
                     {link.title}
                   </PreloadLink>
                 ))}
-                <a
-                  href="https://github.com/kubet/compify"
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label="Compify source on GitHub"
-                  className="flex h-11 w-11 items-center justify-center rounded text-gray-300 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-                  onClick={() => setIsOpen(false)}
-                >
-                  <Github size={20} aria-hidden="true" />
-                </a>
-                <PreloadLink
-                  href={accountHref}
-                  className="flex h-10 w-full items-center justify-center rounded-xl border border-white/10 px-6 text-sm font-medium text-white underline shadow-[inset_0_0_0_1px_rgba(255,255,255,0.2)] transition-colors hover:bg-white/5"
-                  onClick={() => setIsOpen(false)}
-                >
-                  {buttonText}
-                </PreloadLink>
+                <div className="flex items-center gap-2">
+                  {pathname === "/" && (
+                    <a
+                      href="https://github.com/kubet/compify"
+                      target="_blank"
+                      rel="noreferrer"
+                      aria-label="Compify source on GitHub"
+                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded text-gray-300 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      <Github size={20} aria-hidden="true" />
+                    </a>
+                  )}
+                  <PreloadLink
+                    href={accountHref}
+                    className="flex h-10 flex-1 items-center justify-center rounded-xl border border-white/10 px-6 text-sm font-medium text-white underline shadow-[inset_0_0_0_1px_rgba(255,255,255,0.2)] transition-colors hover:bg-white/5"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    {buttonText}
+                  </PreloadLink>
+                </div>
               </div>
             </motion.div>
           )}
