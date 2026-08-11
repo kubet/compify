@@ -1,43 +1,35 @@
 "use client";
-import React, { useState, useEffect, useMemo } from "react";
-import { Button } from "../Elements";
-import { useRouter, usePathname } from "next/navigation";
+import React, { useState } from "react";
+import { usePathname } from "next/navigation";
 import { useUser } from "@/auth/UseUser";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu } from "lucide-react";
 import PreloadLink from "@/utils/pre-fetch";
 
 function NavBar() {
-  const router = useRouter();
   const { isSignedIn } = useUser();
-  const [navLinks, setNavLinks] = useState([]);
-  const [buttonText, setButtonText] = useState("Login"); // Default to 'Login'a
-  const [logoHref, setLogoHref] = useState("/"); // Add this line
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
 
-  const notLoggedInLinks = useMemo(() => ([
-    { title: "Workflow", href: "/#workflow" },
-    { title: "Install", href: "/#installation" },
-    { title: "Limits", href: "/#limits" },
-    { title: "Docs", href: "/docs/getting-started" },
-    { title: "Registry", href: "/search" },
-  ]), []);
+  const navLinks = isSignedIn
+    ? [
+        { title: "Search", href: "/search" },
+        { title: "Templates", href: "/templates" },
+        { title: "Create", href: "/create" },
+        { title: "My Components", href: "/my-components" },
+      ]
+    : [
+        { title: "Features", href: "/#features" },
+        { title: "Demo", href: "/#demo" },
+        { title: "Pricing", href: "/#pricing" },
+        { title: "Docs", href: "/docs/getting-started" },
+        { title: "Registry", href: "/search" },
+      ];
+  const buttonText = isSignedIn ? "Profile" : "Login";
+  const accountHref = isSignedIn ? "/profile" : "/login";
+  const logoHref = isSignedIn ? "/search" : "/";
 
-  const loggedInLinks = useMemo(() => ([
-    { title: "Search", href: "/search" },
-    { title: "Templates", href: "/templates" },
-    { title: "Create", href: "/create" },
-    { title: "My Components", href: "/my-components" },
-  ]), []);
-
-  useEffect(() => {
-    setNavLinks(isSignedIn ? loggedInLinks : notLoggedInLinks);
-    setButtonText(isSignedIn ? "Profile" : "Login");
-    setLogoHref(isSignedIn ? "/search" : "/");
-  }, [isSignedIn, isOpen, loggedInLinks, notLoggedInLinks]);
-
-  const toggleMenu = () => setIsOpen(!isOpen);
+  const toggleMenu = () => setIsOpen((open) => !open);
 
   return (
     <div
@@ -59,9 +51,9 @@ function NavBar() {
             fy
           </PreloadLink>
           <div className="hidden md:flex space-x-4">
-            {navLinks.map((link, index) => (
+            {navLinks.map((link) => (
               <PreloadLink
-                key={index}
+                key={link.href}
                 href={link.href}
                 className={`${pathname === link.href ? "text-white" : "text-gray-300"
                   } hover:text-white transition-colors`}
@@ -71,13 +63,12 @@ function NavBar() {
             ))}
           </div>
           <div className="hidden md:block">
-            <Button
-              text={buttonText}
-              variant="outline"
-              size="small"
-              showIcon={false}
-              onClick={() => router.push(isSignedIn ? "/profile" : "/login")}
-            />
+            <PreloadLink
+              href={accountHref}
+              className="flex h-10 items-center justify-center rounded-xl border border-white/10 px-6 text-sm font-medium text-white underline shadow-[inset_0_0_0_1px_rgba(255,255,255,0.2)] transition-colors hover:bg-white/5"
+            >
+              {buttonText}
+            </PreloadLink>
           </div>
           <div className="md:hidden">
             <motion.div
@@ -110,9 +101,9 @@ function NavBar() {
             transition={{ duration: 0.2 }}
           >
             <div className="relative z-10 max-w-7xl mx-auto px-4 py-4 space-y-4 h-full overflow-y-auto">
-              {navLinks.map((link, index) => (
+              {navLinks.map((link) => (
                 <PreloadLink
-                  key={index}
+                  key={link.href}
                   href={link.href}
                   className={`block py-2 text-lg ${pathname === link.href ? "text-white" : "text-gray-300"
                     } hover:text-white transition-colors`}
@@ -121,17 +112,13 @@ function NavBar() {
                   {link.title}
                 </PreloadLink>
               ))}
-              <Button
-                text={buttonText}
-                variant="outline"
-                size="small"
-                showIcon={false}
-                onClick={() => {
-                  router.push(isSignedIn ? "/profile" : "/login");
-                  setIsOpen(false);
-                }}
-                fullWidth
-              />
+              <PreloadLink
+                href={accountHref}
+                className="flex h-10 w-full items-center justify-center rounded-xl border border-white/10 px-6 text-sm font-medium text-white underline shadow-[inset_0_0_0_1px_rgba(255,255,255,0.2)] transition-colors hover:bg-white/5"
+                onClick={() => setIsOpen(false)}
+              >
+                {buttonText}
+              </PreloadLink>
             </div>
             </motion.div>
           )}

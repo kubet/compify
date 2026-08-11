@@ -8,17 +8,12 @@ test("public product and docs remain anonymous", async ({ page }) => {
   await page.goto("/");
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole("heading", { level: 1 })).toContainText(
-    "Package selected React CSF",
+    "Build components once",
   );
-  await expect(page.getByText("Experimental source candidate", { exact: false })).toBeVisible();
-  await expect(page.getByRole("link", { name: "See the Storybook workflow" })).toHaveAttribute("href", "/docs/storybook");
-  await expect(page.getByRole("link", { name: "Read compatibility limits" })).toHaveAttribute("href", "/docs/compatibility");
-  await expect(page.getByText("compify storybook handoff --consumer", { exact: false })).toBeVisible();
-  await expect(page.getByText("uninspected Storybook context", { exact: false })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Start building" })).toHaveAttribute("href", "/register");
+  await expect(page.getByRole("link", { name: "Watch the demo" })).toHaveAttribute("href", "/#demo");
+  await expect(page.getByRole("heading", { name: "Build, publish, install" })).toBeVisible();
   await expect(page.getByRole("main")).toHaveCount(1);
-  const githubLink = page.getByRole("link", { name: "Open source on GitHub" });
-  await expect(githubLink).toHaveAttribute("href", "https://github.com/kubet/compify");
-  await expect(githubLink).toHaveAttribute("target", "_blank");
   const demoVideo = await page.request.get("/demo-video.mp4");
   expect(demoVideo.ok()).toBe(true);
   expect(demoVideo.headers()["content-type"]).toContain("video/mp4");
@@ -34,6 +29,58 @@ test("public product and docs remain anonymous", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1, name: "Compatibility and verification" })).toBeVisible();
   await page.setViewportSize({ width: 1280, height: 900 });
   await expect(page.getByRole("link", { name: "Inspect a Storybook story" })).toHaveAttribute("href", "/docs/getting-started");
+});
+
+
+test("navbar links remain reliable across repeated hash and route navigation", async ({ page }) => {
+  const pageErrors = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/");
+
+  await expect(page.getByRole("link", { name: "Login", exact: true })).toHaveAttribute("href", "/login");
+
+  for (const [name, hash] of [
+    ["Features", "features"],
+    ["Demo", "demo"],
+    ["Pricing", "pricing"],
+    ["Features", "features"],
+  ]) {
+    await page.getByRole("link", { name, exact: true }).click();
+    await expect(page).toHaveURL(new RegExp(`#${hash}$`));
+    await expect.poll(() => page.evaluate((id) => {
+      const target = document.getElementById(id);
+      const navbar = document.querySelector(".site-navbar");
+      if (!target || !navbar) return false;
+      const targetTop = target.getBoundingClientRect().top;
+      const navbarBottom = navbar.getBoundingClientRect().bottom;
+      return targetTop >= navbarBottom && targetTop <= navbarBottom + 32;
+    }, hash)).toBe(true);
+  }
+
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+  await expect.poll(() => page.evaluate(() => document.getElementById("features")?.getBoundingClientRect().top > 500)).toBe(true);
+  await page.getByRole("link", { name: "Features", exact: true }).click();
+  await expect.poll(() => page.evaluate(() => {
+    const target = document.getElementById("features");
+    const navbar = document.querySelector(".site-navbar");
+    if (!target || !navbar) return false;
+    const targetTop = target.getBoundingClientRect().top;
+    const navbarBottom = navbar.getBoundingClientRect().bottom;
+    return targetTop >= navbarBottom && targetTop <= navbarBottom + 32;
+  })).toBe(true);
+
+  await page.getByRole("navigation").getByRole("link", { name: "Docs", exact: true }).click();
+  await expect(page).toHaveURL(/\/docs\/getting-started$/);
+
+  await page.goto("/");
+  await page.setViewportSize({ width: 390, height: 844 });
+  const menuButton = page.getByRole("button", { name: "Toggle navigation menu" });
+  await menuButton.click();
+  await page.locator("#mobile-menu").getByRole("link", { name: "Demo", exact: true }).click();
+  await expect(page).toHaveURL(/#demo$/);
+  await expect(menuButton).toHaveAttribute("aria-expanded", "false");
+  expect(pageErrors).toEqual([]);
 });
 
 test("protected routes send anonymous users to login without an external redirect", async ({ page }) => {

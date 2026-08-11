@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence, useAnimation, useMotionValue, useTransform } from 'framer-motion';
+import { motion, AnimatePresence, useMotionValue } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 
 const Button = ({ text = "",
@@ -14,14 +14,14 @@ const Button = ({ text = "",
     Icon = ArrowRight,
     color = '',
     blurBackground = false,
-    disabled = false
+    disabled = false,
+    href,
+    type = 'button',
 }) => {
     const [isHovered, setIsHovered] = useState(false);
     const buttonRef = useRef(null);
     const mouseX = useMotionValue(0);
     const mouseY = useMotionValue(0);
-    const controls = useAnimation();
-
 
     useEffect(() => {
         const button = buttonRef.current;
@@ -118,9 +118,23 @@ const Button = ({ text = "",
         ));
     };
 
+    const MotionElement = href ? motion.a : motion.button;
+    const interactionProps = href
+        ? {
+            href: disabled ? undefined : href,
+            'aria-disabled': disabled || undefined,
+            onClick: disabled ? (event) => event.preventDefault() : onClick,
+        }
+        : {
+            type,
+            disabled,
+            onClick: disabled ? undefined : onClick,
+        };
+
     return (
-        <motion.button
+        <MotionElement
             ref={buttonRef}
+            {...interactionProps}
             className={`relative flex items-center justify-center px-6 py-3 rounded-xl font-medium text-white overflow-hidden ${disabled ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
             style={{
@@ -133,10 +147,8 @@ const Button = ({ text = "",
             animate={isHovered && !disabled ? "hover" : "rest"}
             whileHover={disabled ? {} : "hover"}
             whileTap={disabled ? {} : { scale: 0.97, rotateX: 0, rotateY: 0 }}
-            onClick={disabled ? undefined : onClick}
             onHoverStart={() => !disabled && setIsHovered(true)}
             onHoverEnd={() => !disabled && setIsHovered(false)}
-            disabled={disabled}
         >
             <motion.div
                 className={`absolute inset-0 ${bg}`}
@@ -190,7 +202,7 @@ const Button = ({ text = "",
                     transformStyle: 'preserve-3d',
                 }}
             />
-        </motion.button>
+        </MotionElement>
     );
 };
 
