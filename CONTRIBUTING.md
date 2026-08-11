@@ -39,10 +39,23 @@ outside this public repository.
 
 ## Inbound licensing
 
-By submitting a contribution, you confirm that you have the right to submit it
-and agree that original contributions outside `packages/compify-pack` are
-provided under the repository MIT license. Contributions to the vendored
-Sandpack derivative in `packages/compify-pack` are provided under Apache-2.0 and
-must preserve applicable upstream notices and document material modifications.
-The project does not currently require a CLA or DCO sign-off; authorship remains
-recorded in Git history.
+By submitting a contribution, you confirm that you have the right to submit it.
+Original contributions are submitted under the license identified by the
+nearest applicable notice: normally `AGPL-3.0-only`, while contributions to the
+vendored Sandpack derivative in `packages/compify-pack` remain Apache-2.0 and
+must preserve upstream notices and document material modifications. The
+Apache-2.0 `examples/external-react-uswds-button` fixture accepts only verified,
+byte-identical upstream refreshes or non-copyrightable metadata corrections;
+ordinary original feature work does not belong in that fixture.
+
+Compify may also be offered under separately signed commercial terms. To avoid
+promising commercial relicensing rights the project does not own, maintainers
+must not merge an external copyrightable contribution until the contributor has
+completed a separately reviewed contributor agreement granting the necessary
+rights. No such additional rights arise merely by opening a pull request. Ask
+**hello@compify.app** before investing in a substantial contribution. Automated
+dependency metadata and non-copyrightable corrections are reviewed case by
+case.
+
+See `LICENSING.md` for scope, third-party exceptions, and the prospective
+MIT-to-AGPL transition boundary. Authorship remains recorded in Git history.

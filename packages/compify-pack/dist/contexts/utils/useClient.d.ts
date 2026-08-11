@@ -1,4 +1,4 @@
-import type { BundlerState, ListenerFunction, ReactDevToolsMode, SandpackError, SandpackMessage, UnsubscribeFunction, SandpackClient } from '@codesandbox/sandpack-client';
+import type { BundlerState, ListenerFunction, ReactDevToolsMode, SandpackError, SandpackMessage, UnsubscribeFunction, SandpackClient } from '@compify/sandpack-client';
 import type { SandpackInitMode, SandpackProviderProps, SandpackStatus } from '../..';
 import type { FilesState } from './useFiles';
 type SandpackClientType = InstanceType<typeof SandpackClient>;

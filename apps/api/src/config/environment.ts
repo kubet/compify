@@ -77,6 +77,41 @@ export function validateEnvironment(config: Record<string, unknown>) {
       }
     }
   }
+  const sourceRevision = config.SOURCE_REVISION;
+  if (
+    sourceRevision !== undefined &&
+    sourceRevision !== '' &&
+    !/^[0-9a-f]{40}$/i.test(String(sourceRevision))
+  ) {
+    errors.push('SOURCE_REVISION must be an exact 40-character Git commit');
+  }
+  const sourceRepository = config.SOURCE_REPOSITORY;
+  if (
+    sourceRepository !== undefined &&
+    sourceRepository !== '' &&
+    (!isUrl(String(sourceRepository)) ||
+      new URL(String(sourceRepository)).protocol !== 'https:')
+  ) {
+    errors.push('SOURCE_REPOSITORY must be an HTTPS URL');
+  }
+  const sourceUrl = config.SOURCE_URL;
+  if (
+    sourceUrl !== undefined &&
+    sourceUrl !== '' &&
+    (!isUrl(String(sourceUrl)) ||
+      new URL(String(sourceUrl)).protocol !== 'https:')
+  ) {
+    errors.push('SOURCE_URL must be an HTTPS URL');
+  }
+  if (
+    config.NODE_ENV === 'production' &&
+    !String(sourceRevision || '').trim()
+  ) {
+    errors.push(
+      'production requires SOURCE_REVISION for the exact corresponding-source offer',
+    );
+  }
+
   validatePort(config, 'PORT', errors);
   validatePort(config, 'DB_PORT', errors);
   validatePort(config, 'MINIO_PORT', errors);

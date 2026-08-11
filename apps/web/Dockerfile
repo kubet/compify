@@ -7,7 +7,7 @@ FROM node:22.23.2-bookworm-slim@sha256:d649c27dae7ba0137b3cef5dd75baa422c08dc3d9
 COPY --from=bun-runtime /usr/local/bin/bun /usr/local/bin/bun
 WORKDIR /app
 COPY docs ./docs
-COPY LICENSE THIRD_PARTY_NOTICES.md ./
+COPY LICENSE COPYRIGHT.md LICENSING.md TRADEMARKS.md THIRD_PARTY_NOTICES.md ./
 COPY licenses ./licenses
 COPY apps/web/package.json apps/web/bun.lock ./apps/web/
 COPY apps/web/scripts ./apps/web/scripts
@@ -15,6 +15,9 @@ COPY apps/web/scripts ./apps/web/scripts
 COPY packages/compify-pack/package.json ./packages/compify-pack/package.json
 COPY packages/compify-pack/dist ./packages/compify-pack/dist
 COPY packages/compify-pack/LICENSE packages/compify-pack/README.md packages/compify-pack/PROVENANCE.md ./packages/compify-pack/
+COPY packages/compify-pack/sandpack-client/package.json packages/compify-pack/sandpack-client/
+COPY packages/compify-pack/sandpack-client/dist ./packages/compify-pack/sandpack-client/dist
+COPY packages/compify-pack/sandpack-client/LICENSE packages/compify-pack/sandpack-client/README.md packages/compify-pack/sandpack-client/PROVENANCE.md packages/compify-pack/sandpack-client/THIRD_PARTY_NOTICES.md packages/compify-pack/sandpack-client/console-feed-LICENSE ./packages/compify-pack/sandpack-client/
 
 FROM source AS dependencies
 WORKDIR /app/apps/web
@@ -29,6 +32,9 @@ ARG NEXT_PUBLIC_BUNDLER_URL=
 ARG NEXT_PUBLIC_TURNSTILE_SITE_KEY=
 ARG NEXT_PUBLIC_TURNSTILE_ENABLED=false
 ARG NEXT_PUBLIC_GOOGLE_OAUTH_ENABLED=false
+ARG NEXT_PUBLIC_SOURCE_URL=
+ARG NEXT_PUBLIC_SOURCE_REVISION=
+ARG NEXT_PUBLIC_SOURCE_REPOSITORY=https://github.com/kubet/compify
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL \
     NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL \
     NEXT_PUBLIC_CDN_URL=$NEXT_PUBLIC_CDN_URL \
@@ -47,6 +53,9 @@ RUN --mount=type=cache,id=web-bun-production,target=/root/.bun/install/cache,sha
     bun install --frozen-lockfile --production
 
 FROM node:22.23.2-bookworm-slim@sha256:d649c27dae7ba0137b3cef5dd75baa422c08dc3d9e3fc0c23dfb172dc3cc6436 AS runtime
+ARG SOURCE_REVISION=unknown
+ARG SOURCE_REPOSITORY=https://github.com/kubet/compify
+LABEL org.opencontainers.image.source="$SOURCE_REPOSITORY"       org.opencontainers.image.revision="$SOURCE_REVISION"       org.opencontainers.image.licenses="AGPL-3.0-only"
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
     PORT=3000 \
@@ -66,6 +75,9 @@ COPY --from=build --chown=compify:bunjs /app/apps/web/public ./public
 COPY --from=build --chown=compify:bunjs /app/apps/web/package.json ./package.json
 COPY --from=build --chown=compify:bunjs /app/THIRD_PARTY_NOTICES.md ./THIRD_PARTY_NOTICES.md
 COPY --from=build --chown=compify:bunjs /app/LICENSE ./LICENSE
+COPY --from=build --chown=compify:bunjs /app/COPYRIGHT.md ./COPYRIGHT.md
+COPY --from=build --chown=compify:bunjs /app/LICENSING.md ./LICENSING.md
+COPY --from=build --chown=compify:bunjs /app/TRADEMARKS.md ./TRADEMARKS.md
 COPY --from=build --chown=compify:bunjs /app/licenses ./licenses
 USER compify
 EXPOSE 3000

@@ -2,20 +2,25 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
 const root = join(import.meta.dir, "..");
-const fail = (message: string): never => { throw new Error(`supply-chain check: ${message}`); };
+const fail = (message: string): never => {
+  throw new Error(`supply-chain check: ${message}`);
+};
 const read = (path: string) => readFileSync(join(root, path), "utf8");
 
 // Third-party workflow code executes with the job token: immutable commit pins are
 // mandatory, including in workflows added later.
 const workflowDir = join(root, ".github/workflows");
-const workflows = readdirSync(workflowDir).filter((name) => /\.ya?ml$/.test(name));
+const workflows = readdirSync(workflowDir).filter((name) =>
+  /\.ya?ml$/.test(name)
+);
 for (const name of workflows) {
   const text = read(`.github/workflows/${name}`);
   for (const match of text.matchAll(/^\s*-?\s*uses:\s*([^\s#]+)/gm)) {
     const action = match[1];
     if (action.startsWith("./") || action.startsWith("docker://")) continue;
     const ref = action.slice(action.lastIndexOf("@") + 1);
-    if (!/^[0-9a-f]{40}$/.test(ref)) fail(`${name} uses a mutable action reference: ${action}`);
+    if (!/^[0-9a-f]{40}$/.test(ref))
+      fail(`${name} uses a mutable action reference: ${action}`);
   }
 }
 
@@ -26,8 +31,14 @@ for (const dockerfile of ["apps/api/Dockerfile", "apps/web/Dockerfile"]) {
   for (const [index, line] of read(dockerfile).split("\n").entries()) {
     const match = line.match(/^FROM\s+([^\s]+)(?:\s+AS\s+(\S+))?$/i);
     if (!match) continue;
-    if (match[1] !== "scratch" && !stages.has(match[1]) && !/@sha256:[0-9a-f]{64}$/.test(match[1]))
-      fail(`${dockerfile}:${index + 1} has an unpinned base image: ${match[1]}`);
+    if (
+      match[1] !== "scratch" &&
+      !stages.has(match[1]) &&
+      !/@sha256:[0-9a-f]{64}$/.test(match[1])
+    )
+      fail(
+        `${dockerfile}:${index + 1} has an unpinned base image: ${match[1]}`
+      );
     if (match[2]) stages.add(match[2]);
   }
 }
@@ -39,7 +50,10 @@ for (const [index, line] of read("docker-compose.yml").split("\n").entries()) {
 
 // Only these reviewed packages are public. A new non-private manifest must not
 // silently become publishable, and public packages must carry registry metadata.
-const publicPackages = new Set(["packages/cli/package.json", "packages/storybook/package.json"]);
+const publicPackages = new Set([
+  "packages/cli/package.json",
+  "packages/storybook/package.json",
+]);
 // These manifests are unmodified parser inputs, never workspace packages or
 // publication roots. The external exception is checksummed in its UPSTREAM.md.
 const sourceFixtures = new Set([
@@ -47,9 +61,18 @@ const sourceFixtures = new Set([
   "examples/external-react-uswds-button/package.json",
 ]);
 const packageFiles: string[] = [];
-const ignoredTrees = new Set([".git", ".next", "node_modules", "dist", "build", "coverage"]);
+const ignoredTrees = new Set([
+  ".git",
+  ".next",
+  "node_modules",
+  "dist",
+  "build",
+  "coverage",
+]);
 function findManifests(directory: string): void {
-  for (const entry of readdirSync(join(root, directory), { withFileTypes: true })) {
+  for (const entry of readdirSync(join(root, directory), {
+    withFileTypes: true,
+  })) {
     if (ignoredTrees.has(entry.name)) continue;
     const path = directory ? `${directory}/${entry.name}` : entry.name;
     if (entry.isDirectory()) findManifests(path);
@@ -61,30 +84,62 @@ packageFiles.sort();
 for (const manifest of packageFiles) {
   const pkg = JSON.parse(read(manifest));
   const isPublic = publicPackages.has(manifest);
-  const isSourceFixture = sourceFixtures.has(manifest) || manifest.includes("/test-fixtures/");
+  const isSourceFixture =
+    sourceFixtures.has(manifest) || manifest.includes("/test-fixtures/");
   if (isPublic) {
-    if (pkg.private === true) fail(`${manifest} is allowlisted for release but marked private`);
-    if (pkg.license !== "MIT") fail(`${manifest} must declare its MIT license`);
-    if (!pkg.files?.includes("LICENSE") || !existsSync(join(root, manifest, "../LICENSE")))
+    if (pkg.private === true)
+      fail(`${manifest} is allowlisted for release but marked private`);
+    if (pkg.license !== "AGPL-3.0-only")
+      fail(`${manifest} must declare AGPL-3.0-only`);
+    if (
+      !pkg.files?.includes("LICENSE") ||
+      !existsSync(join(root, manifest, "../LICENSE"))
+    )
       fail(`${manifest} must ship a LICENSE`);
     if (pkg.repository?.directory !== manifest.replace(/\/package\.json$/, ""))
-      fail(`${manifest} has missing or incorrect repository.directory metadata`);
+      fail(
+        `${manifest} has missing or incorrect repository.directory metadata`
+      );
   } else if (!isSourceFixture && pkg.private !== true) {
-    fail(`${manifest} must be private unless added to the reviewed public-package allowlist`);
+    fail(
+      `${manifest} must be private unless added to the reviewed public-package allowlist`
+    );
+  }
+  if (!isSourceFixture) {
+    const apachePackages = new Set([
+      "packages/compify-pack/package.json",
+      "packages/compify-pack/sandpack-client/package.json",
+    ]);
+    const expectedLicense = apachePackages.has(manifest)
+      ? "Apache-2.0"
+      : "AGPL-3.0-only";
+    if (pkg.license !== expectedLicense)
+      fail(`${manifest} must declare ${expectedLicense}`);
   }
   const lockfile = join(root, manifest, "../bun.lock");
   if (!isSourceFixture && !existsSync(lockfile))
-    fail(`${manifest} has no bun.lock for frozen installs`);
+    fail(`${manifest} has no reviewed bun.lock for frozen installs`);
 }
 
 const release = read(".github/workflows/package-release.yml");
 for (const requirement of [
-  "environment: npm-release", "id-token: write", "--provenance", "ref: ${{ github.sha }}",
-  "persist-credentials: false", "package-sha256:", "EXPECTED_SHA256:", "npm@11.6.2",
-  "concurrency:", "cancel-in-progress: false", "checks: read",
-  "git merge-base --is-ancestor", "for check in changes required",
+  "environment: npm-release",
+  "id-token: write",
+  "--provenance",
+  "ref: ${{ github.sha }}",
+  "persist-credentials: false",
+  "package-sha256:",
+  "EXPECTED_SHA256:",
+  "npm@11.6.2",
+  "concurrency:",
+  "cancel-in-progress: false",
+  "checks: read",
+  "git merge-base --is-ancestor",
+  "for check in changes required",
   '"JavaScript and TypeScript"',
-]) if (!release.includes(requirement)) fail(`package release is missing ${requirement}`);
+])
+  if (!release.includes(requirement))
+    fail(`package release is missing ${requirement}`);
 if (/NPM_TOKEN|NODE_AUTH_TOKEN|npm_[A-Za-z0-9_]*token/i.test(release))
   fail("npm release must use OIDC trusted publishing, not a registry token");
 if ((release.match(/id-token:\s*write/g) ?? []).length !== 1)
@@ -94,4 +149,6 @@ const gitignore = read(".gitignore");
 if (!/^\.env\.\*$/m.test(gitignore) || !/^\.env$/m.test(gitignore))
   fail(".gitignore must exclude local environment files");
 
-console.log(`Supply-chain policy verified: ${workflows.length} workflows, 2 Dockerfiles, ${packageFiles.length} manifests, and npm OIDC release controls.`);
+console.log(
+  `Supply-chain policy verified: ${workflows.length} workflows, 2 Dockerfiles, ${packageFiles.length} manifests, and npm OIDC release controls.`
+);

@@ -1,4 +1,5 @@
-import type { TestError } from "@codesandbox/sandpack-client";
+// Modified by Compify; see packages/compify-pack/PROVENANCE.md.
+import type { TestError } from "@compify/sandpack-client";
 import * as React from "react";
 
 import { css } from "../../styles";

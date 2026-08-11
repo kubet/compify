@@ -1,3 +1,4 @@
+// Modified by Compify; see packages/compify-pack/PROVENANCE.md.
 /**
  * @jest-environment jsdom
  */
@@ -410,6 +411,30 @@ describe(getSandpackStateFromProps, () => {
         "[sandpack-react]: without a template, you must pass at least one file"
       );
     }
+  });
+
+  test.each(["node", "vite-react-ts"])(
+    "it explicitly rejects unsupported server template %s",
+    (template) => {
+      expect(() =>
+        getSandpackStateFromProps({
+          template: template as never,
+        })
+      ).toThrow(
+        `[sandpack-react]: template "${template}" requires the unsupported server runtime; browser runtime and static templates remain supported`
+      );
+    }
+  );
+
+  test("it explicitly rejects a custom server environment", () => {
+    expect(() =>
+      getSandpackStateFromProps({
+        files: { "/index.js": "" },
+        customSetup: { environment: "node" },
+      })
+    ).toThrow(
+      '[sandpack-react]: template "custom" requires the unsupported server runtime; browser runtime and static templates remain supported'
+    );
   });
 
   test("it throws an error when the given template doesn't exist", () => {

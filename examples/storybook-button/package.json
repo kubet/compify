@@ -1,6 +1,7 @@
 {
   "name": "compify-storybook-button-fixture",
   "private": true,
+  "license": "AGPL-3.0-only",
   "peerDependencies": {
     "react": "^19.0.0"
   }

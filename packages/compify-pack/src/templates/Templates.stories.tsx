@@ -1,3 +1,4 @@
+// Modified by Compify; see packages/compify-pack/PROVENANCE.md.
 import { storiesOf } from "@storybook/react";
 import React from "react";
 
@@ -16,15 +17,14 @@ const stories = storiesOf("presets/Template", module);
 
 Object.keys(SANDBOX_TEMPLATES).forEach((template) =>
   stories.add(template, () => {
-    const isNodeStatic =
-      SANDBOX_TEMPLATES[template].environment === "node" ||
+    const isStatic =
       SANDBOX_TEMPLATES[template].environment === "static";
 
     return (
       <SandpackProvider
         options={{
           bundlerTimeOut: 90000,
-          bundlerURL: isNodeStatic
+          bundlerURL: isStatic
             ? undefined
             : "https://1-17-1-sandpack.codesandbox.io/",
         }}

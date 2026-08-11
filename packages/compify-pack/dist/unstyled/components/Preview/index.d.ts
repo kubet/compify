@@ -1,4 +1,4 @@
-import type { SandpackClient } from "@codesandbox/sandpack-client";
+import type { SandpackClient } from "@compify/sandpack-client";
 import * as React from "react";
 export interface PreviewProps {
     style?: React.CSSProperties;

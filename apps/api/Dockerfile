@@ -29,6 +29,9 @@ RUN --mount=type=cache,id=api-bun-production,target=/root/.bun/install/cache,sha
 # OS CVEs. Node package managers are build-only here, so remove their global
 # trees and shims from both production targets before copying dependencies.
 FROM bun-node AS application-base
+ARG SOURCE_REVISION=unknown
+ARG SOURCE_REPOSITORY=https://github.com/kubet/compify
+LABEL org.opencontainers.image.source="$SOURCE_REPOSITORY"       org.opencontainers.image.revision="$SOURCE_REVISION"       org.opencontainers.image.licenses="AGPL-3.0-only"
 ENV NODE_ENV=production \
     STAGE=prod \
     PORT=3009 \

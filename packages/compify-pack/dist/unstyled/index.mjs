@@ -4,7 +4,7 @@ import { jsxs, jsx, Fragment } from 'react/jsx-runtime';
 import * as React from 'react';
 import { createContext, useContext, useState, useId, useRef, useCallback, useEffect, createElement, forwardRef } from 'react';
 import { dequal } from 'dequal';
-import { normalizePath, addPackageJSONIfNeeded, loadSandpackClient, extractErrorDetails } from '@codesandbox/sandpack-client';
+import { normalizePath, addPackageJSONIfNeeded, loadSandpackClient, extractErrorDetails } from '@compify/sandpack-client';
 import { closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete';
 import { history, defaultKeymap, historyKeymap, indentMore, indentLess, deleteGroupBackward } from '@codemirror/commands';
 import { HighlightStyle, syntaxHighlighting, bracketMatching } from '@codemirror/language';
@@ -536,561 +536,6 @@ var commonFiles = {
   }
 };
 
-var ASTRO_TEMPLATE = {
-  files: {
-    "/src/styles.css": commonFiles["/styles.css"],
-    "/src/pages/index.astro": {
-      code: "---\nimport \"../styles.css\";\nconst data = \"world\";\n---\n\n<h1>Hello {data}</h1>\n\n<style>\n  h1 {\n    font-size: 1.5rem;\n  }\n</style>"
-    },
-    ".env": {
-      code: "ASTRO_TELEMETRY_DISABLED=\"1\""
-    },
-    "/package.json": {
-      code: JSON.stringify({
-        dependencies: {
-          astro: "^1.6.12",
-          "esbuild-wasm": "^0.15.16"
-        },
-        scripts: {
-          dev: "astro dev",
-          start: "astro dev",
-          build: "astro build",
-          preview: "astro preview",
-          astro: "astro"
-        }
-      })
-    }
-  },
-  main: "/src/pages/index.astro",
-  environment: "node"
-};
-
-var NEXTJS_TEMPLATE = {
-  files: __assign(__assign({}, commonFiles), {
-    "/pages/_app.js": {
-      code: "import '../styles.css'\n\nexport default function MyApp({ Component, pageProps }) {\n  return <Component {...pageProps} />\n}"
-    },
-    "/pages/index.js": {
-      code: "export default function Home({ data }) {\n  return (\n    <div>\n      <h1>Hello {data}</h1>\n    </div>\n  );\n}\n  \nexport function getServerSideProps() {\n  return {\n    props: { data: \"world\" },\n  }\n}\n"
-    },
-    "/next.config.js": {
-      code: "/** @type {import('next').NextConfig} */\nconst nextConfig = {\n  reactStrictMode: true,\n  swcMinify: true,\n}\n\nmodule.exports = nextConfig\n"
-    },
-    "/package.json": {
-      code: JSON.stringify({
-        name: "my-app",
-        version: "0.1.0",
-        private: true,
-        scripts: {
-          dev: "NEXT_TELEMETRY_DISABLED=1 next dev",
-          build: "next build",
-          start: "next start",
-          lint: "next lint"
-        },
-        dependencies: {
-          next: "12.1.6",
-          react: "18.2.0",
-          "react-dom": "18.2.0",
-          "@next/swc-wasm-nodejs": "12.1.6"
-        }
-      })
-    }
-  }),
-  main: "/pages/index.js",
-  environment: "node"
-};
-
-var NODE_TEMPLATE = {
-  files: {
-    "/index.js": {
-      code: "const http = require('http');\n\nconst hostname = '127.0.0.1';\nconst port = 3000;\n\nconst server = http.createServer((req, res) => {\n  res.statusCode = 200;\n  res.setHeader('Content-Type', 'text/html');\n  res.end('Hello world');\n});\n\nserver.listen(port, hostname, () => {\n  console.log(`Server running at http://${hostname}:${port}/`);\n});"
-    },
-    "/package.json": {
-      code: JSON.stringify({
-        dependencies: {},
-        scripts: {
-          start: "node index.js"
-        },
-        main: "index.js"
-      })
-    }
-  },
-  main: "/index.js",
-  environment: "node"
-};
-
-var VITE_TEMPLATE = {
-  files: __assign(__assign({}, commonFiles), {
-    "/index.js": {
-      code: "import \"./styles.css\";\n\ndocument.getElementById(\"app\").innerHTML = `\n<h1>Hello world</h1>\n`;\n"
-    },
-    "/index.html": {
-      code: "<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"UTF-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <title>Vite App</title>\n  </head>\n  <body>\n    <div id=\"app\"></div>\n    <script type=\"module\" src=\"/index.js\"></script>\n  </body>\n</html>\n"
-    },
-    "/package.json": {
-      code: JSON.stringify({
-        scripts: {
-          dev: "vite",
-          build: "vite build",
-          preview: "vite preview"
-        },
-        devDependencies: {
-          vite: "4.1.4",
-          "esbuild-wasm": "0.17.12"
-        }
-      })
-    }
-  }),
-  main: "/index.js",
-  environment: "node"
-};
-
-var VITE_PREACT_TEMPLATE = {
-  files: __assign(__assign({}, commonFiles), {
-    "/App.jsx": {
-      code: "export default function App() {\n  const data = \"world\"\n\n  return <h1>Hello {data}</h1>\n}\n"
-    },
-    "/index.jsx": {
-      code: "import { render } from \"preact\";\nimport \"./styles.css\";\n\nimport App from \"./App\";\n\nconst root = document.getElementById(\"root\");\nrender(<App />, root);\n"
-    },
-    "/index.html": {
-      code: "<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"UTF-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <title>Vite App</title>\n  </head>\n  <body>\n    <div id=\"root\"></div>\n    <script type=\"module\" src=\"/index.jsx\"></script>\n  </body>\n</html>\n"
-    },
-    "/package.json": {
-      code: JSON.stringify({
-        scripts: {
-          dev: "vite",
-          build: "vite build",
-          preview: "vite preview"
-        },
-        dependencies: {
-          preact: "^10.16.0"
-        },
-        devDependencies: {
-          "@preact/preset-vite": "^2.5.0",
-          vite: "4.1.4",
-          "esbuild-wasm": "0.17.12"
-        }
-      })
-    },
-    "/vite.config.js": {
-      code: "import { defineConfig } from \"vite\";\nimport preact from '@preact/preset-vite'\n\n// https://vitejs.dev/config/\nexport default defineConfig({\n  plugins: [preact()],\n});\n"
-    }
-  }),
-  main: "/App.jsx",
-  environment: "node"
-};
-
-var VITE_PREACT_TS_TEMPLATE = {
-  files: __assign(__assign({}, commonFiles), {
-    "/App.tsx": {
-      code: "export default function App() {\n  const data: string = \"world\"\n\n  return <h1>Hello {data}</h1>\n}\n"
-    },
-    "/index.tsx": {
-      code: "import { render } from \"preact\";\nimport \"./styles.css\";\n\nimport App from \"./App\";\n\nconst root = document.getElementById(\"root\") as HTMLElement;\nrender(<App />, root);\n"
-    },
-    "/index.html": {
-      code: "<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"UTF-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <title>Vite App</title>\n  </head>\n  <body>\n    <div id=\"root\"></div>\n    <script type=\"module\" src=\"/index.tsx\"></script>\n  </body>\n</html>\n"
-    },
-    "/tsconfig.json": {
-      code: JSON.stringify({
-        compilerOptions: {
-          target: "ESNext",
-          useDefineForClassFields: true,
-          lib: ["DOM", "DOM.Iterable", "ESNext"],
-          allowJs: false,
-          skipLibCheck: true,
-          esModuleInterop: false,
-          allowSyntheticDefaultImports: true,
-          strict: true,
-          forceConsistentCasingInFileNames: true,
-          module: "ESNext",
-          moduleResolution: "Node",
-          resolveJsonModule: true,
-          isolatedModules: true,
-          noEmit: true,
-          jsx: "react-jsx",
-          jsxImportSource: "preact"
-        },
-        include: ["src"],
-        references: [{
-          path: "./tsconfig.node.json"
-        }]
-      }, null, 2)
-    },
-    "/tsconfig.node.json": {
-      code: JSON.stringify({
-        compilerOptions: {
-          composite: true,
-          module: "ESNext",
-          moduleResolution: "Node",
-          allowSyntheticDefaultImports: true
-        },
-        include: ["vite.config.ts"]
-      }, null, 2)
-    },
-    "/package.json": {
-      code: JSON.stringify({
-        scripts: {
-          dev: "vite",
-          build: "tsc && vite build",
-          preview: "vite preview"
-        },
-        dependencies: {
-          preact: "^10.16.0"
-        },
-        devDependencies: {
-          "@preact/preset-vite": "^2.5.0",
-          typescript: "^4.9.5",
-          vite: "4.1.4",
-          "esbuild-wasm": "^0.17.12"
-        }
-      }, null, 2)
-    },
-    "/vite-env.d.ts": {
-      code: '/// <reference types="vite/client" />'
-    },
-    "/vite.config.ts": {
-      code: "import { defineConfig } from 'vite'\nimport preact from '@preact/preset-vite'\n\n// https://vitejs.dev/config/\nexport default defineConfig({\n  plugins: [preact()],\n})\n"
-    }
-  }),
-  main: "/App.tsx",
-  environment: "node"
-};
-
-var VITE_REACT_TEMPLATE = {
-  files: __assign(__assign({}, commonFiles), {
-    "/App.jsx": {
-      code: "export default function App() {\n  const data = \"world\"\n\n  return <h1>Hello {data}</h1>\n}\n"
-    },
-    "/index.jsx": {
-      code: "import { StrictMode } from \"react\";\nimport { createRoot } from \"react-dom/client\";\nimport \"./styles.css\";\n\nimport App from \"./App\";\n\nconst root = createRoot(document.getElementById(\"root\"));\nroot.render(\n  <StrictMode>\n    <App />\n  </StrictMode>\n);"
-    },
-    "/index.html": {
-      code: "<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"UTF-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <title>Vite App</title>\n  </head>\n  <body>\n    <div id=\"root\"></div>\n    <script type=\"module\" src=\"/index.jsx\"></script>\n  </body>\n</html>\n"
-    },
-    "/package.json": {
-      code: JSON.stringify({
-        scripts: {
-          dev: "vite",
-          build: "vite build",
-          preview: "vite preview"
-        },
-        dependencies: {
-          react: "^18.2.0",
-          "react-dom": "^18.2.0"
-        },
-        devDependencies: {
-          "@vitejs/plugin-react": "3.1.0",
-          vite: "4.1.4",
-          "esbuild-wasm": "0.17.12"
-        }
-      })
-    },
-    "/vite.config.js": {
-      code: "import { defineConfig } from \"vite\";\nimport react from \"@vitejs/plugin-react\";\n\n// https://vitejs.dev/config/\nexport default defineConfig({\n  plugins: [react()],\n});\n"
-    }
-  }),
-  main: "/App.jsx",
-  environment: "node"
-};
-
-var VITE_REACT_TS_TEMPLATE = {
-  files: __assign(__assign({}, commonFiles), {
-    "/App.tsx": {
-      code: "export default function App() {\n  const data: string = \"world\"\n\n  return <h1>Hello {data}</h1>\n}\n"
-    },
-    "/index.tsx": {
-      code: "import { StrictMode } from \"react\";\nimport { createRoot } from \"react-dom/client\";\nimport \"./styles.css\";\n\nimport App from \"./App\";\nimport React from \"react\";\n\nconst root = createRoot(document.getElementById(\"root\") as HTMLElement);\nroot.render(\n  <StrictMode>\n    <App />\n  </StrictMode>\n);\n"
-    },
-    "/index.html": {
-      code: "<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"UTF-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <title>Vite App</title>\n  </head>\n  <body>\n    <div id=\"root\"></div>\n    <script type=\"module\" src=\"/index.tsx\"></script>\n  </body>\n</html>\n"
-    },
-    "/tsconfig.json": {
-      code: JSON.stringify({
-        compilerOptions: {
-          target: "ESNext",
-          useDefineForClassFields: true,
-          lib: ["DOM", "DOM.Iterable", "ESNext"],
-          allowJs: false,
-          skipLibCheck: true,
-          esModuleInterop: false,
-          allowSyntheticDefaultImports: true,
-          strict: true,
-          forceConsistentCasingInFileNames: true,
-          module: "ESNext",
-          moduleResolution: "Node",
-          resolveJsonModule: true,
-          isolatedModules: true,
-          noEmit: true,
-          jsx: "react-jsx"
-        },
-        include: ["src"],
-        references: [{
-          path: "./tsconfig.node.json"
-        }]
-      }, null, 2)
-    },
-    "/tsconfig.node.json": {
-      code: JSON.stringify({
-        compilerOptions: {
-          composite: true,
-          module: "ESNext",
-          moduleResolution: "Node",
-          allowSyntheticDefaultImports: true
-        },
-        include: ["vite.config.ts"]
-      }, null, 2)
-    },
-    "/package.json": {
-      code: JSON.stringify({
-        scripts: {
-          dev: "vite",
-          build: "tsc && vite build",
-          preview: "vite preview"
-        },
-        dependencies: {
-          react: "^18.2.0",
-          "react-dom": "^18.2.0"
-        },
-        devDependencies: {
-          "@types/react": "^18.0.28",
-          "@types/react-dom": "^18.0.11",
-          "@vitejs/plugin-react": "^3.1.0",
-          typescript: "^4.9.5",
-          vite: "4.1.4",
-          "esbuild-wasm": "^0.17.12"
-        }
-      }, null, 2)
-    },
-    "/vite-env.d.ts": {
-      code: '/// <reference types="vite/client" />'
-    },
-    "/vite.config.ts": {
-      code: "import { defineConfig } from 'vite'\nimport react from '@vitejs/plugin-react'\n\n// https://vitejs.dev/config/\nexport default defineConfig({\n  plugins: [react()],\n})\n"
-    }
-  }),
-  main: "/App.tsx",
-  environment: "node"
-};
-
-var VITE_SVELTE_TEMPLATE = {
-  files: {
-    "/src/styles.css": commonFiles["/styles.css"],
-    "/src/App.svelte": {
-      code: "<script>\nconst data = \"world\";\n</script>\n\n<h1>Hello {data}</h1>\n\n<style>\nh1 {\n  font-size: 1.5rem;\n}\n</style>"
-    },
-    "/src/main.js": {
-      code: "import App from './App.svelte'\nimport \"./styles.css\"\n\nconst app = new App({\n  target: document.getElementById('app'),\n})\n\nexport default app"
-    },
-    "/index.html": {
-      code: "<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"UTF-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <title>Vite App</title>\n  </head>\n  <body>\n    <div id=\"app\"></div>\n    <script type=\"module\" src=\"/src/main.js\"></script>\n  </body>\n</html>\n"
-    },
-    "/vite.config.js": {
-      code: "import { defineConfig } from 'vite'\nimport { svelte } from '@sveltejs/vite-plugin-svelte'\n\n// https://vitejs.dev/config/\nexport default defineConfig({\n  plugins: [svelte()],\n})"
-    },
-    "/package.json": {
-      code: JSON.stringify({
-        type: "module",
-        scripts: {
-          dev: "vite"
-        },
-        devDependencies: {
-          "@sveltejs/vite-plugin-svelte": "^2.0.2",
-          svelte: "^3.55.1",
-          vite: "4.0.4",
-          "esbuild-wasm": "^0.17.12"
-        }
-      })
-    }
-  },
-  main: "/src/App.svelte",
-  environment: "node"
-};
-
-var VITE_SVELTE_TS_TEMPLATE = {
-  files: {
-    "/src/styles.css": commonFiles["/styles.css"],
-    "/src/App.svelte": {
-      code: "<script lang=\"ts\">\nconst data: string = \"world\";\n</script>\n\n<h1>Hello {data}</h1>\n\n<style>\nh1 {\n  font-size: 1.5rem;\n}\n</style>"
-    },
-    "/src/main.ts": {
-      code: "import App from './App.svelte'\nimport \"./styles.css\"\n\nconst app = new App({\n  target: document.getElementById('app'),\n})\n\nexport default app"
-    },
-    "/index.html": {
-      code: "<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"UTF-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <title>Vite App</title>\n  </head>\n  <body>\n    <div id=\"app\"></div>\n    <script type=\"module\" src=\"/src/main.ts\"></script>\n  </body>\n</html>\n"
-    },
-    "/vite-env.d.ts": {
-      code: "/// <reference types=\"svelte\" />\n/// <reference types=\"vite/client\" />"
-    },
-    "svelte.config.js": {
-      code: "import { vitePreprocess } from '@sveltejs/vite-plugin-svelte'\n\nexport default {\n  // Consult https://svelte.dev/docs#compile-time-svelte-preprocess\n  // for more information about preprocessors\n  preprocess: vitePreprocess(),\n}\n"
-    },
-    "/vite.config.ts": {
-      code: "import { defineConfig } from 'vite'\nimport { svelte } from '@sveltejs/vite-plugin-svelte'\n\n// https://vitejs.dev/config/\nexport default defineConfig({\n  plugins: [svelte()],\n})"
-    },
-    "tsconfig.json": {
-      code: JSON.stringify({
-        extends: "@tsconfig/svelte/tsconfig.json",
-        compilerOptions: {
-          target: "ESNext",
-          useDefineForClassFields: true,
-          module: "ESNext",
-          resolveJsonModule: true,
-          allowJs: true,
-          checkJs: true,
-          isolatedModules: true
-        },
-        include: ["src/**/*.d.ts", "src/**/*.ts", "src/**/*.js", "src/**/*.svelte"],
-        references: [{
-          path: "./tsconfig.node.json"
-        }]
-      }, null, 2)
-    },
-    "tsconfig.node.json": {
-      code: JSON.stringify({
-        compilerOptions: {
-          composite: true,
-          module: "ESNext",
-          moduleResolution: "Node"
-        },
-        include: ["vite.config.ts"]
-      }, null, 2)
-    },
-    "/package.json": {
-      code: JSON.stringify({
-        type: "module",
-        scripts: {
-          dev: "vite"
-        },
-        devDependencies: {
-          "@sveltejs/vite-plugin-svelte": "^2.0.2",
-          "@tsconfig/svelte": "^3.0.0",
-          svelte: "^3.55.1",
-          "svelte-check": "^2.10.3",
-          tslib: "^2.5.0",
-          vite: "4.1.4",
-          "esbuild-wasm": "^0.17.12"
-        }
-      }, null, 2)
-    }
-  },
-  main: "/src/App.svelte",
-  environment: "node"
-};
-
-var VITE_VUE_TEMPLATE = {
-  files: {
-    "/src/styles.css": commonFiles["/styles.css"],
-    "/src/App.vue": {
-      code: "<script setup>\nimport { ref } from \"vue\";\n\nconst data = ref(\"world\");\n</script>\n\n<template>\n  <h1>Hello {{ data }}</h1>\n</template>\n\n<style>\nh1 {\n  font-size: 1.5rem;\n}\n</style>"
-    },
-    "/src/main.js": {
-      code: "import { createApp } from 'vue'\nimport App from './App.vue'\nimport \"./styles.css\"\n            \ncreateApp(App).mount('#app')            \n"
-    },
-    "/index.html": {
-      code: "<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"UTF-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <title>Vite App</title>\n  </head>\n  <body>\n    <div id=\"app\"></div>\n    <script type=\"module\" src=\"/src/main.js\"></script>\n  </body>\n</html>\n"
-    },
-    "/vite.config.js": {
-      code: "import { defineConfig } from 'vite'\nimport vue from '@vitejs/plugin-vue'\n\n// https://vitejs.dev/config/\nexport default defineConfig({\n  plugins: [vue()]\n})\n"
-    },
-    "/package.json": {
-      code: JSON.stringify({
-        scripts: {
-          dev: "vite",
-          build: "vite build",
-          preview: "vite preview"
-        },
-        dependencies: {
-          vue: "^3.2.45"
-        },
-        devDependencies: {
-          "@vitejs/plugin-vue": "3.2.0",
-          vite: "4.1.4",
-          "esbuild-wasm": "0.17.12"
-        }
-      })
-    }
-  },
-  main: "/src/App.vue",
-  environment: "node"
-};
-
-var VITE_VUE_TS_TEMPLATE = {
-  files: {
-    "/src/styles.css": commonFiles["/styles.css"],
-    "/src/App.vue": {
-      code: "<script setup lang=\"ts\">\nimport { ref } from \"vue\";\n\nconst data = ref<string>(\"world\");\n</script>\n\n<template>\n  <h1>Hello {{ data }}</h1>\n</template>\n\n<style>\nh1 {\n  font-size: 1.5rem;\n}\n</style>"
-    },
-    "/src/main.ts": {
-      code: "import { createApp } from 'vue'\nimport App from './App.vue'\nimport \"./styles.css\"\n\ncreateApp(App).mount('#app')\n"
-    },
-    "/index.html": {
-      code: "<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"UTF-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <title>Vite App</title>\n  </head>\n  <body>\n    <div id=\"app\"></div>\n    <script type=\"module\" src=\"/src/main.ts\"></script>\n  </body>\n</html>\n"
-    },
-    "/vite-env.d.ts": {
-      code: '/// <reference types="vite/client" />'
-    },
-    "/vite.config.ts": {
-      code: "import { defineConfig } from 'vite'\nimport vue from '@vitejs/plugin-vue'\n\n// https://vitejs.dev/config/\nexport default defineConfig({\n  plugins: [vue()]\n})\n"
-    },
-    "tsconfig.json": {
-      code: JSON.stringify({
-        compilerOptions: {
-          target: "ESNext",
-          useDefineForClassFields: true,
-          module: "ESNext",
-          moduleResolution: "Node",
-          strict: true,
-          jsx: "preserve",
-          resolveJsonModule: true,
-          isolatedModules: true,
-          esModuleInterop: true,
-          lib: ["ESNext", "DOM"],
-          skipLibCheck: true,
-          noEmit: true
-        },
-        include: ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"],
-        references: [{
-          path: "./tsconfig.node.json"
-        }]
-      }, null, 2)
-    },
-    "tsconfig.node.json": {
-      code: JSON.stringify({
-        compilerOptions: {
-          composite: true,
-          module: "ESNext",
-          moduleResolution: "Node",
-          allowSyntheticDefaultImports: true
-        },
-        include: ["vite.config.ts"]
-      }, null, 2)
-    },
-    "/package.json": {
-      code: JSON.stringify({
-        scripts: {
-          dev: "vite",
-          build: "tsc && vite build",
-          preview: "vite preview"
-        },
-        dependencies: {
-          vue: "^3.2.47"
-        },
-        devDependencies: {
-          "@vitejs/plugin-vue": "^4.0.0",
-          vite: "4.1.4",
-          "vue-tsc": "^1.2.0",
-          typescript: "^4.9.5",
-          "esbuild-wasm": "^0.17.12"
-        }
-      }, null, 2)
-    }
-  },
-  main: "/src/App.vue",
-  environment: "node"
-};
-
 var ANGULAR_TEMPLATE = {
   files: {
     "/src/app/app.component.css": commonFiles["/styles.css"],
@@ -1440,19 +885,11 @@ var SANDBOX_TEMPLATES = {
   "vanilla-ts": VANILLA_TYPESCRIPT_TEMPLATE,
   vanilla: VANILLA_TEMPLATE,
   vue: VUE_TEMPLATE,
-  "vue-ts": VUE_TS_TEMPLATE,
-  node: NODE_TEMPLATE,
-  nextjs: NEXTJS_TEMPLATE,
-  vite: VITE_TEMPLATE,
-  "vite-react": VITE_REACT_TEMPLATE,
-  "vite-react-ts": VITE_REACT_TS_TEMPLATE,
-  "vite-preact": VITE_PREACT_TEMPLATE,
-  "vite-preact-ts": VITE_PREACT_TS_TEMPLATE,
-  "vite-vue": VITE_VUE_TEMPLATE,
-  "vite-vue-ts": VITE_VUE_TS_TEMPLATE,
-  "vite-svelte": VITE_SVELTE_TEMPLATE,
-  "vite-svelte-ts": VITE_SVELTE_TS_TEMPLATE,
-  astro: ASTRO_TEMPLATE
+  "vue-ts": VUE_TS_TEMPLATE
+};
+var UNSUPPORTED_SERVER_TEMPLATES = new Set(["node", "nextjs", "vite", "vite-react", "vite-react-ts", "vite-preact", "vite-preact-ts", "vite-vue", "vite-vue-ts", "vite-svelte", "vite-svelte-ts", "astro"]);
+var isUnsupportedServerTemplate = function (template) {
+  return UNSUPPORTED_SERVER_TEMPLATES.has(template);
 };
 
 var getSandpackStateFromProps = function (props) {
@@ -1534,6 +971,10 @@ var resolveFile = function (path, files) {
 };
 var combineTemplateFilesToSetup = function (_a) {
   var files = _a.files, template = _a.template, customSetup = _a.customSetup;
+  var requestedTemplate = template;
+  if (requestedTemplate && isUnsupportedServerTemplate(requestedTemplate) || (customSetup === null || customSetup === void 0 ? void 0 : customSetup.environment) === "node") {
+    throw new Error(("[sandpack-react]: template \"").concat(requestedTemplate !== null && requestedTemplate !== void 0 ? requestedTemplate : "custom", "\" requires the unsupported server runtime; browser runtime and static templates remain supported"));
+  }
   if (!template) {
     if (!customSetup) {
       var defaultTemplate = SANDBOX_TEMPLATES.vanilla;
@@ -1602,7 +1043,7 @@ var useSandpackId = function () {
   }
 };
 var MAX_ID_LENGTH = 9;
-var sandpackClientVersion = process.env.SANDPACK_CLIENT_VERSION;
+var sandpackClientVersion = "2.19.8";
 var useAsyncSandpackId = function (files) {
   if (typeof useId === 'function') {
     var reactDomId_1 = useId();
@@ -3267,23 +2708,9 @@ var useSandpackShell = function (clientId) {
   };
 };
 
-var mapProgressMessage = function (originalMessage, firstTotalPending) {
-  var _a;
-  switch (originalMessage.state) {
-    case "downloading_manifest":
-      return "[1/3] Downloading manifest";
-    case "downloaded_module":
-      return ("[2/3] Downloaded ").concat(originalMessage.name, " (").concat(firstTotalPending - originalMessage.totalPending, "/").concat(firstTotalPending, ")");
-    case "starting_command":
-      return "[3/3] Starting command";
-    case "command_running":
-      return ("[3/3] Running \"").concat((_a = originalMessage.command) === null || _a === void 0 ? void 0 : _a.trim(), "\"");
-  }
-};
 var useSandpackPreviewProgress = function (props) {
   var _a = React.useState(false), isReady = _a[0], setIsReady = _a[1];
-  var _b = React.useState(), totalDependencies = _b[0], setTotalDependencies = _b[1];
-  var _c = React.useState(null), loadingMessage = _c[0], setLoadingMessage = _c[1];
+  var _b = React.useState(null), loadingMessage = _b[0], setLoadingMessage = _b[1];
   var timeout = props === null || props === void 0 ? void 0 : props.timeout;
   var clientId = props === null || props === void 0 ? void 0 : props.clientId;
   var listen = useSandpack().listen;
@@ -3310,13 +2737,6 @@ var useSandpackPreviewProgress = function (props) {
           }
           return null;
         });
-      } else if (message.type === "shell/progress" && !isReady) {
-        if (!totalDependencies && message.data.state === "downloaded_module") {
-          setTotalDependencies(message.data.totalPending);
-        }
-        if (totalDependencies !== undefined) {
-          setLoadingMessage(mapProgressMessage(message.data, totalDependencies));
-        }
       }
       if (message.type === "done" && message.compilatonError === false) {
         setLoadingMessage(null);
@@ -3330,7 +2750,7 @@ var useSandpackPreviewProgress = function (props) {
       }
       unsubscribe();
     };
-  }, [clientId, isReady, totalDependencies, timeout]);
+  }, [clientId, isReady, timeout]);
   return loadingMessage;
 };
 
@@ -5613,4 +5033,4 @@ var buttonCounter = fakeCss;
 var consoleWrapper = fakeCss;
 var rtlLayoutClassName = fakeCss;
 
-export { ANGULAR_TEMPLATE, ASTRO_TEMPLATE, BackwardIcon, CleanIcon, CloseIcon, CodeMirror as CodeEditor, ConsoleIcon, DependenciesProgress, DirectoryIconClosed, DirectoryIconOpen, ErrorOverlay, ExportIcon, FADE_ANIMATION_DURATION, FileIcon, FileTabs, ForwardIcon, LoadingOverlay, Navigator, OpenInCodeSandboxButton, REACT_TEMPLATE, REACT_TYPESCRIPT_TEMPLATE, RefreshIcon, RestartIcon, RoundedButton, RunButton$1 as RunButton, RunIcon, SANDBOX_TEMPLATES, SANDPACK_THEMES, SOLID_TEMPLATE, SVELTE_TEMPLATE, Sandpack, SandpackCodeEditor, SandpackCodeViewer, SandpackConsole, SandpackConsumer, SandpackFileExplorer, SandpackLayout, SandpackPreview, SandpackProvider, Sandpack$1 as SandpackReactContext, SandpackStack, SandpackTests, SandpackThemeConsumer, SandpackThemeContext, SandpackThemeProvider, SandpackTranspiledCode, SignInIcon, SignOutIcon, TEST_TYPESCRIPT_TEMPLATE, UnstyledOpenInCodeSandboxButton, VANILLA_TEMPLATE, VANILLA_TYPESCRIPT_TEMPLATE, VUE_TEMPLATE, defaultDark, defaultLight, getCssText as getSandpackCssText, layoutClassName, stackClassName, tabButton, useActiveCode, useClassNames, useErrorMessage, useLoadingOverlayState, useSandpack, useSandpackClient, useSandpackConsole, useSandpackNavigation, useSandpackPreviewProgress, useSandpackShell, useSandpackShellStdout, useSandpackTheme, useTranspiledCode };
+export { ANGULAR_TEMPLATE, BackwardIcon, CleanIcon, CloseIcon, CodeMirror as CodeEditor, ConsoleIcon, DependenciesProgress, DirectoryIconClosed, DirectoryIconOpen, ErrorOverlay, ExportIcon, FADE_ANIMATION_DURATION, FileIcon, FileTabs, ForwardIcon, LoadingOverlay, Navigator, OpenInCodeSandboxButton, REACT_TEMPLATE, REACT_TYPESCRIPT_TEMPLATE, RefreshIcon, RestartIcon, RoundedButton, RunButton$1 as RunButton, RunIcon, SANDBOX_TEMPLATES, SANDPACK_THEMES, SOLID_TEMPLATE, SVELTE_TEMPLATE, Sandpack, SandpackCodeEditor, SandpackCodeViewer, SandpackConsole, SandpackConsumer, SandpackFileExplorer, SandpackLayout, SandpackPreview, SandpackProvider, Sandpack$1 as SandpackReactContext, SandpackStack, SandpackTests, SandpackThemeConsumer, SandpackThemeContext, SandpackThemeProvider, SandpackTranspiledCode, SignInIcon, SignOutIcon, TEST_TYPESCRIPT_TEMPLATE, UnstyledOpenInCodeSandboxButton, VANILLA_TEMPLATE, VANILLA_TYPESCRIPT_TEMPLATE, VUE_TEMPLATE, defaultDark, defaultLight, getCssText as getSandpackCssText, isUnsupportedServerTemplate, layoutClassName, stackClassName, tabButton, useActiveCode, useClassNames, useErrorMessage, useLoadingOverlayState, useSandpack, useSandpackClient, useSandpackConsole, useSandpackNavigation, useSandpackPreviewProgress, useSandpackShell, useSandpackShellStdout, useSandpackTheme, useTranspiledCode };

@@ -1,4 +1,5 @@
 {
   "name": "nested-alias-target",
-  "private": true
+  "private": true,
+  "license": "AGPL-3.0-only"
 }

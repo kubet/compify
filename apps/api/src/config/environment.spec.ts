@@ -84,7 +84,11 @@ describe('environment configuration', () => {
       }),
     ).toThrow(/must use HTTPS in production/);
     expect(() =>
-      validateEnvironment({ ...valid(), NODE_ENV: 'production' }),
+      validateEnvironment({
+        ...valid(),
+        NODE_ENV: 'production',
+        SOURCE_REVISION: 'a'.repeat(40),
+      }),
     ).not.toThrow();
   });
 
@@ -112,5 +116,32 @@ describe('environment configuration', () => {
       get: (key: string, fallback?: unknown) => values[key] ?? fallback,
     };
     expect(databaseOptions(config as any).synchronize).toBe(expected);
+  });
+
+  it('requires a pinned corresponding-source offer in production', () => {
+    expect(() =>
+      validateEnvironment({ ...valid(), NODE_ENV: 'production' }),
+    ).toThrow(/production requires SOURCE_REVISION/);
+    expect(() =>
+      validateEnvironment({
+        ...valid(),
+        NODE_ENV: 'production',
+        SOURCE_REVISION: 'short',
+      }),
+    ).toThrow(/SOURCE_REVISION must be an exact 40-character Git commit/);
+    expect(() =>
+      validateEnvironment({
+        ...valid(),
+        NODE_ENV: 'production',
+        SOURCE_URL: 'http://source.example.test/archive.tgz',
+      }),
+    ).toThrow(/SOURCE_URL must be an HTTPS URL/);
+    expect(() =>
+      validateEnvironment({
+        ...valid(),
+        NODE_ENV: 'production',
+        SOURCE_URL: 'https://source.example.test/archive.tgz',
+      }),
+    ).toThrow(/production requires SOURCE_REVISION/);
   });
 });

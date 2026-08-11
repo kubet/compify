@@ -7,10 +7,8 @@ const pkg = require("./package.json");
 const generateUnstyledTypes = require("./scripts/rollup-generate-unstyled-types");
 const removeCss = require("./scripts/rollup-remove-css-transformer");
 
-// Get sandpack client version from dependencies
-const sandpackClientVersion = pkg.dependencies[
-  "@codesandbox/sandpack-client"
-].replace("^", "");
+// Keep the remote browser bundler URL pinned to the reviewed client baseline.
+const sandpackClientVersion = require("./sandpack-client/package.json").version;
 
 const basePlugins = [commonjs({ requireReturnsDefault: "preferred" })];
 
@@ -74,6 +72,7 @@ const configBase = [
         values: {
           "process.env.TEST_ENV": "false",
           "process.env.SANDPACK_UNSTYLED_COMPONENTS": `"true"`,
+          "process.env.SANDPACK_CLIENT_VERSION": `"${sandpackClientVersion}"`,
         },
       }),
       typescript({

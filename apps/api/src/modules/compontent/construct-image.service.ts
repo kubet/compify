@@ -8,7 +8,6 @@ const sharp =
   (sharpNamespace as unknown as typeof sharpDefault);
 import * as path from 'path';
 import * as fs from 'fs/promises';
-import { Image } from 'node-webpmux';
 
 @Injectable()
 export class ConstructImageService {
@@ -181,41 +180,30 @@ export class ConstructImageService {
         16777215,
       );
 
-      // Initialize WebP image
-      const img = await Image.getEmptyImage(true);
-      img.convertToAnim();
-
-      // Process frames
       const frames = await Promise.all(
-        captures.map(async (dataUrl, index) => {
-          const webpBuffer = await this.validateAndProcessImage(
+        captures.map((dataUrl, index) =>
+          this.validateAndProcessImage(
             dataUrl,
             standardWidth,
             standardHeight,
             index,
-          );
-
-          return Image.generateFrame({
-            buffer: webpBuffer,
-            delay: 600,
-            x: 0,
-            y: 0,
-            dispose: true,
-            blend: true,
-          });
-        }),
+          ),
+        ),
       );
 
-      // Generate animation
-      const buffer = await img.save(null, {
-        frames,
-        loops: 0,
-        width: standardWidth,
-        height: standardHeight,
-        bgColor: [0, 0, 0, 0],
-        delay: 600,
-        quality: 75,
-      });
+      // Sharp/libvips can join equal-size images as animation pages, avoiding a
+      // separate WebAssembly muxer whose complete corresponding source was not
+      // conveyed by its npm artifact.
+      const buffer = await sharp(frames, {
+        join: { across: 1, animated: true },
+      })
+        .webp({
+          quality: 75,
+          alphaQuality: 100,
+          loop: 0,
+          delay: frames.map(() => 600),
+        })
+        .toBuffer();
 
       console.log(
         `Successfully created animation with ${frames.length} frames`,

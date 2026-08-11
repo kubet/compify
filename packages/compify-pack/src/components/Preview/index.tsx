@@ -2,7 +2,7 @@
 import type {
   SandpackClient,
   SandpackMessage,
-} from "@codesandbox/sandpack-client";
+} from "@compify/sandpack-client";
 import * as React from "react";
 
 import {

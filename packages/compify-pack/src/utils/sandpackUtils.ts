@@ -1,13 +1,17 @@
+// Modified by Compify; see packages/compify-pack/PROVENANCE.md.
 import type {
   SandpackBundlerFile,
   SandpackBundlerFiles,
-} from "@codesandbox/sandpack-client";
+} from "@compify/sandpack-client";
 import {
   addPackageJSONIfNeeded,
   normalizePath,
-} from "@codesandbox/sandpack-client";
+} from "@compify/sandpack-client";
 
-import { SANDBOX_TEMPLATES } from "../templates";
+import {
+  isUnsupportedServerTemplate,
+  SANDBOX_TEMPLATES,
+} from "../templates";
 import type {
   SandboxTemplate,
   SandpackPredefinedTemplate,
@@ -173,6 +177,16 @@ const combineTemplateFilesToSetup = ({
   template?: SandpackPredefinedTemplate;
   customSetup?: SandpackSetup;
 }): SandboxTemplate => {
+  const requestedTemplate = template as string | undefined;
+  if (
+    (requestedTemplate && isUnsupportedServerTemplate(requestedTemplate)) ||
+    customSetup?.environment === "node"
+  ) {
+    throw new Error(
+      `[sandpack-react]: template "${requestedTemplate ?? "custom"}" requires the unsupported server runtime; browser runtime and static templates remain supported`
+    );
+  }
+
   if (!template) {
     // If not input, default to vanilla
     if (!customSetup) {

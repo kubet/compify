@@ -19,7 +19,7 @@ if (
   !process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
 ) {
   throw new Error(
-    "NEXT_PUBLIC_TURNSTILE_SITE_KEY is required when NEXT_PUBLIC_TURNSTILE_ENABLED=true",
+    "NEXT_PUBLIC_TURNSTILE_SITE_KEY is required when NEXT_PUBLIC_TURNSTILE_ENABLED=true"
   );
 }
 
@@ -40,6 +40,32 @@ for (const variableName of publicUrlVariables) {
   }
   if (!["http:", "https:"].includes(parsedUrl.protocol)) {
     throw new Error(`${variableName} must be an absolute HTTP(S) URL`);
+  }
+}
+
+const sourceRevision = process.env.NEXT_PUBLIC_SOURCE_REVISION?.trim();
+if (
+  process.env.NODE_ENV === "production" &&
+  !/^[0-9a-f]{40}$/i.test(sourceRevision || "")
+) {
+  throw new Error(
+    "NEXT_PUBLIC_SOURCE_REVISION must be the exact 40-character deployed commit for a production build"
+  );
+}
+for (const variableName of [
+  "NEXT_PUBLIC_SOURCE_URL",
+  "NEXT_PUBLIC_SOURCE_REPOSITORY",
+]) {
+  const value = process.env[variableName]?.trim();
+  if (!value) continue;
+  let parsedUrl;
+  try {
+    parsedUrl = new URL(value);
+  } catch {
+    throw new Error(`${variableName} must be an absolute HTTPS URL`);
+  }
+  if (parsedUrl.protocol !== "https:") {
+    throw new Error(`${variableName} must be an absolute HTTPS URL`);
   }
 }
 

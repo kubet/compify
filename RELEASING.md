@@ -15,7 +15,9 @@ Before tagging:
 1. Start from a clean checkout of `main` at a commit whose required CI and CodeQL
    checks passed.
 2. Confirm `CHANGELOG.md` has the dated repository version and names every public
-   package version included.
+   package version included. For the first AGPL release, retain a signed rights
+   record confirming ownership/relicensing authority for the pre-publication
+   source and first-party assets; do not infer ownership merely from Git authorship.
 3. Run frozen installs, audits, lint/type checks, tests, builds, migration checks,
    Compose configuration validation, and the self-host smoke job through manual
    CI (`workflow_dispatch`).
@@ -24,12 +26,19 @@ Before tagging:
    cd packages/cli && bun install --frozen-lockfile && bun run test:package
    cd ../storybook && bun install --frozen-lockfile && bun run test:package
    ```
-5. Inspect each `bun pm pack --dry-run`. Confirm LICENSE, README, provenance and
-   expected `dist/` files are present; install the tarball in a clean consumer.
+5. Inspect each `bun pm pack --dry-run`. Confirm the complete AGPL text,
+   preferred-form `src/`, exact `bun.lock`, build configuration, README,
+   provenance, and expected `dist/` files are present; rebuild and install the
+   tarball in a clean consumer.
 6. Review `THIRD_PARTY_NOTICES.md`, package licenses, the runtime-image license
    bundles, dependency audit output, and any documented license exceptions.
-7. Build both runtime images from the exact commit, scan them, generate SBOMs,
-   record immutable digests, and complete the self-host black-box smoke test.
+7. Create a no-charge source archive from the exact release commit containing
+   the preferred source plus all scripts and material needed to build and install
+   the packages and images. Publish its checksum next to the binaries/images.
+   Build both runtime images with `SOURCE_REVISION` set to that exact 40-character
+   commit, verify their OCI source/revision/license labels, scan them, generate
+   SBOMs, record immutable digests, and complete the self-host black-box smoke
+   test. `SOURCE_URL`, if used, must point to that immutable source payload.
 8. Re-enable repository Actions deliberately and require the aggregate CI and
    CodeQL checks for the exact commit; local evidence cannot substitute for the
    protected remote gates.
@@ -37,10 +46,24 @@ Before tagging:
    each artifact's actual manifest, source commit, checksum, and provenance;
    never infer npm provenance from a similarly named repository tag.
 10. If public web/API surfaces are part of the announcement, deploy the exact
-    reviewed commit and atomically align the landing page, `llms.txt`, API
-    contract, and GitHub repository description. Re-run live black-box checks
-    before announcing. A source-only release must instead say the legacy public
+    reviewed commit with the web `/source` page and API `/source` endpoint pinned
+    to the immutable Corresponding Source for that deployment. A modified
+    self-host operator must point these offers at its own modified Corresponding
+    Source, not merely upstream Compify. Atomically align the landing page,
+    `llms.txt`, API contract, and GitHub repository description, then re-run live
+    black-box checks. A source-only release must instead say the legacy public
     surfaces have not yet been aligned.
+
+## One-time MIT-to-AGPL cutover
+
+Immediately before merging the license cutover, verify that
+`b0d0945c9b406c201d80528616715b699822ad03` is still the intended final MIT
+commit and that every prerequisite change is included in the AGPL cutover
+rather than merged before it. Create and push an annotated, signed, immutable
+`mit-final` tag at that commit, then verify the remote tag object and commit.
+Never move or delete that tag and never rewrite public history to imply that
+prior MIT grants were revoked. If another commit lands first, stop and update
+all boundary references before signing anything.
 
 ## Tag and artifacts
 
