@@ -17,7 +17,6 @@ function NavBar() {
         { title: "Templates", href: "/templates" },
         { title: "Create", href: "/create" },
         { title: "My Components", href: "/my-components" },
-        { title: "Source", href: "/source" },
       ]
     : [
         { title: "Features", href: "/#features" },
@@ -67,17 +66,15 @@ function NavBar() {
                 {link.title}
               </PreloadLink>
             ))}
-            {!isSignedIn && (
-              <a
-                href="https://github.com/kubet/compify"
-                target="_blank"
-                rel="noreferrer"
-                aria-label="Compify source on GitHub"
-                className="inline-flex h-6 w-6 items-center justify-center rounded text-gray-300 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-              >
-                <Github size={20} aria-hidden="true" />
-              </a>
-            )}
+            <a
+              href="https://github.com/kubet/compify"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Compify source on GitHub"
+              className="inline-flex h-11 w-11 items-center justify-center rounded text-gray-300 transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            >
+              <Github size={20} aria-hidden="true" />
+            </a>
           </div>
           <div className="hidden md:block">
             <PreloadLink
@@ -130,19 +127,16 @@ function NavBar() {
                     {link.title}
                   </PreloadLink>
                 ))}
-                {!isSignedIn && (
-                  <a
-                    href="https://github.com/kubet/compify"
-                    target="_blank"
-                    rel="noreferrer"
-                    aria-label="Compify source on GitHub"
-                    className="flex min-h-11 items-center gap-2 rounded py-2 text-lg text-gray-300 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    <Github size={20} aria-hidden="true" />
-                    GitHub
-                  </a>
-                )}
+                <a
+                  href="https://github.com/kubet/compify"
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="Compify source on GitHub"
+                  className="flex h-11 w-11 items-center justify-center rounded text-gray-300 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <Github size={20} aria-hidden="true" />
+                </a>
                 <PreloadLink
                   href={accountHref}
                   className="flex h-10 w-full items-center justify-center rounded-xl border border-white/10 px-6 text-sm font-medium text-white underline shadow-[inset_0_0_0_1px_rgba(255,255,255,0.2)] transition-colors hover:bg-white/5"
